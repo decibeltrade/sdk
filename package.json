@@ -4,8 +4,8 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@decibeltrade/eslint-config": "${ESLINT_CONFIG_VERSION}",
-    "@decibeltrade/tsconfig": "${TSCONFIG_VERSION}",
+    "@decibeltrade/eslint-config": "1.0.0",
+    "@decibeltrade/tsconfig": "1.0.0",
     "@types/estree": "^1.0.6",
     "eslint": "^9.28.0",
     "tsx": "^4.20.5",
@@ -35,5 +35,5 @@
     "test": "vitest run --passWithNoTests"
   },
   "types": "dist/index.d.ts",
-  "version": "${SDK_VERSION}"
+  "version": "0.1.4"
 }

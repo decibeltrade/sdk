@@ -1,0 +1,5 @@
+{
+  "name": "@decibeltrade/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configuration for the Decibel monorepo"
+}
