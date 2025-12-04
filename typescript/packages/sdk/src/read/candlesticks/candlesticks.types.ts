@@ -1,0 +1,46 @@
+import z from "zod/v4";
+
+import { BaseRequestArgs } from "../base-reader";
+
+export interface CandlesticksRequestArgs extends BaseRequestArgs {
+  marketName: string;
+  interval: CandlestickInterval;
+  startTime: number;
+  endTime: number;
+}
+export const CandlestickInterval = {
+  OneMinute: "1m",
+  FifteenMinutes: "15m",
+  OneHour: "1h",
+  FourHours: "4h",
+  OneDay: "1d",
+} as const;
+
+export type CandlestickInterval = (typeof CandlestickInterval)[keyof typeof CandlestickInterval];
+
+export const CandlestickSchema = z.object({
+  /** time end */
+  T: z.number(),
+  /** close */
+  c: z.number(),
+  /** high */
+  h: z.number(),
+  /** internal */
+  i: z.string(),
+  /** low */
+  l: z.number(),
+  /** open */
+  o: z.number(),
+  /** time start */
+  t: z.number(),
+  /** volume */
+  v: z.number(),
+});
+export const CandlesticksSchema = z.array(CandlestickSchema);
+export const CandlestickWsMessageSchema = z.object({
+  candle: CandlestickSchema,
+});
+
+export type Candlestick = z.infer<typeof CandlestickSchema>;
+export type Candlesticks = z.infer<typeof CandlesticksSchema>;
+export type CandlestickWsMessage = z.infer<typeof CandlestickWsMessageSchema>;
