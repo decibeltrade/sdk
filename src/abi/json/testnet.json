@@ -2,7 +2,7 @@
   "packageAddress": "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75",
   "network": "testnet",
   "fullnodeUrl": "https://api.testnet.aptoslabs.com/v1",
-  "fetchedAt": "2025-11-18T20:25:08.648Z",
+  "fetchedAt": "2025-12-05T02:52:16.298Z",
   "abis": {
     "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::initialize": {
       "name": "initialize",
@@ -1039,6 +1039,18 @@
       ],
       "return": []
     },
+    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_engine::migrate_position_tp_sl_tracker": {
+      "name": "migrate_position_tp_sl_tracker",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
     "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::burn": {
       "name": "burn",
       "visibility": "public",
@@ -1299,8 +1311,8 @@
   "errors": [],
   "summary": {
     "totalModules": 7,
-    "totalFunctions": 87,
-    "successful": 87,
+    "totalFunctions": 88,
+    "successful": 88,
     "failed": 0
   },
   "modules": [
