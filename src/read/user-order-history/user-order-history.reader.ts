@@ -21,13 +21,13 @@ export class UserOrderHistoryReader extends BaseReader {
   }
 
   /**
-   * Subscribe to user order history updates
+   * Subscribe to user order updates
    * @param subAddr The subaccount address of the user to subscribe to
-   * @param onData Callback function for received user order history data
-   * @returns A function to unsubscribe from the user order history updates
+   * @param onData Callback function for received user order data
+   * @returns A function to unsubscribe from the user order updates
    */
   subscribeByAddr(subAddr: string, onData: (data: UserOrdersWsMessage) => void) {
-    const topic = `user_order_history:${subAddr}`;
+    const topic = `order_updates:${subAddr}`;
 
     return this.deps.ws.subscribe(topic, UserOrdersWsMessageSchema, onData);
   }

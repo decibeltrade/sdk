@@ -36,7 +36,11 @@ export const UserOrderSchema = z.object({
 export const UserOrdersSchema = PaginatedResponseSchema(UserOrderSchema);
 
 export const UserOrdersWsMessageSchema = z.object({
-  orders: z.array(UserOrderSchema),
+  order: z.object({
+    details: z.string(),
+    order: UserOrderSchema,
+    status: z.string(),
+  }),
 });
 
 export type UserOrder = z.infer<typeof UserOrderSchema>;

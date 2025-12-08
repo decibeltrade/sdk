@@ -25,13 +25,13 @@ export class UserTradeHistoryReader extends BaseReader {
   }
 
   /**
-   * Subscribe to trade history updates
+   * Subscribe to user trades updates
    * @param subAddr The subaccount address of the user to subscribe to
-   * @param onData Callback function for received trade history data
-   * @returns A function to unsubscribe from the trade history updates
+   * @param onData Callback function for received user trades data
+   * @returns A function to unsubscribe from the user trades updates
    */
   subscribeByAddr(subAddr: string, onData: (data: UserTradesWsMessage) => void) {
-    const topic = `user_trade_history:${subAddr}`;
+    const topic = `user_trades:${subAddr}`;
 
     return this.deps.ws.subscribe(topic, UserTradesWsMessageSchema, onData);
   }
