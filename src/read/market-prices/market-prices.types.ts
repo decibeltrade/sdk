@@ -32,7 +32,10 @@ export const MarketPriceSchema = z.object({
 
 export const MarketPriceWsMessageSchema = z.object({ price: MarketPriceSchema });
 
+export const AllMarketPricesWsMessageSchema = z.object({ prices: MarketPricesSchema });
+
 export type Prices = z.infer<typeof PricesSchema>;
 export type MarketPrices = z.infer<typeof MarketPricesSchema>;
 export type MarketPrice = z.infer<typeof MarketPriceSchema>;
 export type MarketPriceWsMessage = z.infer<typeof MarketPriceWsMessageSchema>;
+export type AllMarketPricesWsMessage = z.infer<typeof AllMarketPricesWsMessageSchema>;

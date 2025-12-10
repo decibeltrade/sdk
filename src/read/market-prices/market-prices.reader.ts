@@ -1,6 +1,8 @@
 import { getMarketAddr } from "../../utils";
 import { BaseReader, BaseRequestArgs } from "../base-reader";
 import {
+  AllMarketPricesWsMessage,
+  AllMarketPricesWsMessageSchema,
   MarketPricesByNameRequestArgs,
   MarketPricesSchema,
   MarketPriceWsMessage,
@@ -57,5 +59,16 @@ export class MarketPricesReader extends BaseReader {
     const topic = `market_price:${marketAddr}`;
 
     return this.deps.ws.subscribe(topic, MarketPriceWsMessageSchema, onData);
+  }
+
+  /**
+   * Subscribe to price updates for all markets
+   * @param onData Callback function for received price data
+   * @returns A function to unsubscribe from the oracle price updates
+   */
+  subscribeAll(onData: (data: AllMarketPricesWsMessage) => void) {
+    const topic = `all_market_prices`;
+
+    return this.deps.ws.subscribe(topic, AllMarketPricesWsMessageSchema, onData);
   }
 }
