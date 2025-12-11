@@ -9,7 +9,6 @@ export const MarketContextSchema = z.object({
   oracle_price: z.number(),
   previous_day_price: z.number(),
   price_change_pct_24h: z.number(),
-  price_history: z.array(z.number()),
 });
 
 export const MarketContextsSchema = z.array(MarketContextSchema);
