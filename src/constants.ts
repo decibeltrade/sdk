@@ -70,7 +70,7 @@ export const NETNA_CONFIG: DecibelConfig = {
   tradingWsUrl: "wss://api.netna.aptoslabs.com/decibel/ws",
   gasStationUrl: "https://fee-payer-dev-netna-us-central1-410192433417.us-central1.run.app",
   deployment: NETNA_DEPLOYMENT,
-  chainId: 206,
+  chainId: 207,
   compatVersion: DEFAULT_COMPAT_VERSION,
 };
 
