@@ -25,10 +25,12 @@ export function getPerpEngineGlobalAddress(publisherAddr: string) {
 
 export enum CompatVersion {
   V0_1 = "v0.1", // decibel-testnet-release-v0.1
-  V0_2 = "v0.2", // Current main branch (bumped when new branch is created)
+  V0_2 = "v0.2", // decibel-testnet-release-v0.2
+  V0_3 = "v0.3", // Current main branch (bumped when new branch is created)
 }
 
-export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_2;
+export const TESTNET_COMPAT_VERSION = CompatVersion.V0_2;
+export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_3;
 
 export interface DecibelConfig {
   network: Network;
@@ -90,7 +92,7 @@ export const TESTNET_CONFIG: DecibelConfig = {
   gasStationUrl: "https://fee-payer-staging-testnet-us-central1-502735673999.us-central1.run.app",
   deployment: TESTNET_DEPLOYMENT,
   chainId: 2,
-  compatVersion: CompatVersion.V0_1,
+  compatVersion: TESTNET_COMPAT_VERSION,
 };
 
 export const LOCAL_CONFIG: DecibelConfig = {
