@@ -729,6 +729,7 @@ export class DecibelWriteDex extends BaseSDK {
         function: `${this.config.deployment.package}::${vaultApiModule}::create_and_fund_vault`,
         typeArguments: [],
         functionArguments: [
+          null,
           contributionAssetType,
           vaultName,
           vaultDescription,
@@ -768,6 +769,7 @@ export class DecibelWriteDex extends BaseSDK {
             function: `${this.config.deployment.package}::${vaultApiModule}::create_and_fund_vault`,
             typeArguments: [],
             functionArguments: [
+              null,
               args.contributionAssetType,
               args.vaultName,
               args.vaultDescription,
