@@ -1,10 +1,10 @@
 {
-  "packageAddress": "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75",
+  "packageAddress": "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844",
   "network": "testnet",
   "fullnodeUrl": "https://api.testnet.aptoslabs.com/v1",
   "fetchedAt": "2025-12-05T02:52:16.298Z",
   "abis": {
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::initialize": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::initialize": {
       "name": "initialize",
       "visibility": "public",
       "is_entry": true,
@@ -18,7 +18,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::increment_time": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::increment_time": {
       "name": "increment_time",
       "visibility": "public",
       "is_entry": true,
@@ -29,7 +29,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::update_fee_config": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::update_fee_config": {
       "name": "update_fee_config",
       "visibility": "public",
       "is_entry": true,
@@ -53,7 +53,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::delist_market": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::delist_market": {
       "name": "delist_market",
       "visibility": "public",
       "is_entry": true,
@@ -61,12 +61,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::option::Option<0x1::string::String>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::drain_async_queue": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::drain_async_queue": {
       "name": "drain_async_queue",
       "visibility": "public",
       "is_entry": true,
@@ -74,11 +74,11 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::delist_market_with_mark_price": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::delist_market_with_mark_price": {
       "name": "delist_market_with_mark_price",
       "visibility": "public",
       "is_entry": true,
@@ -86,13 +86,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "0x1::option::Option<0x1::string::String>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::register_market_with_composite_oracle_primary_chainlink": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::register_market_with_composite_oracle_primary_chainlink": {
       "name": "register_market_with_composite_oracle_primary_chainlink",
       "visibility": "public",
       "is_entry": true,
@@ -118,7 +118,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::register_market_with_composite_oracle_primary_pyth": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::register_market_with_composite_oracle_primary_pyth": {
       "name": "register_market_with_composite_oracle_primary_pyth",
       "visibility": "public",
       "is_entry": true,
@@ -145,7 +145,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::register_market_with_internal_oracle": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::register_market_with_internal_oracle": {
       "name": "register_market_with_internal_oracle",
       "visibility": "public",
       "is_entry": true,
@@ -166,7 +166,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::register_market_with_pyth_oracle": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::register_market_with_pyth_oracle": {
       "name": "register_market_with_pyth_oracle",
       "visibility": "public",
       "is_entry": true,
@@ -189,7 +189,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_backstop_liquidator_high_watermark": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_backstop_liquidator_high_watermark": {
       "name": "set_backstop_liquidator_high_watermark",
       "visibility": "public",
       "is_entry": true,
@@ -197,12 +197,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "i64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_global_exchange_open": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_global_exchange_open": {
       "name": "set_global_exchange_open",
       "visibility": "public",
       "is_entry": true,
@@ -214,7 +214,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_allowlist_only": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_allowlist_only": {
       "name": "set_market_allowlist_only",
       "visibility": "public",
       "is_entry": true,
@@ -222,13 +222,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "vector<address>",
         "0x1::option::Option<0x1::string::String>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_halted": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_halted": {
       "name": "set_market_halted",
       "visibility": "public",
       "is_entry": true,
@@ -236,12 +236,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::option::Option<0x1::string::String>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_max_leverage": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_max_leverage": {
       "name": "set_market_max_leverage",
       "visibility": "public",
       "is_entry": true,
@@ -249,12 +249,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u8"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_notional_open_interest": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_notional_open_interest": {
       "name": "set_market_notional_open_interest",
       "visibility": "public",
       "is_entry": true,
@@ -262,12 +262,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_open": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_open": {
       "name": "set_market_open",
       "visibility": "public",
       "is_entry": true,
@@ -275,12 +275,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::option::Option<0x1::string::String>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_open_interest": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_open_interest": {
       "name": "set_market_open_interest",
       "visibility": "public",
       "is_entry": true,
@@ -288,12 +288,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_reduce_only": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_reduce_only": {
       "name": "set_market_reduce_only",
       "visibility": "public",
       "is_entry": true,
@@ -301,13 +301,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "vector<address>",
         "0x1::option::Option<0x1::string::String>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_unrealized_pnl_haircut": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_unrealized_pnl_haircut": {
       "name": "set_market_unrealized_pnl_haircut",
       "visibility": "public",
       "is_entry": true,
@@ -315,12 +315,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_withdrawable_margin_leverage": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_withdrawable_margin_leverage": {
       "name": "set_market_withdrawable_margin_leverage",
       "visibility": "public",
       "is_entry": true,
@@ -328,12 +328,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u8"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::add_admin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::add_admin": {
       "name": "add_admin",
       "visibility": "public",
       "is_entry": true,
@@ -345,7 +345,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::add_elevated_admin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::add_elevated_admin": {
       "name": "add_elevated_admin",
       "visibility": "public",
       "is_entry": true,
@@ -357,7 +357,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::add_oracle_and_mark_update_permission": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::add_oracle_and_mark_update_permission": {
       "name": "add_oracle_and_mark_update_permission",
       "visibility": "public",
       "is_entry": true,
@@ -369,7 +369,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::remove_admin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::remove_admin": {
       "name": "remove_admin",
       "visibility": "public",
       "is_entry": true,
@@ -381,7 +381,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::remove_elevated_admin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::remove_elevated_admin": {
       "name": "remove_elevated_admin",
       "visibility": "public",
       "is_entry": true,
@@ -393,7 +393,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::remove_oracle_and_mark_update_permission": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::remove_oracle_and_mark_update_permission": {
       "name": "remove_oracle_and_mark_update_permission",
       "visibility": "public",
       "is_entry": true,
@@ -405,7 +405,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::set_market_funding_rate_pause_timeout_microseconds": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_funding_rate_pause_timeout_microseconds": {
       "name": "set_market_funding_rate_pause_timeout_microseconds",
       "visibility": "public",
       "is_entry": true,
@@ -413,12 +413,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::update_mark_for_chainlink_oracle": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::update_mark_for_chainlink_oracle": {
       "name": "update_mark_for_chainlink_oracle",
       "visibility": "public",
       "is_entry": true,
@@ -426,14 +426,14 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "vector<u8>",
         "vector<address>",
         "bool"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::update_mark_for_composite_chainlink": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::update_mark_for_composite_chainlink": {
       "name": "update_mark_for_composite_chainlink",
       "visibility": "public",
       "is_entry": true,
@@ -441,7 +441,7 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::option::Option<u64>",
         "0x1::option::Option<vector<u8>>",
         "0x1::option::Option<u64>",
@@ -451,7 +451,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::update_mark_for_internal_oracle": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::update_mark_for_internal_oracle": {
       "name": "update_mark_for_internal_oracle",
       "visibility": "public",
       "is_entry": true,
@@ -459,14 +459,14 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "vector<address>",
         "bool"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::admin_apis::update_mark_for_pyth_oracle": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::update_mark_for_pyth_oracle": {
       "name": "update_mark_for_pyth_oracle",
       "visibility": "public",
       "is_entry": true,
@@ -474,14 +474,14 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "vector<u8>",
         "vector<address>",
         "bool"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::public_apis::close_delisted_position": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::public_apis::close_delisted_position": {
       "name": "close_delisted_position",
       "visibility": "public",
       "is_entry": true,
@@ -489,11 +489,11 @@
       "generic_type_params": [],
       "params": [
         "address",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::public_apis::liquidate_position": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::public_apis::liquidate_position": {
       "name": "liquidate_position",
       "visibility": "public",
       "is_entry": true,
@@ -501,23 +501,23 @@
       "generic_type_params": [],
       "params": [
         "address",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::public_apis::trigger_matching": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::public_apis::trigger_matching": {
       "name": "trigger_matching",
       "visibility": "public",
       "is_entry": true,
       "is_view": false,
       "generic_type_params": [],
       "params": [
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u32"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::register_referral_code": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::register_referral_code": {
       "name": "register_referral_code",
       "visibility": "private",
       "is_entry": true,
@@ -529,7 +529,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::register_referrer": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::register_referrer": {
       "name": "register_referrer",
       "visibility": "private",
       "is_entry": true,
@@ -541,7 +541,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::configure_user_settings_for_market": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::configure_user_settings_for_market": {
       "name": "configure_user_settings_for_market",
       "visibility": "public",
       "is_entry": true,
@@ -550,13 +550,13 @@
       "params": [
         "&signer",
         "address",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "bool",
         "u8"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::transfer_margin_to_isolated_position": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::transfer_margin_to_isolated_position": {
       "name": "transfer_margin_to_isolated_position",
       "visibility": "public",
       "is_entry": true,
@@ -564,15 +564,15 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "bool",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::deposit_to_isolated_position_margin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::deposit_to_isolated_position_margin": {
       "name": "deposit_to_isolated_position_margin",
       "visibility": "public",
       "is_entry": true,
@@ -580,14 +580,14 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::cancel_tp_sl_order_for_position": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::cancel_tp_sl_order_for_position": {
       "name": "cancel_tp_sl_order_for_position",
       "visibility": "private",
       "is_entry": true,
@@ -595,13 +595,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u128"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::place_tp_sl_order_for_position": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::place_tp_sl_order_for_position": {
       "name": "place_tp_sl_order_for_position",
       "visibility": "private",
       "is_entry": true,
@@ -609,8 +609,8 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>",
@@ -622,7 +622,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::withdraw_from_isolated_position_margin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::withdraw_from_isolated_position_margin": {
       "name": "withdraw_from_isolated_position_margin",
       "visibility": "public",
       "is_entry": true,
@@ -630,14 +630,14 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::add_delegated_trader_and_deposit_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::add_delegated_trader_and_deposit_to_subaccount": {
       "name": "add_delegated_trader_and_deposit_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -653,7 +653,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::approve_max_builder_fee_for_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::approve_max_builder_fee_for_subaccount": {
       "name": "approve_max_builder_fee_for_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -661,13 +661,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "address",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::cancel_bulk_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::cancel_bulk_order_to_subaccount": {
       "name": "cancel_bulk_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -675,12 +675,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::cancel_client_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::cancel_client_order_to_subaccount": {
       "name": "cancel_client_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -688,13 +688,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "0x1::string::String",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::cancel_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::cancel_order_to_subaccount": {
       "name": "cancel_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -702,13 +702,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "u128",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::cancel_twap_orders_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::cancel_twap_orders_to_subaccount": {
       "name": "cancel_twap_orders_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -716,13 +716,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u128"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::create_new_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::create_new_subaccount": {
       "name": "create_new_subaccount",
       "visibility": "public",
       "is_entry": true,
@@ -733,7 +733,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::deactivate_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::deactivate_subaccount": {
       "name": "deactivate_subaccount",
       "visibility": "friend",
       "is_entry": true,
@@ -741,12 +741,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "bool"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::delegate_ability_to_sub_delegate_to_for_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::delegate_ability_to_sub_delegate_to_for_subaccount": {
       "name": "delegate_ability_to_sub_delegate_to_for_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -760,7 +760,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::delegate_trading_to_for_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::delegate_trading_to_for_subaccount": {
       "name": "delegate_trading_to_for_subaccount",
       "visibility": "friend",
       "is_entry": true,
@@ -774,7 +774,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::deposit_to_subaccount_at": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::deposit_to_subaccount_at": {
       "name": "deposit_to_subaccount_at",
       "visibility": "public",
       "is_entry": true,
@@ -788,7 +788,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::place_bulk_orders_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::place_bulk_orders_to_subaccount": {
       "name": "place_bulk_orders_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -796,8 +796,8 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "vector<u64>",
         "vector<u64>",
@@ -806,7 +806,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::place_market_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::place_market_order_to_subaccount": {
       "name": "place_market_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -814,8 +814,8 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "bool",
         "bool",
@@ -830,7 +830,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::place_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::place_order_to_subaccount": {
       "name": "place_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -838,8 +838,8 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "u64",
         "bool",
@@ -856,7 +856,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::place_twap_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::place_twap_order_to_subaccount": {
       "name": "place_twap_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -864,8 +864,8 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "bool",
         "bool",
@@ -876,7 +876,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::reactivate_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::reactivate_subaccount": {
       "name": "reactivate_subaccount",
       "visibility": "friend",
       "is_entry": true,
@@ -884,11 +884,11 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::revoke_all_delegations": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::revoke_all_delegations": {
       "name": "revoke_all_delegations",
       "visibility": "friend",
       "is_entry": true,
@@ -896,11 +896,11 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::revoke_delegation": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::revoke_delegation": {
       "name": "revoke_delegation",
       "visibility": "friend",
       "is_entry": true,
@@ -908,12 +908,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "address"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::revoke_max_builder_fee_for_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::revoke_max_builder_fee_for_subaccount": {
       "name": "revoke_max_builder_fee_for_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -921,12 +921,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "address"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::transfer_collateral_between_subaccounts": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::transfer_collateral_between_subaccounts": {
       "name": "transfer_collateral_between_subaccounts",
       "visibility": "public",
       "is_entry": true,
@@ -934,14 +934,14 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::update_client_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::update_client_order_to_subaccount": {
       "name": "update_client_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -949,9 +949,9 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "0x1::string::String",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "u64",
         "bool",
@@ -966,7 +966,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::update_order_to_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::update_order_to_subaccount": {
       "name": "update_order_to_subaccount",
       "visibility": "private",
       "is_entry": true,
@@ -974,9 +974,9 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "u128",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u64",
         "u64",
         "bool",
@@ -991,7 +991,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::update_sl_order_for_position": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::update_sl_order_for_position": {
       "name": "update_sl_order_for_position",
       "visibility": "private",
       "is_entry": true,
@@ -999,16 +999,16 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "u128",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::update_tp_order_for_position": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::update_tp_order_for_position": {
       "name": "update_tp_order_for_position",
       "visibility": "private",
       "is_entry": true,
@@ -1016,16 +1016,16 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "u128",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_market::PerpMarket>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::withdraw_from_subaccount": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::withdraw_from_subaccount": {
       "name": "withdraw_from_subaccount",
       "visibility": "friend",
       "is_entry": true,
@@ -1033,13 +1033,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::perp_engine::migrate_position_tp_sl_tracker": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::migrate_position_tp_sl_tracker": {
       "name": "migrate_position_tp_sl_tracker",
       "visibility": "public",
       "is_entry": true,
@@ -1051,7 +1051,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::burn": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::burn": {
       "name": "burn",
       "visibility": "public",
       "is_entry": true,
@@ -1063,7 +1063,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::mint": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::mint": {
       "name": "mint",
       "visibility": "public",
       "is_entry": true,
@@ -1076,7 +1076,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::add_admin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::add_admin": {
       "name": "add_admin",
       "visibility": "public",
       "is_entry": true,
@@ -1088,7 +1088,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::remove_admin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::remove_admin": {
       "name": "remove_admin",
       "visibility": "public",
       "is_entry": true,
@@ -1100,7 +1100,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::change_restricted_mint_settings": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::change_restricted_mint_settings": {
       "name": "change_restricted_mint_settings",
       "visibility": "public",
       "is_entry": true,
@@ -1114,7 +1114,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::restricted_mint": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::restricted_mint": {
       "name": "restricted_mint",
       "visibility": "public",
       "is_entry": true,
@@ -1126,7 +1126,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::usdc::set_public_minting": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::set_public_minting": {
       "name": "set_public_minting",
       "visibility": "public",
       "is_entry": true,
@@ -1138,18 +1138,18 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::distribute_fees": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::distribute_fees": {
       "name": "distribute_fees",
       "visibility": "public",
       "is_entry": true,
       "is_view": false,
       "generic_type_params": [],
       "params": [
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::activate_vault": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::activate_vault": {
       "name": "activate_vault",
       "visibility": "public",
       "is_entry": true,
@@ -1157,12 +1157,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::change_admin": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::change_admin": {
       "name": "change_admin",
       "visibility": "public",
       "is_entry": true,
@@ -1170,12 +1170,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "address"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::contribute": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::contribute": {
       "name": "contribute",
       "visibility": "public",
       "is_entry": true,
@@ -1183,19 +1183,19 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::create_and_fund_vault": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::create_and_fund_vault": {
       "name": "create_and_fund_vault",
       "visibility": "public",
       "is_entry": true,
       "is_view": false,
       "generic_type_params": [],
       "params": [
-        "0x1::option::Option<0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>>",
+        "0x1::option::Option<0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>>",
         "&signer",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "0x1::string::String",
@@ -1213,7 +1213,7 @@
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::delegate_dex_actions_to": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::delegate_dex_actions_to": {
       "name": "delegate_dex_actions_to",
       "visibility": "public",
       "is_entry": true,
@@ -1221,13 +1221,13 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "address",
         "0x1::option::Option<u64>"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::redeem": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::redeem": {
       "name": "redeem",
       "visibility": "public",
       "is_entry": true,
@@ -1235,12 +1235,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::update_vault_contribution_lockup_duration": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::update_vault_contribution_lockup_duration": {
       "name": "update_vault_contribution_lockup_duration",
       "visibility": "public",
       "is_entry": true,
@@ -1248,12 +1248,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::update_vault_fee_recipient": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::update_vault_fee_recipient": {
       "name": "update_vault_fee_recipient",
       "visibility": "public",
       "is_entry": true,
@@ -1261,12 +1261,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "address"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::update_vault_max_outstanding_shares": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::update_vault_max_outstanding_shares": {
       "name": "update_vault_max_outstanding_shares",
       "visibility": "public",
       "is_entry": true,
@@ -1274,12 +1274,12 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::vault::Vault>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts_vault_extension::contribute_to_vault": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts_vault_extension::contribute_to_vault": {
       "name": "contribute_to_vault",
       "visibility": "public",
       "is_entry": true,
@@ -1287,14 +1287,14 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "address",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "u64"
       ],
       "return": []
     },
-    "0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts_vault_extension::redeem_from_vault": {
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts_vault_extension::redeem_from_vault": {
       "name": "redeem_from_vault",
       "visibility": "public",
       "is_entry": true,
@@ -1302,7 +1302,7 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x1f513904b7568445e3c291a6c58cb272db017d8a72aea563d5664666221d5f75::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "address",
         "u64"
       ],
