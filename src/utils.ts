@@ -176,7 +176,7 @@ export function bigIntReviver(key: string, value: unknown) {
 
 export function getPrimarySubaccountAddr(addr: AccountAddress | string) {
   const account = typeof addr === "string" ? AccountAddress.fromString(addr) : addr;
-  const seed = new TextEncoder().encode("decibel_dex_primary");
+  const seed = new TextEncoder().encode("decibel_dex_primary_v2");
   return createObjectAddress(account, seed).toString();
 }
 

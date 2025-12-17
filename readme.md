@@ -1041,7 +1041,7 @@ function getMarketAddress(marketName: string, perpEngineGlobalAddr: string): Acc
  * Get primary subaccount address for a user account
  */
 function getPrimarySubaccountAddress(userAddress: AccountAddress): string {
-  const seed = new TextEncoder().encode("decibel_dex_primary");
+  const seed = new TextEncoder().encode("decibel_dex_primary_v2");
   return createObjectAddress(userAddress, seed).toString();
 }
 
