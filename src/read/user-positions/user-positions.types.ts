@@ -14,7 +14,6 @@ export const UserPositionSchema = z.object({
   user: z.string(),
   size: z.number(),
   // margin: z.number(),
-  max_allowed_leverage: z.number(),
   user_leverage: z.number(),
   entry_price: z.number(),
   is_isolated: z.boolean(),
