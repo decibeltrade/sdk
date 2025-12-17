@@ -101,6 +101,14 @@ export class DecibelWriteDex extends BaseSDK {
     });
   }
 
+  async enterTradingCompetition() {
+    return await this.sendTx({
+      function: `${this.config.deployment.usdc}::usdc::enter_trading_competition`,
+      typeArguments: [],
+      functionArguments: [],
+    });
+  }
+
   async sendSubaccountTx(
     sendTx: (subaccountAddr: string) => Promise<CommittedTransactionResponse>,
     subaccountAddr?: string,

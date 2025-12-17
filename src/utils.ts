@@ -180,6 +180,12 @@ export function getPrimarySubaccountAddr(addr: AccountAddress | string) {
   return createObjectAddress(account, seed).toString();
 }
 
+export function getTradingCompetitionSubaccountAddr(addr: AccountAddress | string) {
+  const account = typeof addr === "string" ? AccountAddress.fromString(addr) : addr;
+  const seed = new TextEncoder().encode("trading_competition");
+  return createObjectAddress(account, seed).toString();
+}
+
 export function getVaultShareAddress(vaultAddress: string) {
   const seed = new TextEncoder().encode("vault_share_asset");
   return createObjectAddress(AccountAddress.fromString(vaultAddress), seed).toString();
