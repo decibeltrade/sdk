@@ -239,6 +239,24 @@ export function generateRandomReplayProtectionNonce() {
   return (BigInt(valueAtIndex0) << BigInt(32)) | BigInt(valueAtIndex1);
 }
 
+/**
+ * Round price to valid tick size.
+ * Prices must be multiples of tickSize in chain units.
+ */
+export function roundToTickSize(
+  price: number,
+  tickSize: number,
+  pxDecimals: number,
+  roundUp: boolean,
+): number {
+  if (price === 0) return 0;
+  const denormalized = price * 10 ** pxDecimals;
+  const rounded = roundUp
+    ? Math.ceil(denormalized / tickSize) * tickSize
+    : Math.floor(denormalized / tickSize) * tickSize;
+  return Number((rounded / 10 ** pxDecimals).toFixed(pxDecimals));
+}
+
 export const extractVaultAddressFromCreateTx = (createVaultTx: CommittedTransactionResponse) => {
   // Extract vault address from transaction events
   let vaultAddress: string | { inner: string } | null = null;
