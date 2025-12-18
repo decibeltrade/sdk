@@ -12,11 +12,14 @@ export interface UserOwnedVaultsRequestArgs extends BaseRequestArgs {
   offset?: number;
 }
 
+export const vaultTypeValues = ["user", "protocol"] as const;
+export type VaultType = (typeof vaultTypeValues)[number];
 export interface PublicVaultsRequestArgs extends BaseRequestArgs {
   limit?: number;
   offset?: number;
-  vaultType?: "user" | "protocol";
+  vaultType?: VaultType;
   address?: string;
+  search?: string;
 }
 
 /**
@@ -50,7 +53,7 @@ export const VaultSchema = z.object({
   average_leverage: z.number().nullable(),
   depositors: z.number().nullable(),
   perp_equity: z.number().nullable(),
-  vault_type: z.string(),
+  vault_type: z.enum(vaultTypeValues),
   pnl_history: z.array(z.string()).nullable(),
   social_links: z.array(z.string()).nullable(),
 });
