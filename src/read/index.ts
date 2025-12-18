@@ -186,12 +186,29 @@ export class DecibelReadDex {
   }
 
   /**
-   * Get the timestamp when the restricted mint limits reset (in seconds).
+   * Get the timestamp when the global restricted mint limits for NEW accounts reset (in seconds).
    *
    * @remarks This method is temporary and only for use in testnet. The restricted_mint_daily_reset_timestamp
    * view function is a testnet-only feature and should be removed before mainnet deployment.
    */
-  async getTriggerResetMintTs(addr: string | AccountAddress): Promise<number> {
+  async getTriggerResetMintTs(): Promise<number> {
+    const result = await this.deps.aptos.view<[string]>({
+      payload: {
+        function: `${this.config.deployment.package}::usdc::restricted_mint_daily_reset_timestamp`,
+        typeArguments: [],
+        functionArguments: [],
+      },
+    });
+    return Number(result[0]);
+  }
+
+  /**
+   * Get the timestamp when the account-specific restricted mint limits reset (in seconds).
+   *
+   * @remarks This method is temporary and only for use in testnet. The restricted_mint_daily_reset_timestamp_for
+   * view function is a testnet-only feature and should be removed before mainnet deployment.
+   */
+  async getAccountTriggerResetMintTs(addr: string | AccountAddress): Promise<number> {
     const result = await this.deps.aptos.view<[string]>({
       payload: {
         function: `${this.config.deployment.package}::usdc::restricted_mint_daily_reset_timestamp_for`,
