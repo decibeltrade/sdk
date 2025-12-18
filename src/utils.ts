@@ -174,9 +174,14 @@ export function bigIntReviver(key: string, value: unknown) {
   return value;
 }
 
-export function getPrimarySubaccountAddr(addr: AccountAddress | string) {
+export function getPrimarySubaccountAddr(
+  addr: AccountAddress | string,
+  variant: "v1" | "v2" = "v2",
+) {
   const account = typeof addr === "string" ? AccountAddress.fromString(addr) : addr;
-  const seed = new TextEncoder().encode("decibel_dex_primary_v2");
+  const seed = new TextEncoder().encode(
+    variant === "v1" ? "decibel_dex_primary" : "decibel_dex_primary_v2",
+  );
   return createObjectAddress(account, seed).toString();
 }
 
