@@ -12,12 +12,16 @@ export class AccountOverviewReader extends BaseReader {
    * @param subAddr The subaccount address to get the account overview for
    * @returns The account overview for the given subaccount address
    */
-  async getByAddr({ subAddr, volumeWindow, fetchOptions }: AccountOverviewRequestArgs) {
+  async getByAddr({
+    subAddr,
+    volumeWindow,
+    fetchOptions,
+    includePerformance,
+  }: AccountOverviewRequestArgs) {
     const queryParams = new URLSearchParams({ user: subAddr });
 
-    if (volumeWindow) {
-      queryParams.set("volume_window", volumeWindow);
-    }
+    if (volumeWindow) queryParams.set("volume_window", volumeWindow);
+    if (includePerformance) queryParams.set("include_performance", "true");
 
     const response = await this.getRequest({
       schema: AccountOverviewSchema,

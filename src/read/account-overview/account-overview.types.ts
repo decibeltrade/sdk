@@ -5,6 +5,7 @@ import { BaseRequestArgs } from "../base-reader";
 export interface AccountOverviewRequestArgs extends BaseRequestArgs {
   subAddr: string;
   volumeWindow?: VolumeWindow;
+  includePerformance?: boolean;
 }
 
 export const VolumeWindow = {
@@ -35,6 +36,7 @@ export const AccountOverviewSchema = z.object({
   total_margin: z.number(),
   usdc_cross_withdrawable_balance: z.number(),
   usdc_isolated_withdrawable_balance: z.number(),
+  realized_pnl: z.number().nullable(),
 });
 
 export const AccountOverviewWsMessageSchema = z.object({
