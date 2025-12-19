@@ -32,6 +32,8 @@ export enum CompatVersion {
 export const TESTNET_COMPAT_VERSION = CompatVersion.V0_2;
 export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_3;
 
+export type SubaccountVariant = "v1" | "v2";
+
 export interface DecibelConfig {
   network: Network;
   fullnodeUrl: string;
@@ -41,6 +43,7 @@ export interface DecibelConfig {
   deployment: Deployment;
   chainId?: number;
   compatVersion: CompatVersion;
+  subaccountVariant: SubaccountVariant;
 }
 
 export interface DecibelReaderDeps {
@@ -74,6 +77,7 @@ export const NETNA_CONFIG: DecibelConfig = {
   deployment: NETNA_DEPLOYMENT,
   chainId: 207,
   compatVersion: DEFAULT_COMPAT_VERSION,
+  subaccountVariant: "v1",
 };
 
 const TESTNET_PACKAGE = "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844";
@@ -93,6 +97,7 @@ export const TESTNET_CONFIG: DecibelConfig = {
   deployment: TESTNET_DEPLOYMENT,
   chainId: 2,
   compatVersion: TESTNET_COMPAT_VERSION,
+  subaccountVariant: "v2",
 };
 
 export const LOCAL_CONFIG: DecibelConfig = {
@@ -103,6 +108,7 @@ export const LOCAL_CONFIG: DecibelConfig = {
   gasStationUrl: "http://localhost:8085",
   deployment: NETNA_DEPLOYMENT,
   compatVersion: DEFAULT_COMPAT_VERSION,
+  subaccountVariant: "v1",
 };
 
 export const DOCKER_CONFIG: DecibelConfig = {
@@ -114,6 +120,7 @@ export const DOCKER_CONFIG: DecibelConfig = {
   gasStationUrl: "http://fee-payer:8080",
   deployment: NETNA_DEPLOYMENT,
   compatVersion: DEFAULT_COMPAT_VERSION,
+  subaccountVariant: "v1",
 };
 
 export const NAMED_CONFIGS: Record<string, DecibelConfig | undefined> = {
