@@ -769,7 +769,7 @@ export class DecibelWriteDex extends BaseSDK {
             function: `${this.config.deployment.package}::${vaultApiModule}::create_and_fund_vault`,
             typeArguments: [],
             functionArguments: [
-              null,
+              args.subaccountAddr ?? null,
               args.contributionAssetType,
               args.vaultName,
               args.vaultDescription,

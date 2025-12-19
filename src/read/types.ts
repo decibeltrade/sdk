@@ -98,6 +98,7 @@ export interface SortParams<T extends string> {
 
 // Vaults
 export interface CreateVaultArgs {
+  subaccountAddr?: string | null;
   contributionAssetType?: string;
   vaultName: string;
   vaultDescription: string;
