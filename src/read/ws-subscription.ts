@@ -52,9 +52,9 @@ export class DecibelWsSubscription {
 
     ws.addEventListener("open", () => {
       this.#reconnectAttempts = 0;
-      this.#subscriptions.keys().forEach((topic) => {
+      for (const topic of this.#subscriptions.keys()) {
         ws.send(this.#getSubscribeMessage(topic));
-      });
+      }
     });
 
     ws.addEventListener("message", (event) => {

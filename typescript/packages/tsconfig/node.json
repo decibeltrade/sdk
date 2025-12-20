@@ -3,9 +3,9 @@
   "extends": "./base.json",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ESNext"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "module": "ES2022",
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationMap": true
