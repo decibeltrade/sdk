@@ -26,6 +26,7 @@ export function buildSimpleTransactionSync(args: {
   withFeePayer: boolean;
   replayProtectionNonce: bigint;
   timeDeltaMs?: number;
+  maxGasAmount?: number;
 }) {
   const txnPayload = generateTransactionPayloadWithABI({
     aptosConfig: args.aptosConfig,
@@ -44,7 +45,7 @@ export function buildSimpleTransactionSync(args: {
     BigInt("0xdeadbeef"),
     convertPayloadToInnerPayload(txnPayload, args.replayProtectionNonce),
     // @Todo: Use gasPriceManager to get the max gas amount [as defaultMaxGasAmount might be very high number]
-    BigInt(args.aptosConfig.getDefaultMaxGasAmount()),
+    BigInt(args.maxGasAmount ?? args.aptosConfig.getDefaultMaxGasAmount()),
     BigInt(args.gasUnitPrice),
     BigInt(expireTimestamp),
     new ChainId(args.chainId),

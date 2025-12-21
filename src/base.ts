@@ -84,40 +84,6 @@ export class BaseSDK {
     return this.abi.abis[functionId] ?? null;
   }
 
-  private async getSimulatedTx(
-    payload: InputGenerateTransactionPayloadData,
-    sender: AccountAddress,
-  ) {
-    const transaction = await this.aptos.transaction.build.simple({
-      sender,
-      data: payload,
-    });
-    const [sim] = await this.aptos.transaction.simulate.simple({
-      transaction,
-      options: {
-        estimateMaxGasAmount: true,
-        estimateGasUnitPrice: true,
-      },
-    });
-
-    if (typeof sim === "undefined") {
-      throw new Error("Transaction simulation returned no results");
-    }
-
-    if (!sim.max_gas_amount || !sim.gas_unit_price) {
-      throw new Error("Transaction simulation returned no results");
-    }
-
-    return await this.aptos.transaction.build.simple({
-      sender,
-      data: payload,
-      options: {
-        maxGasAmount: Number(sim.max_gas_amount),
-        gasUnitPrice: Number(sim.gas_unit_price),
-      },
-    });
-  }
-
   public async submitTx(
     transaction: SimpleTransaction,
     senderAuthenticator: AccountAuthenticator,
@@ -132,7 +98,14 @@ export class BaseSDK {
     }
   }
 
-  public async buildTx(payload: InputGenerateTransactionPayloadData, sender: AccountAddress) {
+  public async buildTx(
+    {
+      maxGasAmount,
+      gasUnitPrice,
+      ...payload
+    }: InputGenerateTransactionPayloadData & { maxGasAmount?: number; gasUnitPrice?: number },
+    sender: AccountAddress,
+  ) {
     const functionAbi = "function" in payload ? this.getABI(payload.function) : undefined;
     const withFeePayer = !this.noFeePayer;
 
@@ -148,9 +121,7 @@ export class BaseSDK {
     // If we have functionAbi and chainId, we can use the sync function to generate the transaction
     // This is faster than the async function
     if (functionAbi && this.chainId) {
-      let gasUnitPrice: number;
-
-      if (this.gasPriceManager) {
+      if (gasUnitPrice === undefined && this.gasPriceManager) {
         // 1. Try getting from cache
         // 2. If not available, try fetching from gasmanager, this also sets the gas price in the cache for future use
         gasUnitPrice =
@@ -170,6 +141,7 @@ export class BaseSDK {
         chainId: this.chainId,
         gasUnitPrice,
         timeDeltaMs: this.timeDeltaMs,
+        maxGasAmount,
       });
     } else {
       // This is a fallback, should not happen, but works if due to any issues, functionAbi or chainId is not present
@@ -180,6 +152,8 @@ export class BaseSDK {
         withFeePayer,
         options: {
           replayProtectionNonce,
+          maxGasAmount,
+          gasUnitPrice,
         },
       });
     }
@@ -190,29 +164,59 @@ export class BaseSDK {
   protected async sendTx(payload: InputGenerateTransactionPayloadData, accountOverride?: Account) {
     const signer = accountOverride ?? this.account;
     const sender = signer.accountAddress;
+
+    let transaction = await this.buildTx(payload, sender);
+
     if (!this.skipSimulate) {
-      const transaction = await this.getSimulatedTx(payload, sender);
-      const senderAuthenticator = this.aptos.transaction.sign({
-        signer,
+      const [sim] = await this.aptos.transaction.simulate.simple({
         transaction,
-      });
-      const pendingTransaction = await this.submitTx(transaction, senderAuthenticator);
-      return await this.aptos.waitForTransaction({
-        transactionHash: pendingTransaction.hash,
-      });
-    } else {
-      const transaction = await this.buildTx(payload, sender);
-
-      const senderAuthenticator = this.aptos.transaction.sign({
-        signer,
-        transaction,
+        options: {
+          estimateMaxGasAmount: true,
+          estimateGasUnitPrice: true,
+        },
       });
 
-      const pendingTransaction = await this.submitTx(transaction, senderAuthenticator);
+      if (typeof sim === "undefined") {
+        throw new Error("Transaction simulation returned no results");
+      }
 
-      return await this.aptos.waitForTransaction({
-        transactionHash: pendingTransaction.hash,
-      });
+      if (!sim.max_gas_amount || !sim.gas_unit_price) {
+        throw new Error("Transaction simulation returned no results");
+      }
+
+      const simulatedMaxGas = Number(sim.max_gas_amount);
+      const simulatedGasPrice = Number(sim.gas_unit_price);
+      const defaultMaxGasAmount = this.aptos.config.getDefaultMaxGasAmount();
+
+      // @Todo: Look into this more, maybe we can use the simulation results directly
+      // Ensure maxGasAmount is at least the default and add a 2x buffer
+      // The simulation might return very low values, so we need to ensure minimums
+      const maxGasAmount = Math.max(
+        Math.ceil(simulatedMaxGas * 2), // 2x buffer from simulation
+        defaultMaxGasAmount, // At least the default minimum
+      );
+
+      const gasUnitPrice = Math.max(simulatedGasPrice, 1);
+
+      transaction = await this.buildTx(
+        {
+          ...payload,
+          maxGasAmount,
+          gasUnitPrice,
+        },
+        sender,
+      );
     }
+
+    const senderAuthenticator = this.aptos.transaction.sign({
+      signer,
+      transaction,
+    });
+
+    const pendingTransaction = await this.submitTx(transaction, senderAuthenticator);
+
+    return await this.aptos.waitForTransaction({
+      transactionHash: pendingTransaction.hash,
+    });
   }
 }
