@@ -33,11 +33,12 @@ jobs:
           echo "📄 Local version: $LOCAL"
           echo "🌐 Published version: $REMOTE"
 
-
           if npx semver "$LOCAL" -r ">$REMOTE" >/dev/null; then
             echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Version is greater — will publish"
           else
             echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "⏭️ Version not greater — skipping publish"
           fi
 
       - name: Install dependencies
