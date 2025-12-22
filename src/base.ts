@@ -19,7 +19,7 @@ import { DecibelConfig, NETNA_CONFIG, TESTNET_CONFIG } from "./constants";
 import { submitFeePaidTransaction } from "./fee-pay";
 import { GasPriceManager } from "./gas/gas-price-manager";
 import { buildSimpleTransactionSync } from "./transaction-builder";
-import { generateRandomReplayProtectionNonce } from "./utils";
+import { generateRandomReplayProtectionNonce, getPrimarySubaccountAddr } from "./utils";
 
 export interface Options {
   skipSimulate?: boolean;
@@ -218,5 +218,9 @@ export class BaseSDK {
     return await this.aptos.waitForTransaction({
       transactionHash: pendingTransaction.hash,
     });
+  }
+
+  public getPrimarySubaccountAddress(addr: AccountAddress | string) {
+    return getPrimarySubaccountAddr(addr, this.config.subaccountVariant);
   }
 }

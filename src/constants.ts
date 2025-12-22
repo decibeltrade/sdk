@@ -1,6 +1,7 @@
 import { AccountAddress, Aptos, createObjectAddress, Network } from "@aptos-labs/ts-sdk";
 
 import { DecibelWsSubscription } from "./read/ws-subscription";
+import { CompatVersion, PACKAGE, RELEASE_CONFIGS, ReleaseConfig } from "./release-config";
 
 export function getUsdcAddress(publisherAddr: string) {
   return createObjectAddress(
@@ -23,18 +24,7 @@ export function getPerpEngineGlobalAddress(publisherAddr: string) {
   );
 }
 
-export enum CompatVersion {
-  V0_1 = "v0.1", // decibel-testnet-release-v0.1
-  V0_2 = "v0.2", // decibel-testnet-release-v0.2
-  V0_3 = "v0.3", // Current main branch (bumped when new branch is created)
-}
-
-export const TESTNET_COMPAT_VERSION = CompatVersion.V0_2;
-export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_3;
-
-export type SubaccountVariant = "v1" | "v2";
-
-export interface DecibelConfig {
+export interface DecibelConfig extends ReleaseConfig {
   network: Network;
   fullnodeUrl: string;
   tradingHttpUrl: string;
@@ -42,8 +32,6 @@ export interface DecibelConfig {
   gasStationUrl: string;
   deployment: Deployment;
   chainId?: number;
-  compatVersion: CompatVersion;
-  subaccountVariant: SubaccountVariant;
 }
 
 export interface DecibelReaderDeps {
@@ -60,12 +48,13 @@ export interface Deployment {
   perpEngineGlobal: string;
 }
 
-const NETNA_PACKAGE = "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95";
-export const NETNA_DEPLOYMENT: Deployment = {
-  package: NETNA_PACKAGE,
-  usdc: getUsdcAddress(NETNA_PACKAGE).toString(),
-  testc: getTestcAddress(NETNA_PACKAGE).toString(),
-  perpEngineGlobal: getPerpEngineGlobalAddress(NETNA_PACKAGE).toString(),
+const getDeployment = (pkg: string): Deployment => {
+  return {
+    package: pkg,
+    usdc: getUsdcAddress(pkg).toString(),
+    testc: getTestcAddress(pkg).toString(),
+    perpEngineGlobal: getPerpEngineGlobalAddress(pkg).toString(),
+  };
 };
 
 export const NETNA_CONFIG: DecibelConfig = {
@@ -74,18 +63,16 @@ export const NETNA_CONFIG: DecibelConfig = {
   tradingHttpUrl: "https://api.netna.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.netna.aptoslabs.com/decibel/ws",
   gasStationUrl: "https://fee-payer-dev-netna-us-central1-410192433417.us-central1.run.app",
-  deployment: NETNA_DEPLOYMENT,
+  deployment: getDeployment(PACKAGE.NETNA),
   chainId: 208,
-  compatVersion: DEFAULT_COMPAT_VERSION,
-  subaccountVariant: "v1",
+  ...RELEASE_CONFIGS.NETNA,
 };
 
-const TESTNET_PACKAGE = "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844";
 export const TESTNET_DEPLOYMENT: Deployment = {
-  package: TESTNET_PACKAGE,
-  usdc: getUsdcAddress(TESTNET_PACKAGE).toString(),
-  testc: getTestcAddress(TESTNET_PACKAGE).toString(),
-  perpEngineGlobal: getPerpEngineGlobalAddress(TESTNET_PACKAGE).toString(),
+  package: PACKAGE.TESTNET,
+  usdc: getUsdcAddress(PACKAGE.TESTNET).toString(),
+  testc: getTestcAddress(PACKAGE.TESTNET).toString(),
+  perpEngineGlobal: getPerpEngineGlobalAddress(PACKAGE.TESTNET).toString(),
 };
 
 export const TESTNET_CONFIG: DecibelConfig = {
@@ -94,10 +81,9 @@ export const TESTNET_CONFIG: DecibelConfig = {
   tradingHttpUrl: "https://api.testnet.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.testnet.aptoslabs.com/decibel/ws",
   gasStationUrl: "https://fee-payer-staging-testnet-us-central1-502735673999.us-central1.run.app",
-  deployment: TESTNET_DEPLOYMENT,
+  deployment: getDeployment(PACKAGE.TESTNET),
   chainId: 2,
-  compatVersion: TESTNET_COMPAT_VERSION,
-  subaccountVariant: "v2",
+  ...RELEASE_CONFIGS.TESTNET,
 };
 
 export const LOCAL_CONFIG: DecibelConfig = {
@@ -106,9 +92,8 @@ export const LOCAL_CONFIG: DecibelConfig = {
   tradingHttpUrl: "http://localhost:8084",
   tradingWsUrl: "ws://localhost:8083",
   gasStationUrl: "http://localhost:8085",
-  deployment: NETNA_DEPLOYMENT,
-  compatVersion: DEFAULT_COMPAT_VERSION,
-  subaccountVariant: "v1",
+  deployment: getDeployment(PACKAGE.NETNA),
+  ...RELEASE_CONFIGS.LOCAL,
 };
 
 export const DOCKER_CONFIG: DecibelConfig = {
@@ -118,9 +103,8 @@ export const DOCKER_CONFIG: DecibelConfig = {
   // nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket
   tradingWsUrl: "ws://trading-api-ws:8080",
   gasStationUrl: "http://fee-payer:8080",
-  deployment: NETNA_DEPLOYMENT,
-  compatVersion: DEFAULT_COMPAT_VERSION,
-  subaccountVariant: "v1",
+  deployment: getDeployment(PACKAGE.NETNA),
+  ...RELEASE_CONFIGS.DOCKER,
 };
 
 export const NAMED_CONFIGS: Record<string, DecibelConfig | undefined> = {

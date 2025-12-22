@@ -8,6 +8,7 @@ import { z, ZodError } from "zod/v4";
 
 import { QUERY_PARAM_KEYS } from "./constants";
 import { PageParams, SearchTermParams, SortParams } from "./read";
+import { SubaccountVariant } from "./release-config";
 
 export function getMarketAddr(name: string, perpEngineGlobalAddr: string) {
   const marketNameBytes = new MoveString(name).bcsToBytes();
@@ -174,15 +175,19 @@ export function bigIntReviver(key: string, value: unknown) {
   return value;
 }
 
+const baseSeed = "decibel_dex_primary";
+
+const createSeed = (variant: SubaccountVariant) => {
+  return new TextEncoder().encode(variant === "v0" ? baseSeed : `${baseSeed}_${variant}`);
+};
+
 export function getPrimarySubaccountAddr(
   addr: AccountAddress | string,
-  variant: "v1" | "v2" = "v2",
+  variant: SubaccountVariant,
 ) {
   const account = typeof addr === "string" ? AccountAddress.fromString(addr) : addr;
-  const seed = new TextEncoder().encode(
-    variant === "v1" ? "decibel_dex_primary" : "decibel_dex_primary_v2",
-  );
-  return createObjectAddress(account, seed).toString();
+
+  return createObjectAddress(account, createSeed(variant)).toString();
 }
 
 export function getTradingCompetitionSubaccountAddr(addr: AccountAddress | string) {

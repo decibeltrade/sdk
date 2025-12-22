@@ -5,6 +5,7 @@ export * from "./gas/gas-price-manager";
 export * from "./order-event.types";
 export * from "./order-status";
 export * from "./read/index";
+export * from "./release-config";
 export * from "./subaccount-types";
 export * from "./utils";
 export * from "./write";

@@ -26,6 +26,13 @@
     "@types/ws": "^8.18.0",
     "zod": "^3.25.62"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/decibeltrade/sdk.git"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -36,5 +43,5 @@
   },
   "type": "module",
   "types": "dist/index.d.ts",
-  "version": "0.2.0"
+  "version": "0.2.5"
 }

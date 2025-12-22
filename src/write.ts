@@ -106,14 +106,20 @@ export class DecibelWriteDex extends BaseSDK {
     subaccountAddr?: string,
   ) {
     if (!subaccountAddr) {
-      subaccountAddr = getPrimarySubaccountAddr(this.account.accountAddress);
+      subaccountAddr = getPrimarySubaccountAddr(
+        this.account.accountAddress,
+        this.config.subaccountVariant,
+      );
     }
     return await sendTx(subaccountAddr);
   }
 
   async withSubaccount<T>(fn: (subaccountAddr: string) => Promise<T>, subaccountAddr?: string) {
     if (!subaccountAddr) {
-      subaccountAddr = getPrimarySubaccountAddr(this.account.accountAddress);
+      subaccountAddr = getPrimarySubaccountAddr(
+        this.account.accountAddress,
+        this.config.subaccountVariant,
+      );
     }
     return await fn(subaccountAddr);
   }
@@ -439,19 +445,21 @@ export class DecibelWriteDex extends BaseSDK {
     );
   }
 
-  async delegateTradingTo({
+  async delegateTradingToForSubaccount({
     subaccountAddr,
     accountToDelegateTo,
+    expirationTimestampSecs,
   }: {
-    subaccountAddr?: string;
+    subaccountAddr: string;
     accountToDelegateTo: string;
+    expirationTimestampSecs?: number;
   }) {
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts::delegate_trading_to`,
+          function: `${this.config.deployment.package}::dex_accounts::delegate_trading_to_for_subaccount`,
           typeArguments: [],
-          functionArguments: [subaccountAddr, accountToDelegateTo],
+          functionArguments: [subaccountAddr, accountToDelegateTo, expirationTimestampSecs ?? null],
         }),
       subaccountAddr,
     );

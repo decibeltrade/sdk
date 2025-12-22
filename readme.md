@@ -730,7 +730,7 @@ export enum CandlestickInterval {
 import { getPrimarySubaccountAddr, getMarketAddr } from "@decibeltrade/sdk";
 
 // Get primary subaccount address for an account
-const subaccountAddr = getPrimarySubaccountAddr("account_address");
+const subaccountAddr = getPrimarySubaccountAddr("account_address", sdkConfig.subaccountVariant);
 
 // Get market address from name
 const marketAddr = getMarketAddr("BTC-USD", "perp_engine_global_address");
