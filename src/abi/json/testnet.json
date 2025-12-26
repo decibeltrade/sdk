@@ -2,7 +2,7 @@
   "packageAddress": "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844",
   "network": "testnet",
   "fullnodeUrl": "https://api.testnet.aptoslabs.com/v1",
-  "fetchedAt": "2025-12-05T02:52:16.298Z",
+  "fetchedAt": "2025-12-25T10:28:12.531Z",
   "abis": {
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::initialize": {
       "name": "initialize",
@@ -29,6 +29,19 @@
       ],
       "return": []
     },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::delist_market": {
+      "name": "delist_market",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
+        "0x1::option::Option<0x1::string::String>"
+      ],
+      "return": []
+    },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::update_fee_config": {
       "name": "update_fee_config",
       "visibility": "public",
@@ -50,19 +63,6 @@
         "u64",
         "u128",
         "u128"
-      ],
-      "return": []
-    },
-    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::delist_market": {
-      "name": "delist_market",
-      "visibility": "public",
-      "is_entry": true,
-      "is_view": false,
-      "generic_type_params": [],
-      "params": [
-        "&signer",
-        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
-        "0x1::option::Option<0x1::string::String>"
       ],
       "return": []
     },
@@ -241,6 +241,19 @@
       ],
       "return": []
     },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_margin_call_fee_pct": {
+      "name": "set_market_margin_call_fee_pct",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
+        "u64"
+      ],
+      "return": []
+    },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_max_leverage": {
       "name": "set_market_max_leverage",
       "visibility": "public",
@@ -304,6 +317,19 @@
         "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "vector<address>",
         "0x1::option::Option<0x1::string::String>"
+      ],
+      "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_slippage_pcts": {
+      "name": "set_market_slippage_pcts",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
+        "vector<u64>"
       ],
       "return": []
     },
@@ -402,6 +428,19 @@
       "params": [
         "&signer",
         "address"
+      ],
+      "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::admin_apis::set_market_adl_trigger_threshold": {
+      "name": "set_market_adl_trigger_threshold",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
+        "u64"
       ],
       "return": []
     },
@@ -696,7 +735,7 @@
     },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::cancel_order_to_subaccount": {
       "name": "cancel_order_to_subaccount",
-      "visibility": "private",
+      "visibility": "public",
       "is_entry": true,
       "is_view": false,
       "generic_type_params": [],
@@ -719,6 +758,18 @@
         "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
         "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
         "u128"
+      ],
+      "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::create_new_seeded_subaccount": {
+      "name": "create_new_seeded_subaccount",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "vector<u8>"
       ],
       "return": []
     },
@@ -785,6 +836,18 @@
         "address",
         "0x1::object::Object<0x1::fungible_asset::Metadata>",
         "u64"
+      ],
+      "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::init_account_status_cache_for_subaccount": {
+      "name": "init_account_status_cache_for_subaccount",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
       ],
       "return": []
     },
@@ -875,6 +938,53 @@
         "0x1::option::Option<u64>"
       ],
       "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::place_twap_order_to_subaccount_v2": {
+      "name": "place_twap_order_to_subaccount_v2",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
+        "u64",
+        "bool",
+        "bool",
+        "0x1::option::Option<0x1::string::String>",
+        "u64",
+        "u64",
+        "0x1::option::Option<address>",
+        "0x1::option::Option<u64>"
+      ],
+      "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::primary_subaccount": {
+      "name": "primary_subaccount",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "address"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::primary_subaccount_object": {
+      "name": "primary_subaccount_object",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>"
+      ]
     },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::reactivate_subaccount": {
       "name": "reactivate_subaccount",
@@ -1039,17 +1149,566 @@
       ],
       "return": []
     },
-    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::migrate_position_tp_sl_tracker": {
-      "name": "migrate_position_tp_sl_tracker",
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_oracle_price": {
+      "name": "get_oracle_price",
       "visibility": "public",
-      "is_entry": true,
-      "is_view": false,
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_market_mode": {
+      "name": "get_market_mode",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market_config::MarketMode"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_oracle_source": {
+      "name": "get_oracle_source",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::oracle::OracleSource"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_primary_store_balance_in_balance_precision": {
+      "name": "get_primary_store_balance_in_balance_precision",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::primary_asset_metadata": {
+      "name": "primary_asset_metadata",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "0x1::object::Object<0x1::fungible_asset::Metadata>"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_mark_and_oracle_price": {
+      "name": "get_mark_and_oracle_price",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64",
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_mark_price": {
+      "name": "get_mark_price",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::backstop_liquidator": {
+      "name": "backstop_liquidator",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "address"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_max_leverage": {
+      "name": "market_max_leverage",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u8"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::cross_position_status": {
+      "name": "cross_position_status",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_positions::AccountStatusDetailed"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_position_is_long": {
+      "name": "get_position_is_long",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
       "generic_type_params": [],
       "params": [
         "address",
-        "u64"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
       ],
-      "return": []
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_position_size": {
+      "name": "get_position_size",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::has_any_assets_or_positions": {
+      "name": "has_any_assets_or_positions",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::has_position": {
+      "name": "has_position",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::is_position_isolated": {
+      "name": "is_position_isolated",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::is_position_liquidatable": {
+      "name": "is_position_liquidatable",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::list_positions": {
+      "name": "list_positions",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "vector<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::position_view_types::PositionViewInfo>"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::view_position": {
+      "name": "view_position",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "0x1::option::Option<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::position_view_types::PositionViewInfo>"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_account_balance_fungible": {
+      "name": "get_account_balance_fungible",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_account_net_asset_value_fungible": {
+      "name": "get_account_net_asset_value_fungible",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "bool"
+      ],
+      "return": [
+        "i64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_isolated_position_margin": {
+      "name": "get_isolated_position_margin",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::max_allowed_withdraw_fungible_amount": {
+      "name": "max_allowed_withdraw_fungible_amount",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_current_open_interest": {
+      "name": "get_current_open_interest",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_max_notional_open_interest": {
+      "name": "get_max_notional_open_interest",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_min_size": {
+      "name": "market_min_size",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::collateral_balance_decimals": {
+      "name": "collateral_balance_decimals",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "u8"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_blp_pnl": {
+      "name": "get_blp_pnl",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "i64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_max_open_interest_delta": {
+      "name": "get_max_open_interest_delta",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_oracle_internal_snapshot": {
+      "name": "get_oracle_internal_snapshot",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::OracleInternalSnapshot"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_position_avg_price": {
+      "name": "get_position_avg_price",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_position_entry_price_times_size_sum": {
+      "name": "get_position_entry_price_times_size_sum",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u128"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::get_remaining_size_for_order": {
+      "name": "get_remaining_size_for_order",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>",
+        "u128"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::is_exchange_open": {
+      "name": "is_exchange_open",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::is_market_open": {
+      "name": "is_market_open",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::is_supported_collateral": {
+      "name": "is_supported_collateral",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x1::fungible_asset::Metadata>"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::list_markets": {
+      "name": "list_markets",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "vector<address>"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_lot_size": {
+      "name": "market_lot_size",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_margin_call_fee_pct": {
+      "name": "market_margin_call_fee_pct",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_name": {
+      "name": "market_name",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "0x1::string::String"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_slippage_pcts": {
+      "name": "market_slippage_pcts",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "vector<u64>"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_sz_decimals": {
+      "name": "market_sz_decimals",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u8"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::market_ticker_size": {
+      "name": "market_ticker_size",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_engine::view_position_status": {
+      "name": "view_position_status",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::perp_positions::AccountStatusDetailed"
+      ]
     },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::burn": {
       "name": "burn",
@@ -1100,6 +1759,45 @@
       ],
       "return": []
     },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::available_restricted_mint_for": {
+      "name": "available_restricted_mint_for",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::can_mint": {
+      "name": "can_mint",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::can_restricted_mint": {
+      "name": "can_restricted_mint",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::change_restricted_mint_settings": {
       "name": "change_restricted_mint_settings",
       "visibility": "public",
@@ -1114,6 +1812,63 @@
       ],
       "return": []
     },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::enter_trading_competition": {
+      "name": "enter_trading_competition",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer"
+      ],
+      "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::get_admin_count": {
+      "name": "get_admin_count",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::is_admin": {
+      "name": "is_admin",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::is_public_minting_allowed": {
+      "name": "is_public_minting_allowed",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "bool"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::mints_remaining": {
+      "name": "mints_remaining",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "u64"
+      ]
+    },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::restricted_mint": {
       "name": "restricted_mint",
       "visibility": "public",
@@ -1125,6 +1880,30 @@
         "u64"
       ],
       "return": []
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::restricted_mint_daily_reset_timestamp": {
+      "name": "restricted_mint_daily_reset_timestamp",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::restricted_mint_daily_reset_timestamp_for": {
+      "name": "restricted_mint_daily_reset_timestamp_for",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
     },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::usdc::set_public_minting": {
       "name": "set_public_minting",
@@ -1175,44 +1954,6 @@
       ],
       "return": []
     },
-    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::contribute": {
-      "name": "contribute",
-      "visibility": "public",
-      "is_entry": true,
-      "is_view": false,
-      "generic_type_params": [],
-      "params": [
-        "&signer",
-        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
-        "u64"
-      ],
-      "return": []
-    },
-    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::create_and_fund_vault": {
-      "name": "create_and_fund_vault",
-      "visibility": "public",
-      "is_entry": true,
-      "is_view": false,
-      "generic_type_params": [],
-      "params": [
-        "0x1::option::Option<0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::dex_accounts::Subaccount>>",
-        "&signer",
-        "0x1::object::Object<0x1::fungible_asset::Metadata>",
-        "0x1::string::String",
-        "0x1::string::String",
-        "vector<0x1::string::String>",
-        "0x1::string::String",
-        "0x1::string::String",
-        "0x1::string::String",
-        "u64",
-        "u64",
-        "u64",
-        "u64",
-        "bool",
-        "bool"
-      ],
-      "return": []
-    },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::delegate_dex_actions_to": {
       "name": "delegate_dex_actions_to",
       "visibility": "public",
@@ -1227,18 +1968,83 @@
       ],
       "return": []
     },
-    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::redeem": {
-      "name": "redeem",
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::get_vault_admin": {
+      "name": "get_vault_admin",
       "visibility": "public",
-      "is_entry": true,
-      "is_view": false,
+      "is_entry": false,
+      "is_view": true,
       "generic_type_params": [],
       "params": [
-        "&signer",
-        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>",
-        "u64"
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>"
       ],
-      "return": []
+      "return": [
+        "address"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::get_vault_contribution_asset_type": {
+      "name": "get_vault_contribution_asset_type",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>"
+      ],
+      "return": [
+        "0x1::object::Object<0x1::fungible_asset::Metadata>"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::get_vault_net_asset_value": {
+      "name": "get_vault_net_asset_value",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::get_vault_num_shares": {
+      "name": "get_vault_num_shares",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::get_vault_portfolio_subaccounts": {
+      "name": "get_vault_portfolio_subaccounts",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>"
+      ],
+      "return": [
+        "vector<address>"
+      ]
+    },
+    "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::get_vault_share_asset_type": {
+      "name": "get_vault_share_asset_type",
+      "visibility": "public",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::Vault>"
+      ],
+      "return": [
+        "0x1::object::Object<0x1::fungible_asset::Metadata>"
+      ]
     },
     "0x9f830083a19fb8b87395983ca9edaea2b0379c97be6dfe234bb914e6c6672844::vault::update_vault_contribution_lockup_duration": {
       "name": "update_vault_contribution_lockup_duration",
@@ -1312,8 +2118,8 @@
   "errors": [],
   "summary": {
     "totalModules": 7,
-    "totalFunctions": 88,
-    "successful": 88,
+    "totalFunctions": 151,
+    "successful": 151,
     "failed": 0
   },
   "modules": [

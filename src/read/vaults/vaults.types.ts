@@ -30,6 +30,13 @@ export interface UserPerformancesOnVaultsRequestArgs extends BaseRequestArgs {
 }
 
 /**
+ * Arguments for fetching vault share price
+ */
+export interface VaultSharePriceRequestArgs extends BaseRequestArgs {
+  vaultAddress: string;
+}
+
+/**
  * Schema for a vault in the protocol
  * Represents both protocol-wide vaults and user-managed vaults
  */
@@ -54,7 +61,6 @@ export const VaultSchema = z.object({
   depositors: z.number().nullable(),
   perp_equity: z.number().nullable(),
   vault_type: z.enum(vaultTypeValues),
-  pnl_history: z.array(z.string()).nullable(),
   social_links: z.array(z.string()).nullable(),
 });
 
@@ -93,12 +99,13 @@ export type UserOwnedVaults = UserOwnedVault[];
  * Tracks a user's deposits, shares, returns, and PnL for a specific vault
  */
 export const UserPerformanceOnVaultSchema = z.object({
-  vault_address: z.string(),
+  vault: VaultSchema,
   user_address: z.string(),
   net_deposits: z.number().nullable(),
   current_num_shares: z.number().nullable(),
   current_value_of_shares: z.number().nullable(),
   all_time_return: z.number().nullable(),
+  all_time_earned: z.number().nullable(),
   unrealized_pnl: z.number().nullable(),
   share_price: z.number(),
   volume: z.number(),

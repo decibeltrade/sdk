@@ -6,9 +6,13 @@
 import { Aptos, AptosConfig, MoveFunction, MoveFunctionId, Network } from "@aptos-labs/ts-sdk";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 
 import { DecibelConfig, NETNA_CONFIG, TESTNET_CONFIG } from "../constants";
 import { ABIData, ABIs } from "./types";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // @Todo: There should be a global config that takes care of config across all the packages and apps
 // @Todo: Generate ABIs for all the networks as well, or as per global config depending upon how that will work
@@ -81,22 +85,22 @@ async function fetchAllAbis(config: DecibelConfig): Promise<void> {
       // Debug: Log the ABI structure
       console.log("📋 ABI structure for", module, ":", Object.keys(moduleInfo.abi));
 
-      // Get only entry functions from the module
+      // Get entry functions and view functions from the module
       const exposedFunctions: MoveFunction[] = moduleInfo.abi.exposed_functions;
-      const entryFunctions = exposedFunctions.filter((f) => f.is_entry);
+      const relevantFunctions = exposedFunctions.filter((f) => f.is_entry || f.is_view);
 
-      console.log("🔍 Found", exposedFunctions.length, "exposed functions in", module);
-      console.log("🧩 Keeping", entryFunctions.length, "entry functions in", module);
+      console.log("🔍 Found", exposedFunctions.length, "exposed/view functions in", module);
+      console.log("🧩 Keeping", relevantFunctions.length, "functions in", module);
 
-      for (const func of entryFunctions) {
+      for (const func of relevantFunctions) {
         const functionId: MoveFunctionId = `${config.deployment.package}::${module}::${func.name}`;
         abis[functionId] = func;
       }
 
       console.log(
         "✅ Successfully collected",
-        entryFunctions.length,
-        "entry functions from",
+        relevantFunctions.length,
+        "functions (entry + view) from",
         module,
       );
     } catch (error) {
@@ -152,13 +156,11 @@ async function fetchAllAbis(config: DecibelConfig): Promise<void> {
 }
 
 // Run the script
-if (require.main === module) {
-  // Process configs sequentially to avoid race conditions
-  void (async () => {
-    for (const config of CONFIGS) {
-      await fetchAllAbis(config).catch((error: unknown) => {
-        console.error(`❌ Failed to fetch ABIs for ${config.network}:`, error);
-      });
-    }
-  })();
-}
+// Process configs sequentially to avoid race conditions
+void (async () => {
+  for (const config of CONFIGS) {
+    await fetchAllAbis(config).catch((error: unknown) => {
+      console.error(`❌ Failed to fetch ABIs for ${config.network}:`, error);
+    });
+  }
+})();
