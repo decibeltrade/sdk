@@ -21,7 +21,7 @@ export const UserFundingSchema = z.object({
 export const UserFundingHistorySchema = z.array(UserFundingSchema);
 
 export const UserFundingHistoryWsMessageSchema = z.object({
-  funding_history: UserFundingHistorySchema,
+  funding_rates: UserFundingHistorySchema,
 });
 
 export type UserFunding = z.infer<typeof UserFundingSchema>;
