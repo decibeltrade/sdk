@@ -17,7 +17,7 @@ export const UserActiveTwapSchema = z.object({
   duration_s: z.number(),
   orig_size: z.number(),
   remaining_size: z.number(),
-  status: z.string(),
+  status: z.enum(["Finished", "Activated", "Cancelled"]),
   transaction_unix_ms: z.number(),
   transaction_version: z.number(),
 });
