@@ -122,10 +122,10 @@ export const QUERY_PARAM_KEYS = {
   searchTerm: "search_term",
 };
 
-export function getVaultApiModule(compatVersion: CompatVersion) {
-  if (compatVersion === CompatVersion.V0_1) {
-    return `vault`;
+export function getDexApiModule(compatVersion: CompatVersion) {
+  if (compatVersion === CompatVersion.V0_2 || compatVersion === CompatVersion.V0_2_PARTIAL) {
+    return `dex_accounts`;
   } else {
-    return `vault_api`;
+    return `dex_accounts_entry`;
   }
 }

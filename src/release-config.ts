@@ -1,15 +1,14 @@
 export enum CompatVersion {
-  V0_0 = "v0.0", // decibel-testnet-release-v0.0
-  V0_1 = "v0.1", // decibel-testnet-release-v0.1
-  V0_2 = "v0.2", // decibel-testnet-release-v0.2
+  // we can comment out old versions, after new ones have been released.
+  // V0_0 = "v0.0", // decibel-testnet-release-v0.0
+  // V0_1 = "v0.1", // decibel-testnet-release-v0.1
+  V0_2_PARTIAL = "v0.2.partial", // decibel-testnet-release-v0.2
+  V0_2 = "v0.2", // decibel-testnet-release-v0.12
   V0_3 = "v0.3", // Current main branch (bumped when new branch is created)
 }
 
-export type SubaccountVariant = "v0" | "v1" | "v2";
-
 export interface ReleaseConfig {
   compatVersion: CompatVersion;
-  subaccountVariant: SubaccountVariant;
 }
 
 export const PACKAGE = {
@@ -20,23 +19,19 @@ export const PACKAGE = {
 export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_3;
 
 const NETNA_RELEASE_CONFIG: ReleaseConfig = {
-  compatVersion: DEFAULT_COMPAT_VERSION,
-  subaccountVariant: "v2",
+  compatVersion: CompatVersion.V0_2,
 };
 
 const TESTNET_RELEASE_CONFIG: ReleaseConfig = {
-  compatVersion: CompatVersion.V0_2,
-  subaccountVariant: "v2",
+  compatVersion: CompatVersion.V0_2_PARTIAL,
 };
 
 const LOCAL_RELEASE_CONFIG: ReleaseConfig = {
   compatVersion: DEFAULT_COMPAT_VERSION,
-  subaccountVariant: "v1",
 };
 
 const DOCKER_RELEASE_CONFIG: ReleaseConfig = {
   compatVersion: DEFAULT_COMPAT_VERSION,
-  subaccountVariant: "v1",
 };
 
 export const RELEASE_CONFIGS = {

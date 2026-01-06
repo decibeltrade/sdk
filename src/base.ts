@@ -221,6 +221,10 @@ export class BaseSDK {
   }
 
   public getPrimarySubaccountAddress(addr: AccountAddress | string) {
-    return getPrimarySubaccountAddr(addr, this.config.subaccountVariant);
+    return getPrimarySubaccountAddr(
+      addr,
+      this.config.compatVersion,
+      this.config.deployment.package,
+    );
   }
 }

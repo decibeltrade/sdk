@@ -8,11 +8,16 @@ import { z, ZodError } from "zod/v4";
 
 import { QUERY_PARAM_KEYS } from "./constants";
 import { PageParams, SearchTermParams, SortParams } from "./read";
-import { SubaccountVariant } from "./release-config";
+import { CompatVersion } from "./release-config";
 
 export function getMarketAddr(name: string, perpEngineGlobalAddr: string) {
   const marketNameBytes = new MoveString(name).bcsToBytes();
   return createObjectAddress(AccountAddress.fromString(perpEngineGlobalAddr), marketNameBytes);
+}
+
+function getSubaccountSeedBytes(ownerAddr: AccountAddress, seed: string): Uint8Array {
+  // TODO is this the best way to concatenate  / serialize SubaccountSeed?
+  return new Uint8Array([...ownerAddr.toUint8Array(), ...new MoveString(seed).bcsToBytes()]);
 }
 
 export type FetchOptions = Omit<RequestInit, "method" | "body">;
@@ -175,19 +180,57 @@ export function bigIntReviver(key: string, value: unknown) {
   return value;
 }
 
-const baseSeed = "decibel_dex_primary";
-
-const createSeed = (variant: SubaccountVariant) => {
-  return new TextEncoder().encode(variant === "v0" ? baseSeed : `${baseSeed}_${variant}`);
-};
-
 export function getPrimarySubaccountAddr(
   addr: AccountAddress | string,
-  variant: SubaccountVariant,
+  compatVersion: CompatVersion,
+  package_addr: AccountAddress | string,
 ) {
   const account = typeof addr === "string" ? AccountAddress.fromString(addr) : addr;
 
-  return createObjectAddress(account, createSeed(variant)).toString();
+  if (compatVersion === CompatVersion.V0_2_PARTIAL) {
+    const package_address =
+      typeof package_addr === "string" ? AccountAddress.fromString(package_addr) : package_addr;
+    const vault_config_addr = createObjectAddress(
+      package_address,
+      new TextEncoder().encode("GlobalVaultConfig"),
+    );
+    const protocol_vault_addr = createObjectAddress(
+      vault_config_addr,
+      new TextEncoder().encode("Decibel Protocol Vault"),
+    );
+    if (account === protocol_vault_addr) {
+      return createObjectAddress(
+        account,
+        new TextEncoder().encode("decibel_dex_primary"),
+      ).toString();
+    } else {
+      return createObjectAddress(
+        account,
+        new TextEncoder().encode("decibel_dex_primary_v2"),
+      ).toString();
+    }
+  } else if (compatVersion === CompatVersion.V0_2) {
+    return createObjectAddress(
+      account,
+      new TextEncoder().encode("decibel_dex_primary_v2"),
+    ).toString();
+  } else {
+    const package_address =
+      typeof package_addr === "string" ? AccountAddress.fromString(package_addr) : package_addr;
+    const deriver = createObjectAddress(
+      package_address,
+      new TextEncoder().encode("GlobalSubaccountManager"),
+    );
+
+    const res = createObjectAddress(
+      deriver,
+      getSubaccountSeedBytes(account, "primary_subaccount"),
+    ).toString();
+    console.log(
+      `Deriving primary subaccount address for account ${account}, package ${package_address}, deriver ${deriver}, and got: ${res}`,
+    );
+    return res;
+  }
 }
 
 export function getTradingCompetitionSubaccountAddr(addr: AccountAddress | string) {

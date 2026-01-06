@@ -1,7 +1,6 @@
 import { AccountAddress, createObjectAddress } from "@aptos-labs/ts-sdk";
 
 import { BaseSDK } from "./base";
-import { getVaultApiModule } from "./constants";
 import { getMarketAddr } from "./utils";
 
 export class DecibelAdminDex extends BaseSDK {
@@ -34,9 +33,8 @@ export class DecibelAdminDex extends BaseSDK {
   }
 
   async initializeProtocolVault(collateralTokenAddr: string, initialFunding: number) {
-    const vaultApiModule = getVaultApiModule(this.config.compatVersion);
     return await this.sendTx({
-      function: `${this.config.deployment.package}::${vaultApiModule}::create_and_fund_vault`,
+      function: `${this.config.deployment.package}::vault_api::create_and_fund_vault`,
       typeArguments: [],
       functionArguments: [
         null,

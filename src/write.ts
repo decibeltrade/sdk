@@ -1,7 +1,7 @@
 import { Account, AccountAddress, CommittedTransactionResponse } from "@aptos-labs/ts-sdk";
 
 import { BaseSDK, Options } from "./base";
-import { DecibelConfig, getVaultApiModule } from "./constants";
+import { DecibelConfig, getDexApiModule } from "./constants";
 import { OrderEvent, PlaceOrderResult, TwapEvent } from "./order-event.types";
 import { OrderStatusClient } from "./order-status";
 import {
@@ -94,8 +94,9 @@ export class DecibelWriteDex extends BaseSDK {
   }
 
   async createSubaccount() {
+    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendTx({
-      function: `${this.config.deployment.package}::dex_accounts::create_new_subaccount`,
+      function: `${this.config.deployment.package}::${dexApiModule}::create_new_subaccount`,
       typeArguments: [],
       functionArguments: [],
     });
@@ -108,7 +109,8 @@ export class DecibelWriteDex extends BaseSDK {
     if (!subaccountAddr) {
       subaccountAddr = getPrimarySubaccountAddr(
         this.account.accountAddress,
-        this.config.subaccountVariant,
+        this.config.compatVersion,
+        this.config.deployment.package,
       );
     }
     return await sendTx(subaccountAddr);
@@ -118,7 +120,8 @@ export class DecibelWriteDex extends BaseSDK {
     if (!subaccountAddr) {
       subaccountAddr = getPrimarySubaccountAddr(
         this.account.accountAddress,
-        this.config.subaccountVariant,
+        this.config.compatVersion,
+        this.config.deployment.package,
       );
     }
     return await fn(subaccountAddr);
@@ -731,10 +734,9 @@ export class DecibelWriteDex extends BaseSDK {
     vaultDescription,
     vaultSocialLinks,
   }: WithSignerAddress<CreateVaultArgs>) {
-    const vaultApiModule = getVaultApiModule(this.config.compatVersion);
     const transaction = await this.buildTx(
       {
-        function: `${this.config.deployment.package}::${vaultApiModule}::create_and_fund_vault`,
+        function: `${this.config.deployment.package}::vault_api::create_and_fund_vault`,
         typeArguments: [],
         functionArguments: [
           null,
@@ -769,12 +771,11 @@ export class DecibelWriteDex extends BaseSDK {
       subaccountAddr?: string;
     },
   ) {
-    const vaultApiModule = getVaultApiModule(this.config.compatVersion);
     const txResponse = await this.sendSubaccountTx(
       () =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${vaultApiModule}::create_and_fund_vault`,
+            function: `${this.config.deployment.package}::vault_api::create_and_fund_vault`,
             typeArguments: [],
             functionArguments: [
               args.subaccountAddr ?? null,
@@ -809,10 +810,9 @@ export class DecibelWriteDex extends BaseSDK {
     additionalFunding = 0,
     signerAddress,
   }: WithSignerAddress<ActivateVaultArgs>) {
-    const vaultApiModule = getVaultApiModule(this.config.compatVersion);
     return await this.buildTx(
       {
-        function: `${this.config.deployment.package}::${vaultApiModule}::activate_vault`,
+        function: `${this.config.deployment.package}::vault_api::activate_vault`,
         typeArguments: [],
         functionArguments: [vaultAddress, additionalFunding],
       },
@@ -828,10 +828,9 @@ export class DecibelWriteDex extends BaseSDK {
     amount,
     signerAddress,
   }: WithSignerAddress<DepositToVaultArgs>) {
-    const vaultApiModule = getVaultApiModule(this.config.compatVersion);
     return await this.buildTx(
       {
-        function: `${this.config.deployment.package}::${vaultApiModule}::contribute`,
+        function: `${this.config.deployment.package}::vault_api::contribute`,
         typeArguments: [],
         functionArguments: [vaultAddress, amount],
       },
