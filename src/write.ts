@@ -131,22 +131,21 @@ export class DecibelWriteDex extends BaseSDK {
    */
   async deposit(amount: number, subaccountAddr?: string) {
     if (!subaccountAddr) {
-      return await this.sendTx({
-        function: `${this.config.deployment.package}::dex_accounts::deposit_to_subaccount`,
-        typeArguments: [],
-        functionArguments: [this.config.deployment.usdc, amount],
-      });
-    } else {
-      return await this.sendSubaccountTx(
-        (subaccountAddr) =>
-          this.sendTx({
-            function: `${this.config.deployment.package}::dex_accounts::deposit_to_subaccount_at`,
-            typeArguments: [],
-            functionArguments: [subaccountAddr, this.config.deployment.usdc, amount],
-          }),
-        subaccountAddr,
+      subaccountAddr = getPrimarySubaccountAddr(
+        this.account.accountAddress,
+        this.config.compatVersion,
+        this.config.deployment.package,
       );
     }
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::dex_accounts::deposit_to_subaccount_at`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, this.config.deployment.usdc, amount],
+        }),
+      subaccountAddr,
+    );
   }
 
   /**
