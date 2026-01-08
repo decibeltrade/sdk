@@ -806,14 +806,13 @@ export class DecibelWriteDex extends BaseSDK {
    */
   async buildActivateVaultTx({
     vaultAddress,
-    additionalFunding = 0,
     signerAddress,
   }: WithSignerAddress<ActivateVaultArgs>) {
     return await this.buildTx(
       {
         function: `${this.config.deployment.package}::vault_api::activate_vault`,
         typeArguments: [],
-        functionArguments: [vaultAddress, additionalFunding],
+        functionArguments: [vaultAddress],
       },
       signerAddress,
     );
