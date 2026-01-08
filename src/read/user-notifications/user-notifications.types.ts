@@ -39,6 +39,7 @@ export enum ClientNotificationType {
   OrderCancellationErrored = "OrderCancellationErrored",
   PositionCancellationErrored = "PositionCancellationErrored",
   TwapCancellationErrored = "TwapCancellationErrored",
+  LimitOrderSubmitted = "LimitOrderSubmitted",
 }
 
 export const NotificationMetadataSchema = z.object({

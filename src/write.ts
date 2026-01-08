@@ -316,7 +316,7 @@ export class DecibelWriteDex extends BaseSDK {
     size,
     isBuy,
     isReduceOnly,
-    // clientOrderId,
+    clientOrderId,
     twapFrequencySeconds,
     twapDurationSeconds,
     builderAddress,
@@ -328,7 +328,7 @@ export class DecibelWriteDex extends BaseSDK {
     size: number;
     isBuy: boolean;
     isReduceOnly: boolean;
-    // clientOrderId?: string;
+    clientOrderId?: string;
     twapFrequencySeconds: number;
     twapDurationSeconds: number;
     builderAddress?: string;
@@ -346,7 +346,7 @@ export class DecibelWriteDex extends BaseSDK {
         this.sendTx(
           {
             // TODO: update to place_twap_order_to_subaccount_v2 once available
-            function: `${this.config.deployment.package}::dex_accounts::place_twap_order_to_subaccount`,
+            function: `${this.config.deployment.package}::dex_accounts::place_twap_order_to_subaccount_v2`,
             typeArguments: [],
             functionArguments: [
               subaccountAddr,
@@ -354,7 +354,7 @@ export class DecibelWriteDex extends BaseSDK {
               size,
               isBuy,
               isReduceOnly,
-              // clientOrderId, // TODO: include once v2 is available
+              clientOrderId, // TODO: include once v2 is available
               twapFrequencySeconds,
               twapDurationSeconds,
               builderAddress,
