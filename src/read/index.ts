@@ -15,6 +15,7 @@ import { PortfolioChartReader } from "./portfolio-chart/portfolio-chart.reader";
 import { CrossedPosition } from "./types";
 import { UserActiveTwapsReader } from "./user-active-twaps/user-active-twaps.reader";
 import { UserBulkOrdersReader } from "./user-bulk-orders/user-bulk-orders.reader";
+import { UserFundHistoryReader } from "./user-fund-history/user-fund-history.reader";
 import { UserFundingHistoryReader } from "./user-funding-history/user-funding-history.reader";
 import { UserNotificationsReader } from "./user-notifications/user-notifications.reader";
 import { UserOpenOrdersReader } from "./user-open-orders/user-open-orders.reader";
@@ -40,6 +41,7 @@ export class DecibelReadDex {
   readonly marketDepth: MarketDepthReader;
   readonly marketPrices: MarketPricesReader;
   readonly marketTrades: MarketTradesReader;
+  readonly userFundHistory: UserFundHistoryReader;
   readonly userFundingHistory: UserFundingHistoryReader;
   readonly userTradeHistory: UserTradeHistoryReader;
   readonly candlesticks: CandlesticksReader;
@@ -87,6 +89,7 @@ export class DecibelReadDex {
     this.userSubaccounts = new UserSubaccountsReader(this.deps);
     this.userOpenOrders = new UserOpenOrdersReader(this.deps);
     this.userBulkOrders = new UserBulkOrdersReader(this.deps);
+    this.userFundHistory = new UserFundHistoryReader(this.deps);
     this.userFundingHistory = new UserFundingHistoryReader(this.deps);
     this.userTradeHistory = new UserTradeHistoryReader(this.deps);
     this.userActiveTwaps = new UserActiveTwapsReader(this.deps);

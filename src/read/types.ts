@@ -14,6 +14,7 @@ export * from "./pagination.types";
 export * from "./portfolio-chart/portfolio-chart.types";
 export * from "./user-active-twaps/user-active-twaps.types";
 export * from "./user-bulk-orders/user-bulk-orders.types";
+export * from "./user-fund-history/user-fund-history.types";
 export * from "./user-funding-history/user-funding-history.types";
 export * from "./user-notifications/user-notifications.types";
 export * from "./user-open-orders/user-open-orders.types";

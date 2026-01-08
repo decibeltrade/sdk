@@ -1,0 +1,35 @@
+import { BaseReader } from "../base-reader";
+import {
+  UserFundHistoryRequestArgs,
+  UserFundHistoryResponse,
+  UserFundHistoryResponseSchema,
+} from "./user-fund-history.types";
+
+export class UserFundHistoryReader extends BaseReader {
+  /**
+   * Get the fund history (deposits and withdrawals) for a given user
+   * @param subAddr The subaccount address of the user to get fund history for
+   * @param limit The number of records to get (default: 200, max: 200)
+   * @param offset The offset for pagination (default: 0)
+   * @returns The fund history for the given user
+   */
+  async getByAddr({
+    subAddr,
+    limit = 200,
+    offset = 0,
+    fetchOptions,
+  }: UserFundHistoryRequestArgs): Promise<UserFundHistoryResponse> {
+    const response = await this.getRequest({
+      schema: UserFundHistoryResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/user_fund_history`,
+      queryParams: {
+        user: subAddr,
+        limit: limit.toString(),
+        offset: offset.toString(),
+      },
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+}
