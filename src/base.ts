@@ -1,3 +1,4 @@
+import { GasStationClient, GasStationTransactionSubmitter } from "@aptos-labs/gas-station-client";
 import {
   Account,
   AccountAddress,
@@ -41,6 +42,10 @@ export class BaseSDK {
   readonly aptos: Aptos;
   readonly skipSimulate: boolean;
   readonly noFeePayer: boolean;
+  /**
+   * Whether we're using the new GasStationClient (API key based) vs legacy gasStationUrl
+   */
+  private readonly useGasStationClient: boolean;
   private readonly chainId: number | undefined;
   private readonly abi = netnaAbis as ABIData;
   private readonly gasPriceManager: GasPriceManager | undefined;
@@ -67,14 +72,32 @@ export class BaseSDK {
       );
     }
 
+    this.noFeePayer = opts?.noFeePayer ?? false;
+    this.useGasStationClient = !this.noFeePayer && !!config.gasStationApiKey;
+
+    const pluginSettings =
+      this.useGasStationClient && config.gasStationApiKey
+        ? {
+            TRANSACTION_SUBMITTER: new GasStationTransactionSubmitter(
+              new GasStationClient({
+                network: config.network,
+                apiKey: config.gasStationApiKey,
+                // Use gasStationUrl as base URL for custom networks like netna
+                ...(config.gasStationUrl && { baseUrl: config.gasStationUrl }),
+              }),
+            ),
+          }
+        : undefined;
+
     const aptosConfig = new AptosConfig({
       network: config.network,
       fullnode: config.fullnodeUrl,
       clientConfig: { API_KEY: opts?.nodeApiKey },
+      pluginSettings,
     });
+
     this.aptos = new Aptos(aptosConfig);
     this.skipSimulate = opts?.skipSimulate ?? false;
-    this.noFeePayer = opts?.noFeePayer ?? false;
     this.chainId = config.chainId;
     this.gasPriceManager = opts?.gasPriceManager;
     this.timeDeltaMs = opts?.timeDeltaMs ?? 0;
@@ -88,12 +111,15 @@ export class BaseSDK {
     transaction: SimpleTransaction,
     senderAuthenticator: AccountAuthenticator,
   ): Promise<PendingTransactionResponse> {
-    if (this.noFeePayer) {
+    if (this.noFeePayer || this.useGasStationClient) {
+      // When using GasStationClient, the plugin handles fee payer signing automatically
+      // When noFeePayer is true, submit directly without fee payer
       return await this.aptos.transaction.submit.simple({
         transaction,
         senderAuthenticator,
       });
     } else {
+      // Legacy: use custom fee payer service via gasStationUrl
       return await submitFeePaidTransaction(this.config, transaction, senderAuthenticator);
     }
   }

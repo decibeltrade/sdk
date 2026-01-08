@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@aptos-labs/gas-station-client": "^2.0.3",
     "isomorphic-ws": "^5.0.0",
     "ws": "^8.18.1"
   },

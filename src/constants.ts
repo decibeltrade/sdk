@@ -29,7 +29,17 @@ export interface DecibelConfig extends ReleaseConfig {
   fullnodeUrl: string;
   tradingHttpUrl: string;
   tradingWsUrl: string;
-  gasStationUrl: string;
+  /**
+   * Gas station URL. When used with gasStationApiKey, this is the base URL for the Aptos Labs Gas Station API.
+   * When used without gasStationApiKey, this is the URL for the legacy self-hosted fee payer (local dev only).
+   * Example: "https://api.netna.aptoslabs.com/gs/v1"
+   */
+  gasStationUrl?: string;
+  /**
+   * API key for Aptos Labs Gas Station Client.
+   * When provided, uses GasStationClient with gasStationUrl as base URL.
+   */
+  gasStationApiKey?: string;
   deployment: Deployment;
   chainId?: number;
 }
@@ -62,7 +72,7 @@ export const NETNA_CONFIG: DecibelConfig = {
   fullnodeUrl: "https://api.netna.aptoslabs.com/v1",
   tradingHttpUrl: "https://api.netna.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.netna.aptoslabs.com/decibel/ws",
-  gasStationUrl: "https://fee-payer-dev-netna-us-central1-410192433417.us-central1.run.app",
+  gasStationUrl: "https://api.netna.aptoslabs.com/gs/v1",
   deployment: getDeployment(PACKAGE.NETNA),
   chainId: 208,
   ...RELEASE_CONFIGS.NETNA,
