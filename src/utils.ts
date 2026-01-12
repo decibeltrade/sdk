@@ -148,8 +148,8 @@ async function baseRequest<TResponseData>({
   const { status, statusText } = response;
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`HTTP Error ${status} (${statusText}): ${message}`);
+    const data = await response.text();
+    throw new FetchError({ data, status, statusText });
   }
 
   const textData = await response.text();
@@ -158,6 +158,46 @@ async function baseRequest<TResponseData>({
     return { data, status, statusText };
   } catch (e) {
     throw prettifyMaybeZodError(e);
+  }
+}
+
+export class FetchError extends Error {
+  status: number;
+  statusText: string;
+  responseMessage: string;
+
+  constructor(
+    response: { data: string; status: number; statusText: string },
+    ...params: ConstructorParameters<typeof Error>
+  ) {
+    // Pass remaining arguments (including vendor specific ones) to parent constructor
+    super(...params);
+
+    // Maintains proper stack trace for where our error was thrown (non-standard)
+    Error.captureStackTrace(this, FetchError);
+
+    this.status = response.status;
+
+    try {
+      const parsedData: unknown = JSON.parse(response.data);
+      const parsedStatus =
+        parsedData && typeof parsedData === "object" && "status" in parsedData
+          ? parsedData.status
+          : undefined;
+      const parsedMessage =
+        parsedData && typeof parsedData === "object" && "message" in parsedData
+          ? parsedData.message
+          : undefined;
+
+      this.statusText = typeof parsedStatus === "string" ? parsedStatus : response.statusText;
+      this.responseMessage = typeof parsedMessage === "string" ? parsedMessage : response.data;
+    } catch {
+      this.statusText = response.statusText;
+      this.responseMessage = response.data;
+    }
+
+    const formattedStatusText = this.statusText ? ` (${this.statusText})` : "";
+    this.message = `HTTP Error ${this.status}${formattedStatusText}: ${this.responseMessage}`;
   }
 }
 
