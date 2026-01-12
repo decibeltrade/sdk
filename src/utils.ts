@@ -238,7 +238,8 @@ export function getPrimarySubaccountAddr(
       vault_config_addr,
       new TextEncoder().encode("Decibel Protocol Vault"),
     );
-    if (account === protocol_vault_addr) {
+
+    if (account.equals(protocol_vault_addr)) {
       return createObjectAddress(
         account,
         new TextEncoder().encode("decibel_dex_primary"),
