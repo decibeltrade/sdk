@@ -10,7 +10,7 @@ export interface UserTradeHistoryRequestArgs extends BaseRequestArgs {
 export const UserTradeSchema = z.object({
   account: z.string(),
   market: z.string(),
-  action: z.string(),
+  action: z.enum(["OpenLong", "CloseLong", "OpenShort", "CloseShort", "Net"]),
   size: z.number(),
   price: z.number(),
   is_profit: z.boolean(),
