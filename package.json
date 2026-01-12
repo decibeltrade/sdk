@@ -29,7 +29,7 @@
   "main": "dist/index.js",
   "name": "@decibeltrade/sdk",
   "peerDependencies": {
-    "@aptos-labs/ts-sdk": "^5.1.2",
+    "@aptos-labs/ts-sdk": "^5.2.1",
     "@types/ws": "^8.18.0",
     "zod": "^3.25.62"
   },
