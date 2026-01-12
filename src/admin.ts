@@ -63,6 +63,17 @@ export class DecibelAdminDex extends BaseSDK {
     });
   }
 
+  async updateVaultUseGlobalRedemptionSlippageAdjustment(
+    vaultAddress: string,
+    useGlobalRedemptionSlippageAdjustment: boolean,
+  ) {
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::vault::update_vault_use_global_redemption_slippage_adjustment`,
+      typeArguments: [],
+      functionArguments: [vaultAddress, useGlobalRedemptionSlippageAdjustment],
+    });
+  }
+
   async authorizeOracleAndMarkUpdate(internalOracleUpdater: string) {
     return await this.sendTx({
       function: `${this.config.deployment.package}::admin_apis::add_oracle_and_mark_update_permission`,
