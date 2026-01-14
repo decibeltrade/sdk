@@ -940,10 +940,11 @@ export class DecibelWriteDex extends BaseSDK {
     maxFee: number;
     subaccountAddr?: string;
   }) {
+    const dex_api_module = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts::approve_max_builder_fee_for_subaccount`,
+          function: `${this.config.deployment.package}::${dex_api_module}::approve_max_builder_fee_for_subaccount`,
           typeArguments: [],
           functionArguments: [subaccountAddr, builderAddr, maxFee],
         }),
@@ -963,10 +964,11 @@ export class DecibelWriteDex extends BaseSDK {
     builderAddr: string;
     subaccountAddr?: string;
   }) {
+    const dex_api_module = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts::revoke_max_builder_fee_for_subaccount`,
+          function: `${this.config.deployment.package}::${dex_api_module}::revoke_max_builder_fee_for_subaccount`,
           typeArguments: [],
           functionArguments: [subaccountAddr, builderAddr],
         }),
