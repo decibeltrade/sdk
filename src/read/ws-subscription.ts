@@ -7,6 +7,7 @@ import { bigIntReviver, prettifyMaybeZodError } from "../utils";
 export class DecibelWsSubscription {
   constructor(
     readonly config: DecibelConfig,
+    readonly apiKey?: string,
     readonly onError?: (error: ErrorEvent) => void,
   ) {}
 
@@ -48,7 +49,11 @@ export class DecibelWsSubscription {
       return;
     }
 
-    const ws = new WebSocket(this.config.tradingWsUrl);
+    const ws = new WebSocket(
+      this.config.tradingWsUrl,
+      // TODO: Uncomment once the required server update is deployed
+      // this.apiKey ? ["decibel", this.apiKey] : undefined,
+    );
 
     ws.addEventListener("open", () => {
       this.#reconnectAttempts = 0;

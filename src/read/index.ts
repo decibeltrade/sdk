@@ -72,7 +72,7 @@ export class DecibelReadDex {
 
     this.deps = {
       aptos: new Aptos(aptosConfig),
-      ws: new DecibelWsSubscription(config, opts?.onWsError),
+      ws: new DecibelWsSubscription(config, opts?.nodeApiKey, opts?.onWsError),
       config: this.config,
       apiKey: opts?.nodeApiKey,
     };
