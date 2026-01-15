@@ -10,10 +10,18 @@ export interface CandlesticksRequestArgs extends BaseRequestArgs {
 }
 export const CandlestickInterval = {
   OneMinute: "1m",
+  FiveMinutes: "5m",
   FifteenMinutes: "15m",
+  ThirtyMinutes: "30m",
   OneHour: "1h",
+  TwoHours: "2h",
   FourHours: "4h",
+  EightHours: "8h",
+  TwelveHours: "12h",
   OneDay: "1d",
+  ThreeDays: "3d",
+  OneWeek: "1w",
+  OneMonth: "1mo",
 } as const;
 
 export type CandlestickInterval = (typeof CandlestickInterval)[keyof typeof CandlestickInterval];
