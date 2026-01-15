@@ -1,7 +1,7 @@
 import { Account, AccountAddress, CommittedTransactionResponse } from "@aptos-labs/ts-sdk";
 
 import { BaseSDK, Options } from "./base";
-import { DecibelConfig, getDexApiModule } from "./constants";
+import { DecibelConfig, getDexApiModule, getDexApiVaultExtensionModule } from "./constants";
 import { OrderEvent, PlaceOrderResult, TwapEvent } from "./order-event.types";
 import { OrderStatusClient } from "./order-status";
 import {
@@ -841,10 +841,12 @@ export class DecibelWriteDex extends BaseSDK {
       subaccountAddr: string;
     },
   ) {
+    const dex_api_vault_extension_module = getDexApiVaultExtensionModule(this.config.compatVersion);
+
     const txResponse = await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts_vault_extension::contribute_to_vault`,
+          function: `${this.config.deployment.package}::${dex_api_vault_extension_module}::contribute_to_vault`,
           typeArguments: [],
           functionArguments: [
             subaccountAddr,
@@ -887,11 +889,12 @@ export class DecibelWriteDex extends BaseSDK {
       subaccountAddr?: string;
     },
   ) {
+    const dex_api_vault_extension_module = getDexApiVaultExtensionModule(this.config.compatVersion);
     const txResponse = await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::dex_accounts_vault_extension::redeem_from_vault`,
+            function: `${this.config.deployment.package}::${dex_api_vault_extension_module}::redeem_from_vault`,
             typeArguments: [],
             functionArguments: [subaccountAddr, args.vaultAddress, args.shares],
           },

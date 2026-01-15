@@ -139,3 +139,11 @@ export function getDexApiModule(compatVersion: CompatVersion) {
     return `dex_accounts_entry`;
   }
 }
+
+export function getDexApiVaultExtensionModule(compatVersion: CompatVersion) {
+  if (compatVersion === CompatVersion.V0_2 || compatVersion === CompatVersion.V0_2_PARTIAL) {
+    return `dex_accounts_vault_extension`;
+  } else {
+    return `dex_accounts_entry`;
+  }
+}
