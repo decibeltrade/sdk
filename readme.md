@@ -1191,7 +1191,7 @@ async function placeOrder(
 
     const txResponse = await transactionManager.sendTransaction(
       {
-        function: `${config.deployment.package}::dex_accounts::place_order_to_subaccount`,
+        function: `${config.deployment.package}::dex_accounts_entry::place_order_to_subaccount`,
         typeArguments: [],
         functionArguments: [
           subaccountAddr,
