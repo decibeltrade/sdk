@@ -19,7 +19,7 @@ export const PACKAGE = {
 export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_3;
 
 const NETNA_RELEASE_CONFIG: ReleaseConfig = {
-  compatVersion: CompatVersion.V0_2,
+  compatVersion: DEFAULT_COMPAT_VERSION,
 };
 
 const TESTNET_RELEASE_CONFIG: ReleaseConfig = {
