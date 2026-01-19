@@ -20,7 +20,7 @@ export class UserOpenOrdersReader extends BaseReader {
       options: fetchOptions,
     });
 
-    return response.data;
+    return response.data.items;
   }
 
   /**

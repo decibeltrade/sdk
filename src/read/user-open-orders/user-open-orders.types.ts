@@ -31,12 +31,17 @@ export const UserOpenOrderSchema = z.object({
   is_reduce_only: z.boolean().optional(),
 });
 
-export const UserOpenOrdersSchema = z.array(UserOpenOrderSchema);
+export const UserOpenOrdersSchema = z.object({
+  items: z.array(UserOpenOrderSchema),
+  total_count: z.number(),
+});
 
 export const UserOpenOrdersWsMessageSchema = z.object({
   orders: z.array(UserOpenOrderSchema),
 });
 
 export type UserOpenOrder = z.infer<typeof UserOpenOrderSchema>;
-export type UserOpenOrders = z.infer<typeof UserOpenOrdersSchema>;
+export type UserOpenOrdersResponse = z.infer<typeof UserOpenOrdersSchema>;
+/** @deprecated Use UserOpenOrder[] instead */
+export type UserOpenOrders = UserOpenOrder[];
 export type UserOpenOrdersWsMessage = z.infer<typeof UserOpenOrdersWsMessageSchema>;
