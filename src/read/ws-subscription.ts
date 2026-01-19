@@ -1,3 +1,4 @@
+import { Network } from "@aptos-labs/ts-sdk";
 import WebSocket, { ErrorEvent } from "isomorphic-ws";
 import { z } from "zod/v4";
 
@@ -49,10 +50,12 @@ export class DecibelWsSubscription {
       return;
     }
 
+    const isNetna = this.config.network === Network.CUSTOM || this.config.network === Network.NETNA;
+
     const ws = new WebSocket(
       this.config.tradingWsUrl,
-      // TODO: Uncomment once the required server update is deployed
-      // this.apiKey ? ["decibel", this.apiKey] : undefined,
+      // TODO: Remove isNetna once the testnet WS server is updated
+      this.apiKey && isNetna ? ["decibel", this.apiKey] : undefined,
     );
 
     ws.addEventListener("open", () => {
