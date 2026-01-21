@@ -82,6 +82,22 @@ export class DecibelAdminDex extends BaseSDK {
     });
   }
 
+  async addAccessControlAdmin(delegatedAdmin: string) {
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::add_access_control_admin`,
+      typeArguments: [],
+      functionArguments: [delegatedAdmin],
+    });
+  }
+
+  async addMarketListAdmin(delegatedAdmin: string) {
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::add_market_list_admin`,
+      typeArguments: [],
+      functionArguments: [delegatedAdmin],
+    });
+  }
+
   async registerMarketWithInternalOracle(
     name: string,
     szDecimals: number,
