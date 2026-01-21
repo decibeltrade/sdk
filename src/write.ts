@@ -1,7 +1,7 @@
 import { Account, AccountAddress, CommittedTransactionResponse } from "@aptos-labs/ts-sdk";
 
 import { BaseSDK, Options } from "./base";
-import { DecibelConfig, getDexApiModule, getDexApiVaultExtensionModule } from "./constants";
+import { DecibelConfig } from "./constants";
 import { OrderEvent, PlaceOrderResult, TwapEvent } from "./order-event.types";
 import { OrderStatusClient } from "./order-status";
 import {
@@ -94,9 +94,8 @@ export class DecibelWriteDex extends BaseSDK {
   }
 
   async createSubaccount() {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendTx({
-      function: `${this.config.deployment.package}::${dexApiModule}::create_new_subaccount`,
+      function: `${this.config.deployment.package}::dex_accounts_entry::create_new_subaccount`,
       typeArguments: [],
       functionArguments: [],
     });
@@ -137,11 +136,10 @@ export class DecibelWriteDex extends BaseSDK {
         this.config.deployment.package,
       );
     }
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dexApiModule}::deposit_to_subaccount_at`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::deposit_to_subaccount_at`,
           typeArguments: [],
           functionArguments: [subaccountAddr, this.config.deployment.usdc, amount],
         }),
@@ -153,11 +151,10 @@ export class DecibelWriteDex extends BaseSDK {
    * @param amount u64 amount of collateral to withdraw
    */
   async withdraw(amount: number, subaccountAddr?: string) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dexApiModule}::withdraw_from_subaccount`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::withdraw_from_subaccount`,
           typeArguments: [],
           functionArguments: [subaccountAddr, this.config.deployment.usdc, amount],
         }),
@@ -176,11 +173,10 @@ export class DecibelWriteDex extends BaseSDK {
     isCross: boolean;
     userLeverage: number;
   }) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dexApiModule}::configure_user_settings_for_market`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::configure_user_settings_for_market`,
           typeArguments: [],
           functionArguments: [subaccountAddr, marketAddr, isCross, userLeverage],
         }),
@@ -256,12 +252,11 @@ export class DecibelWriteDex extends BaseSDK {
           ? roundToTickSize(slLimitPrice, tickSize)
           : slLimitPrice;
 
-      const dexApiModule = getDexApiModule(this.config.compatVersion);
       const txResponse = await this.sendSubaccountTx(
         (subaccountAddr) =>
           this.sendTx(
             {
-              function: `${this.config.deployment.package}::${dexApiModule}::place_order_to_subaccount`,
+              function: `${this.config.deployment.package}::dex_accounts_entry::place_order_to_subaccount`,
               typeArguments: [],
               functionArguments: [
                 subaccountAddr,
@@ -345,13 +340,12 @@ export class DecibelWriteDex extends BaseSDK {
     accountOverride?: Account;
   }) {
     const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     const txResponse = await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
             // TODO: update to place_twap_order_to_subaccount_v2 once available
-            function: `${this.config.deployment.package}::${dexApiModule}::place_twap_order_to_subaccount_v2`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::place_twap_order_to_subaccount_v2`,
             typeArguments: [],
             functionArguments: [
               subaccountAddr,
@@ -407,13 +401,12 @@ export class DecibelWriteDex extends BaseSDK {
       "marketName" in args
         ? getMarketAddr(args.marketName, this.config.deployment.perpEngineGlobal)
         : args.marketAddr;
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
 
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dexApiModule}::cancel_order_to_subaccount`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_order_to_subaccount`,
             typeArguments: [],
             functionArguments: [subaccountAddr, BigInt(orderId.toString()), marketAddr.toString()],
           },
@@ -439,12 +432,11 @@ export class DecibelWriteDex extends BaseSDK {
     accountOverride?: Account;
   }) {
     const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dexApiModule}::cancel_client_order_to_subaccount`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_client_order_to_subaccount`,
             typeArguments: [],
             functionArguments: [subaccountAddr, clientOrderId, marketAddr.toString()],
           },
@@ -463,11 +455,10 @@ export class DecibelWriteDex extends BaseSDK {
     accountToDelegateTo: string;
     expirationTimestampSecs?: number;
   }) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dexApiModule}::delegate_trading_to_for_subaccount`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::delegate_trading_to_for_subaccount`,
           typeArguments: [],
           functionArguments: [subaccountAddr, accountToDelegateTo, expirationTimestampSecs ?? null],
         }),
@@ -482,11 +473,10 @@ export class DecibelWriteDex extends BaseSDK {
     subaccountAddr?: string;
     accountToRevoke: string;
   }) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dexApiModule}::revoke_delegation`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::revoke_delegation`,
           typeArguments: [],
           functionArguments: [subaccountAddr, accountToRevoke],
         }),
@@ -537,12 +527,11 @@ export class DecibelWriteDex extends BaseSDK {
         ? roundToTickSize(slLimitPrice, tickSize)
         : slLimitPrice;
 
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dexApiModule}::place_tp_sl_order_for_position`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::place_tp_sl_order_for_position`,
             typeArguments: [],
             functionArguments: [
               subaccountAddr,
@@ -583,12 +572,11 @@ export class DecibelWriteDex extends BaseSDK {
     subaccountAddr?: string;
     accountOverride?: Account;
   }) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dexApiModule}::update_tp_order_for_position`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::update_tp_order_for_position`,
             typeArguments: [],
             functionArguments: [
               subaccountAddr,
@@ -625,12 +613,11 @@ export class DecibelWriteDex extends BaseSDK {
     subaccountAddr?: string;
     accountOverride?: Account;
   }) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dexApiModule}::update_sl_order_for_position`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::update_sl_order_for_position`,
             typeArguments: [],
             functionArguments: [
               subaccountAddr,
@@ -661,12 +648,11 @@ export class DecibelWriteDex extends BaseSDK {
     subaccountAddr?: string;
     accountOverride?: Account;
   }) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dexApiModule}::cancel_tp_sl_order_for_position`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_tp_sl_order_for_position`,
             typeArguments: [],
             functionArguments: [subaccountAddr, marketAddr, BigInt(orderId.toString())],
           },
@@ -691,12 +677,11 @@ export class DecibelWriteDex extends BaseSDK {
      */
     accountOverride?: Account;
   }) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dexApiModule}::cancel_twap_orders_to_subaccount`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_twap_orders_to_subaccount`,
             typeArguments: [],
             functionArguments: [subaccountAddr, marketAddr, orderId],
           },
@@ -714,10 +699,9 @@ export class DecibelWriteDex extends BaseSDK {
     subaccountAddr: string;
     revokeAllDelegations: boolean;
   }>) {
-    const dexApiModule = getDexApiModule(this.config.compatVersion);
     const transaction = await this.buildTx(
       {
-        function: `${this.config.deployment.package}::${dexApiModule}::deactivate_subaccount`,
+        function: `${this.config.deployment.package}::dex_accounts_entry::deactivate_subaccount`,
         typeArguments: [],
         functionArguments: [subaccountAddr, revokeAllDelegations],
       },
@@ -856,12 +840,10 @@ export class DecibelWriteDex extends BaseSDK {
       subaccountAddr: string;
     },
   ) {
-    const dex_api_vault_extension_module = getDexApiVaultExtensionModule(this.config.compatVersion);
-
     const txResponse = await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dex_api_vault_extension_module}::contribute_to_vault`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::contribute_to_vault`,
           typeArguments: [],
           functionArguments: [
             subaccountAddr,
@@ -904,12 +886,11 @@ export class DecibelWriteDex extends BaseSDK {
       subaccountAddr?: string;
     },
   ) {
-    const dex_api_vault_extension_module = getDexApiVaultExtensionModule(this.config.compatVersion);
     const txResponse = await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
           {
-            function: `${this.config.deployment.package}::${dex_api_vault_extension_module}::redeem_from_vault`,
+            function: `${this.config.deployment.package}::dex_accounts_entry::redeem_from_vault`,
             typeArguments: [],
             functionArguments: [subaccountAddr, args.vaultAddress, args.shares],
           },
@@ -958,11 +939,10 @@ export class DecibelWriteDex extends BaseSDK {
     maxFee: number;
     subaccountAddr?: string;
   }) {
-    const dex_api_module = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dex_api_module}::approve_max_builder_fee_for_subaccount`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::approve_max_builder_fee_for_subaccount`,
           typeArguments: [],
           functionArguments: [subaccountAddr, builderAddr, maxFee],
         }),
@@ -982,11 +962,10 @@ export class DecibelWriteDex extends BaseSDK {
     builderAddr: string;
     subaccountAddr?: string;
   }) {
-    const dex_api_module = getDexApiModule(this.config.compatVersion);
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::${dex_api_module}::revoke_max_builder_fee_for_subaccount`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::revoke_max_builder_fee_for_subaccount`,
           typeArguments: [],
           functionArguments: [subaccountAddr, builderAddr],
         }),

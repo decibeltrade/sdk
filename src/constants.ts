@@ -1,7 +1,7 @@
 import { AccountAddress, Aptos, createObjectAddress, Network } from "@aptos-labs/ts-sdk";
 
 import { DecibelWsSubscription } from "./read/ws-subscription";
-import { CompatVersion, PACKAGE, RELEASE_CONFIGS, ReleaseConfig } from "./release-config";
+import { PACKAGE, RELEASE_CONFIGS, ReleaseConfig } from "./release-config";
 
 export function getUsdcAddress(publisherAddr: string) {
   return createObjectAddress(
@@ -131,19 +131,3 @@ export const QUERY_PARAM_KEYS = {
   sortDir: "sort_dir",
   searchTerm: "search_term",
 };
-
-export function getDexApiModule(compatVersion: CompatVersion) {
-  if (compatVersion === CompatVersion.V0_2 || compatVersion === CompatVersion.V0_2_PARTIAL) {
-    return `dex_accounts`;
-  } else {
-    return `dex_accounts_entry`;
-  }
-}
-
-export function getDexApiVaultExtensionModule(compatVersion: CompatVersion) {
-  if (compatVersion === CompatVersion.V0_2 || compatVersion === CompatVersion.V0_2_PARTIAL) {
-    return `dex_accounts_vault_extension`;
-  } else {
-    return `dex_accounts_entry`;
-  }
-}
