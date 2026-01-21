@@ -13,11 +13,11 @@ export class UserTradeHistoryReader extends BaseReader {
    * @param limit The number of trades to get (default: 10)
    * @returns The trade history for the given user
    */
-  async getByAddr({ subAddr, limit = 10, fetchOptions }: UserTradeHistoryRequestArgs) {
+  async getByAddr({ subAddr, limit = 10, offset = 0, fetchOptions }: UserTradeHistoryRequestArgs) {
     const response = await this.getRequest({
       schema: UserTradesSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/trade_history`,
-      queryParams: { user: subAddr, limit: limit.toString() },
+      queryParams: { user: subAddr, limit: limit.toString(), offset: offset.toString() },
       options: fetchOptions,
     });
 

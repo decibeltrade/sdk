@@ -1,10 +1,12 @@
 import z from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";
+import { PaginatedResponseSchema } from "../pagination.types";
 
 export interface UserTradeHistoryRequestArgs extends BaseRequestArgs {
   subAddr: string;
   limit?: number;
+  offset?: number;
 }
 
 export const UserTradeSchema = z.object({
@@ -23,7 +25,7 @@ export const UserTradeSchema = z.object({
   transaction_version: z.number(),
 });
 
-export const UserTradesSchema = z.array(UserTradeSchema);
+export const UserTradesSchema = PaginatedResponseSchema(UserTradeSchema);
 export const UserTradesWsMessageSchema = z.object({
   trades: z.array(UserTradeSchema),
 });

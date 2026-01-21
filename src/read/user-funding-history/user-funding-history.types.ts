@@ -1,10 +1,12 @@
 import z from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";
+import { PaginatedResponseSchema } from "../pagination.types";
 
 export interface UserFundingHistoryRequestArgs extends BaseRequestArgs {
   subAddr: string;
   limit?: number;
+  offset?: number;
 }
 
 export const UserFundingSchema = z.object({
@@ -18,10 +20,10 @@ export const UserFundingSchema = z.object({
   transaction_unix_ms: z.number(),
 });
 
-export const UserFundingHistorySchema = z.array(UserFundingSchema);
+export const UserFundingHistorySchema = PaginatedResponseSchema(UserFundingSchema);
 
 export const UserFundingHistoryWsMessageSchema = z.object({
-  funding_rates: UserFundingHistorySchema,
+  funding_rates: z.array(UserFundingSchema),
 });
 
 export type UserFunding = z.infer<typeof UserFundingSchema>;

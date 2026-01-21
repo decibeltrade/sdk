@@ -13,11 +13,16 @@ export class UserFundingHistoryReader extends BaseReader {
    * @param limit The number of trades to get (default: 10)
    * @returns The trade history for the given user
    */
-  async getByAddr({ subAddr, limit = 10, fetchOptions }: UserFundingHistoryRequestArgs) {
+  async getByAddr({
+    subAddr,
+    limit = 10,
+    offset = 0,
+    fetchOptions,
+  }: UserFundingHistoryRequestArgs) {
     const response = await this.getRequest({
       schema: UserFundingHistorySchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/funding_rate_history`,
-      queryParams: { user: subAddr, limit: limit.toString() },
+      queryParams: { user: subAddr, limit: limit.toString(), offset: offset.toString() },
       options: fetchOptions,
     });
 
