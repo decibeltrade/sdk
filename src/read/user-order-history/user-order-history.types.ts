@@ -5,6 +5,8 @@ import { PaginatedResponseSchema } from "../pagination.types";
 
 export interface UserOrderHistoryRequestArgs extends BaseRequestArgs {
   subAddr: string;
+  limit?: number;
+  offset?: number;
 }
 
 export const UserOrderSchema = z.object({

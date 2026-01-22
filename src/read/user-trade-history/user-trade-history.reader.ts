@@ -11,6 +11,7 @@ export class UserTradeHistoryReader extends BaseReader {
    * Get the trade history for a given user
    * @param subAddr The subaccount address of the user to get trade history for
    * @param limit The number of trades to get (default: 10)
+   * @param offset The offset for pagination (default: 0)
    * @returns The trade history for the given user
    */
   async getByAddr({ subAddr, limit = 10, offset = 0, fetchOptions }: UserTradeHistoryRequestArgs) {

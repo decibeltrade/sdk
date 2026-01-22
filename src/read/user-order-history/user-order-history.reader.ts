@@ -7,13 +7,21 @@ import {
 } from "./user-order-history.types";
 
 export class UserOrderHistoryReader extends BaseReader {
-  async getByAddr({ subAddr, fetchOptions }: UserOrderHistoryRequestArgs) {
+  async getByAddr({ subAddr, limit, offset, fetchOptions }: UserOrderHistoryRequestArgs) {
+    const queryParams: Record<string, string> = {
+      user: subAddr,
+    };
+    if (limit !== undefined) {
+      queryParams.limit = limit.toString();
+    }
+    if (offset !== undefined) {
+      queryParams.offset = offset.toString();
+    }
+
     const response = await this.getRequest({
       schema: UserOrdersSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/order_history`,
-      queryParams: {
-        user: subAddr,
-      },
+      queryParams,
       options: fetchOptions,
     });
 

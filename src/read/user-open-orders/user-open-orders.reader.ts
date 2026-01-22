@@ -12,15 +12,25 @@ export class UserOpenOrdersReader extends BaseReader {
    * @param subAddr The subaccount address of the user to get open orders for
    * @returns The open orders for the given user
    */
-  async getByAddr({ subAddr, fetchOptions }: UserOpenOrdersRequestArgs) {
+  async getByAddr({ subAddr, limit, offset, fetchOptions }: UserOpenOrdersRequestArgs) {
+    const queryParams: Record<string, string> = {
+      user: subAddr,
+    };
+    if (limit !== undefined) {
+      queryParams.limit = limit.toString();
+    }
+    if (offset !== undefined) {
+      queryParams.offset = offset.toString();
+    }
+
     const response = await this.getRequest({
       schema: UserOpenOrdersSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/open_orders`,
-      queryParams: { user: subAddr },
+      queryParams,
       options: fetchOptions,
     });
 
-    return response.data.items;
+    return response.data;
   }
 
   /**

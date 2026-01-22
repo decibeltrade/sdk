@@ -1,9 +1,12 @@
 import z from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";
+import { PaginatedResponseSchema } from "../pagination.types";
 
 export interface UserOpenOrdersRequestArgs extends BaseRequestArgs {
   subAddr: string;
+  limit?: number;
+  offset?: number;
 }
 
 export const UserOpenOrderSchema = z.object({
@@ -31,10 +34,7 @@ export const UserOpenOrderSchema = z.object({
   is_reduce_only: z.boolean().optional(),
 });
 
-export const UserOpenOrdersSchema = z.object({
-  items: z.array(UserOpenOrderSchema),
-  total_count: z.number(),
-});
+export const UserOpenOrdersSchema = PaginatedResponseSchema(UserOpenOrderSchema);
 
 export const UserOpenOrdersWsMessageSchema = z.object({
   orders: z.array(UserOpenOrderSchema),
