@@ -23,7 +23,10 @@ export const MarketTradeSchema = z.object({
   transaction_version: z.number(),
 });
 
-export const MarketTradesHistorySchema = z.array(MarketTradeSchema);
+export const MarketTradesHistorySchema = z.object({
+  items: z.array(MarketTradeSchema),
+  total_count: z.number(),
+});
 
 export const MarketTradeWsMessageSchema = z.object({
   trades: z.array(MarketTradeSchema),

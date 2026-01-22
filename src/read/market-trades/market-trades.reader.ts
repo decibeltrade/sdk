@@ -28,7 +28,7 @@ export class MarketTradesReader extends BaseReader {
       options: fetchOptions,
     });
 
-    return response.data;
+    return response.data.items;
   }
 
   /**
