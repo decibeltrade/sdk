@@ -22,6 +22,7 @@ export * from "./user-order-history/user-order-history.types";
 export * from "./user-positions/user-positions.types";
 export * from "./user-subaccounts/user-subaccounts.types";
 export * from "./user-trade-history/user-trade-history.types";
+export * from "./user-twap-history/user-twap-history.types";
 export * from "./vaults/vaults.types";
 
 export const PerpPosition = z.object({

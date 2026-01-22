@@ -23,6 +23,7 @@ import { UserOrderHistoryReader } from "./user-order-history/user-order-history.
 import { UserPositionsReader } from "./user-positions/user-positions.reader";
 import { UserSubaccountsReader } from "./user-subaccounts/user-subaccounts.reader";
 import { UserTradeHistoryReader } from "./user-trade-history/user-trade-history.reader";
+import { UserTwapHistoryReader } from "./user-twap-history/user-twap-history.reader";
 import { VaultsReader } from "./vaults/vaults.reader";
 import { DecibelWsSubscription } from "./ws-subscription";
 
@@ -51,6 +52,7 @@ export class DecibelReadDex {
   readonly userOpenOrders: UserOpenOrdersReader;
   readonly userBulkOrders: UserBulkOrdersReader;
   readonly userActiveTwaps: UserActiveTwapsReader;
+  readonly userTwapHistory: UserTwapHistoryReader;
   readonly portfolioChart: PortfolioChartReader;
   readonly leaderboard: LeaderboardReader;
   readonly vaults: VaultsReader;
@@ -93,6 +95,7 @@ export class DecibelReadDex {
     this.userFundingHistory = new UserFundingHistoryReader(this.deps);
     this.userTradeHistory = new UserTradeHistoryReader(this.deps);
     this.userActiveTwaps = new UserActiveTwapsReader(this.deps);
+    this.userTwapHistory = new UserTwapHistoryReader(this.deps);
     this.candlesticks = new CandlesticksReader(this.deps);
     this.portfolioChart = new PortfolioChartReader(this.deps);
     this.leaderboard = new LeaderboardReader(this.deps);
