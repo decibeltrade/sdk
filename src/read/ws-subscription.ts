@@ -16,32 +16,39 @@ export class DecibelWsSubscription {
   #reconnectAttempts = 0;
 
   #getSubscribeMessage(topic: string) {
-    return JSON.stringify({ Subscribe: { topic } });
+    return JSON.stringify({ method: "subscribe", topic });
   }
 
   #getUnsubscribeMessage(topic: string) {
-    return JSON.stringify({ Unsubscribe: { topic } });
+    return JSON.stringify({ method: "unsubscribe", topic });
   }
 
   #parseMessageData(data: WebSocket.Data): { topic: string; data: unknown } | null {
     if (typeof data !== "string") {
-      return null;
+      throw new Error("Unhandled WebSocket message: expected string data", { cause: data });
     }
+
+    let jsonData: unknown;
     try {
-      const jsonData: unknown = JSON.parse(data, bigIntReviver);
-      if (
-        jsonData &&
-        typeof jsonData === "object" &&
-        "topic" in jsonData &&
-        typeof jsonData.topic === "string"
-      ) {
-        const { topic, ...rest } = jsonData;
-        return { topic, data: rest };
-      }
-      return null;
+      jsonData = JSON.parse(data, bigIntReviver);
     } catch {
-      return null;
+      throw new Error("Unhandled WebSocket message: failed to parse JSON", { cause: data });
     }
+
+    if (
+      jsonData &&
+      typeof jsonData === "object" &&
+      "topic" in jsonData &&
+      typeof jsonData.topic === "string"
+    ) {
+      // Filter out response messages (they have a "success" field; data payloads do not)
+      if ("success" in jsonData) {
+        return null;
+      }
+      const { topic, ...rest } = jsonData;
+      return { topic, data: rest };
+    }
+    throw new Error("Unhandled WebSocket message: missing topic field", { cause: data });
   }
 
   #open() {
@@ -62,17 +69,10 @@ export class DecibelWsSubscription {
     });
 
     ws.addEventListener("message", (event) => {
-      if (
-        typeof event.data === "string" &&
-        (event.data.includes("UnsubscribeResponse") || event.data.includes("SubscribeResponse"))
-      ) {
-        // Ignore response messages for now. Maybe we'll make use of them in the future.
-        return;
-      }
-
       const parsedMessage = this.#parseMessageData(event.data);
       if (!parsedMessage) {
-        throw new Error("Unhandled WebSocket message:", { cause: event.data });
+        // Response messages (subscribe/unsubscribe confirmations) are silently ignored
+        return;
       }
       const { topic, data } = parsedMessage;
       const listeners = this.#subscriptions.get(topic);
