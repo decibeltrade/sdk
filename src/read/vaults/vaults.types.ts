@@ -49,6 +49,8 @@ export const VaultSchema = z.object({
   created_at: z.number(),
   tvl: z.number().nullable(),
   volume: z.number().nullable(),
+  volume_30d: z.number().nullable(),
+  all_time_pnl: z.number().nullable(),
   all_time_return: z.number().nullable(),
   past_month_return: z.number().nullable(),
   sharpe_ratio: z.number().nullable(),
@@ -95,22 +97,48 @@ export type UserOwnedVault = z.infer<typeof UserOwnedVaultSchema>;
 export type UserOwnedVaults = UserOwnedVault[];
 
 /**
+ * Schema for a deposit transaction in a vault
+ */
+export const VaultDepositSchema = z.object({
+  amount_usdc: z.number(),
+  shares_received: z.number(),
+  timestamp_ms: z.number(),
+  unlock_timestamp_ms: z.number().nullable(),
+});
+
+/**
+ * Schema for a withdrawal transaction in a vault
+ */
+export const VaultWithdrawalSchema = z.object({
+  amount_usdc: z.number().nullable(),
+  shares_redeemed: z.number(),
+  timestamp_ms: z.number(),
+  status: z.string(),
+});
+
+/**
  * Schema for user performance metrics within a vault
  * Tracks a user's deposits, shares, returns, and PnL for a specific vault
  */
 export const UserPerformanceOnVaultSchema = z.object({
   vault: VaultSchema,
-  user_address: z.string(),
-  net_deposits: z.number().nullable(),
+  account_address: z.string(),
+  total_deposited: z.number().nullable(),
+  total_withdrawn: z.number().nullable(),
   current_num_shares: z.number().nullable(),
   current_value_of_shares: z.number().nullable(),
-  all_time_return: z.number().nullable(),
-  all_time_earned: z.number().nullable(),
-  unrealized_pnl: z.number().nullable(),
   share_price: z.number(),
+  all_time_earned: z.number().nullable(),
+  all_time_return: z.number().nullable(),
   volume: z.number(),
   weekly_win_rate_12w: z.number().nullable(),
+  deposits: z.array(VaultDepositSchema).nullable(),
+  withdrawals: z.array(VaultWithdrawalSchema).nullable(),
+  locked_amount: z.number().nullable(),
+  unrealized_pnl: z.number().nullable(),
 });
 export const UserPerformancesOnVaultsResponseSchema = z.array(UserPerformanceOnVaultSchema);
 export type UserPerformanceOnVault = z.infer<typeof UserPerformanceOnVaultSchema>;
 export type UserPerformancesOnVaults = UserPerformanceOnVault[];
+export type VaultDeposit = z.infer<typeof VaultDepositSchema>;
+export type VaultWithdrawal = z.infer<typeof VaultWithdrawalSchema>;

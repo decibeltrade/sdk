@@ -27,7 +27,9 @@ const SDK_MODULES = [
   "perp_engine",
   "usdc",
   "vault",
+  "vault_api",
   "dex_accounts_vault_extension",
+  "dex_accounts_entry",
 ];
 
 /**

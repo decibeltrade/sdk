@@ -237,9 +237,7 @@ export function getPrimarySubaccountAddr(
     deriver,
     getSubaccountSeedBytes(account, "primary_subaccount"),
   ).toString();
-  console.log(
-    `Deriving primary subaccount address for account ${account}, package ${package_address}, deriver ${deriver}, and got: ${res}`,
-  );
+
   return res;
 }
 

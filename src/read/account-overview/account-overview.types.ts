@@ -37,6 +37,8 @@ export const AccountOverviewSchema = z.object({
   usdc_cross_withdrawable_balance: z.number(),
   usdc_isolated_withdrawable_balance: z.number(),
   realized_pnl: z.number().nullable(),
+  liquidation_fees_paid: z.number().nullable(),
+  liquidation_losses: z.number().nullable(),
 });
 
 export const AccountOverviewWsMessageSchema = z.object({
