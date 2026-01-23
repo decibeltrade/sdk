@@ -40,7 +40,7 @@ export class UserOpenOrdersReader extends BaseReader {
    * @returns A function to unsubscribe from the user orders updates
    */
   subscribeByAddr(subAddr: string, onData: (data: UserOpenOrdersWsMessage) => void) {
-    const topic = `user_open_orders:${subAddr}`;
+    const topic = `account_open_orders:${subAddr}`;
     return this.deps.ws.subscribe(topic, UserOpenOrdersWsMessageSchema, onData);
   }
 }

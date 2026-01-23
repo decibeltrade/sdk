@@ -16,7 +16,7 @@ export class UserActiveTwapsReader extends BaseReader {
     const response = await this.getRequest({
       schema: UserActiveTwapsSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/active_twaps`,
-      queryParams: { user: subAddr },
+      queryParams: { account: subAddr },
       options: fetchOptions,
     });
 

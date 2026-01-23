@@ -18,7 +18,7 @@ export class AccountOverviewReader extends BaseReader {
     fetchOptions,
     includePerformance,
   }: AccountOverviewRequestArgs) {
-    const queryParams = new URLSearchParams({ user: subAddr });
+    const queryParams = new URLSearchParams({ account: subAddr });
 
     if (volumeWindow) queryParams.set("volume_window", volumeWindow);
     if (includePerformance) queryParams.set("include_performance", "true");

@@ -40,7 +40,7 @@ export class VaultsReader extends BaseReader {
    */
   async getUserOwnedVaults({ fetchOptions, ...args }: UserOwnedVaultsRequestArgs) {
     const queryParams = new URLSearchParams({
-      user: args.ownerAddr,
+      account: args.ownerAddr,
     });
 
     if (args.limit) queryParams.set("limit", args.limit.toString());
@@ -49,7 +49,7 @@ export class VaultsReader extends BaseReader {
 
     const response = await this.getRequest({
       schema: UserOwnedVaultsResponseSchema,
-      url: `${this.deps.config.tradingHttpUrl}/api/v1/user_owned_vaults`,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/account_owned_vaults`,
       queryParams,
       options: fetchOptions,
     });
@@ -67,12 +67,12 @@ export class VaultsReader extends BaseReader {
     ...args
   }: UserPerformancesOnVaultsRequestArgs) {
     const queryParams = new URLSearchParams({
-      user_address: args.ownerAddr,
+      account: args.ownerAddr,
     });
 
     const response = await this.getRequest({
       schema: UserPerformancesOnVaultsResponseSchema,
-      url: `${this.deps.config.tradingHttpUrl}/api/v1/user_vault_performance`,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/account_vault_performance`,
       queryParams,
       options: fetchOptions,
     });

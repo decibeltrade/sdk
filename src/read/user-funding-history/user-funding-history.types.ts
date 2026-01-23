@@ -22,10 +22,5 @@ export const UserFundingSchema = z.object({
 
 export const UserFundingHistorySchema = PaginatedResponseSchema(UserFundingSchema);
 
-export const UserFundingHistoryWsMessageSchema = z.object({
-  funding_rates: z.array(UserFundingSchema),
-});
-
 export type UserFunding = z.infer<typeof UserFundingSchema>;
 export type UserFundingHistory = z.infer<typeof UserFundingHistorySchema>;
-export type UserFundingHistoryWsMessage = z.infer<typeof UserFundingHistoryWsMessageSchema>;

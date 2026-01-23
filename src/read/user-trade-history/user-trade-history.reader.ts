@@ -18,7 +18,7 @@ export class UserTradeHistoryReader extends BaseReader {
     const response = await this.getRequest({
       schema: UserTradesSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/trade_history`,
-      queryParams: { user: subAddr, limit: limit.toString(), offset: offset.toString() },
+      queryParams: { account: subAddr, limit: limit.toString(), offset: offset.toString() },
       options: fetchOptions,
     });
 

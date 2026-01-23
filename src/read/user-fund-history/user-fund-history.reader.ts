@@ -21,9 +21,9 @@ export class UserFundHistoryReader extends BaseReader {
   }: UserFundHistoryRequestArgs): Promise<UserFundHistoryResponse> {
     const response = await this.getRequest({
       schema: UserFundHistoryResponseSchema,
-      url: `${this.deps.config.tradingHttpUrl}/api/v1/user_fund_history`,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/account_fund_history`,
       queryParams: {
-        user: subAddr,
+        account: subAddr,
         limit: limit.toString(),
         offset: offset.toString(),
       },

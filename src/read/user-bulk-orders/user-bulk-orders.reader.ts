@@ -17,7 +17,7 @@ export class UserBulkOrdersReader extends BaseReader {
     const response = await this.getRequest({
       schema: UserBulkOrdersSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/bulk_orders`,
-      queryParams: { user: subAddr, market: market || "all" },
+      queryParams: { account: subAddr, market: market || "all" },
       options: fetchOptions,
     });
 

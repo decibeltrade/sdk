@@ -11,7 +11,7 @@ export class PortfolioChartReader extends BaseReader {
     const response = await this.getRequest({
       schema: PortfolioChartSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/portfolio_chart`,
-      queryParams: { user: subAddr, range, data_type: type },
+      queryParams: { account: subAddr, range, data_type: type },
       options: fetchOptions,
     });
 

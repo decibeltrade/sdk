@@ -34,7 +34,7 @@ export class OrderStatusClient {
     userAddress: string,
   ): Promise<OrderStatus | null> {
     try {
-      const url = `${this.config.tradingHttpUrl}/api/v1/orders?order_id=${orderId}&market_address=${marketAddress}&user_address=${userAddress}`;
+      const url = `${this.config.tradingHttpUrl}/api/v1/orders?order_id=${orderId}&market_address=${marketAddress}&account=${userAddress}`;
       const response = await fetch(url);
 
       if (!response.ok) {

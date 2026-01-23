@@ -21,7 +21,7 @@ export class UserPositionsReader extends BaseReader {
     fetchOptions,
   }: UserPositionsRequestArgs) {
     const queryParams = new URLSearchParams({
-      user: subAddr,
+      account: subAddr,
       include_deleted: includeDeleted.toString(),
       limit: limit.toString(),
     });
@@ -32,7 +32,7 @@ export class UserPositionsReader extends BaseReader {
 
     const response = await this.getRequest({
       schema: UserPositionsSchema,
-      url: `${this.deps.config.tradingHttpUrl}/api/v1/user_positions`,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/account_positions`,
       queryParams,
       options: fetchOptions,
     });
@@ -48,7 +48,7 @@ export class UserPositionsReader extends BaseReader {
    * @returns A function to unsubscribe from the user positions updates
    */
   subscribeByAddr(subAddr: string, onData: (data: UserPositionsWsMessage) => void) {
-    const topic = `user_positions:${subAddr}`;
+    const topic = `account_positions:${subAddr}`;
 
     return this.deps.ws.subscribe(topic, UserPositionsWsMessageSchema, onData);
   }
