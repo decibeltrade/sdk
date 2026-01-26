@@ -1,8 +1,8 @@
 {
   "packageAddress": "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95",
   "network": "custom",
-  "fullnodeUrl": "https://api.netna.aptoslabs.com/v1",
-  "fetchedAt": "2026-01-23T11:21:28.830Z",
+  "fullnodeUrl": "https://api.netna.staging.aptoslabs.com/v1",
+  "fetchedAt": "2026-01-23T23:19:39.914Z",
   "abis": {
     "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::admin_apis::initialize": {
       "name": "initialize",

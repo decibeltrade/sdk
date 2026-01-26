@@ -69,10 +69,10 @@ const getDeployment = (pkg: string): Deployment => {
 
 export const NETNA_CONFIG: DecibelConfig = {
   network: Network.CUSTOM,
-  fullnodeUrl: "https://api.netna.aptoslabs.com/v1",
-  tradingHttpUrl: "https://api.netna.aptoslabs.com/decibel",
-  tradingWsUrl: "wss://api.netna.aptoslabs.com/decibel/ws",
-  gasStationUrl: "https://api.netna.aptoslabs.com/gs/v1",
+  fullnodeUrl: "https://api.netna.staging.aptoslabs.com/v1",
+  tradingHttpUrl: "https://api.netna.staging.aptoslabs.com/decibel",
+  tradingWsUrl: "wss://api.netna.staging.aptoslabs.com/decibel/ws",
+  gasStationUrl: "https://api.netna.staging.aptoslabs.com/gs/v1",
   deployment: getDeployment(PACKAGE.NETNA),
   chainId: 208,
   ...RELEASE_CONFIGS.NETNA,

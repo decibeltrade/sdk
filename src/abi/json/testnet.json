@@ -2,7 +2,7 @@
   "packageAddress": "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88",
   "network": "testnet",
   "fullnodeUrl": "https://api.testnet.aptoslabs.com/v1",
-  "fetchedAt": "2026-01-23T11:21:31.165Z",
+  "fetchedAt": "2026-01-23T23:19:40.725Z",
   "abis": {
     "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::admin_apis::initialize": {
       "name": "initialize",
