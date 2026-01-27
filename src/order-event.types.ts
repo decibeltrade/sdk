@@ -51,6 +51,7 @@ export interface TwapEvent {
   remain_size: string;
   start_time_s: string;
   status: OrderEventStatus;
+  client_order_id: OrderEventClientOrderId;
 }
 
 export type PlaceOrderResult =

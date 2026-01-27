@@ -10,7 +10,7 @@ export const UserActiveTwapSchema = z.object({
   market: z.string(),
   is_buy: z.boolean(),
   order_id: z.string(),
-  client_order_id: z.string().nullable().optional(),
+  client_order_id: z.string(),
   is_reduce_only: z.boolean(),
   start_unix_ms: z.number(),
   frequency_s: z.number(),
