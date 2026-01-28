@@ -55,6 +55,6 @@ export class MarketDepthReader extends BaseReader {
   }
 
   getAggregationSizes() {
-    return [1, 2, 5, 10] as const satisfies MarketDepthAggregationSize[];
+    return [1, 2, 5, 10, 100, 1000] as const satisfies MarketDepthAggregationSize[];
   }
 }

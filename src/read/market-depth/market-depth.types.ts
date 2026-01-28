@@ -18,7 +18,6 @@ export const MarketDepthSchema = z.object({
   asks: z.array(MarketOrderSchema),
 });
 
-// TODO: These values will change in the near future
-export type MarketDepthAggregationSize = 1 | 2 | 5 | 10;
+export type MarketDepthAggregationSize = 1 | 2 | 5 | 10 | 100 | 1000;
 export type MarketOrder = z.infer<typeof MarketOrderSchema>;
 export type MarketDepth = z.infer<typeof MarketDepthSchema>;
