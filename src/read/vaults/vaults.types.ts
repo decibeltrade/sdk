@@ -58,7 +58,7 @@ export const VaultSchema = z.object({
   weekly_win_rate_12w: z.number().nullable(),
   profit_share: z.number().nullable(),
   pnl_90d: z.number().nullable(),
-  manager_avg_cash: z.number().nullable(),
+  manager_cash_pct: z.number().nullable(),
   average_leverage: z.number().nullable(),
   depositors: z.number().nullable(),
   perp_equity: z.number().nullable(),
