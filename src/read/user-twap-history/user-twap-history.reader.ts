@@ -13,7 +13,7 @@ export class UserTwapHistoryReader extends BaseReader {
     const response = await this.getRequest({
       schema: UserTwapHistorySchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/twap_history`,
-      queryParams: { user: subAddr, limit: limit.toString(), offset: offset.toString() },
+      queryParams: { account: subAddr, limit: limit.toString(), offset: offset.toString() },
       options: fetchOptions,
     });
 
