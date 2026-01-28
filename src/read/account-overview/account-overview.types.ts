@@ -25,6 +25,8 @@ export const AccountOverviewSchema = z.object({
   maintenance_margin: z.number(),
   cross_account_leverage_ratio: z.number().nullable(),
   volume: z.number().nullable(),
+  /** Net deposits (total deposits - total withdrawals) in USDC */
+  net_deposits: z.number().nullable(),
   all_time_return: z.number().nullable(),
   pnl_90d: z.number().nullable(),
   sharpe_ratio: z.number().nullable(),

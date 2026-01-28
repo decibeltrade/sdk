@@ -51,6 +51,8 @@ export const VaultSchema = z.object({
   volume: z.number().nullable(),
   volume_30d: z.number().nullable(),
   all_time_pnl: z.number().nullable(),
+  /** Net deposits (total contributions - total settled redemptions) in USDC */
+  net_deposits: z.number().nullable(),
   all_time_return: z.number().nullable(),
   past_month_return: z.number().nullable(),
   sharpe_ratio: z.number().nullable(),
