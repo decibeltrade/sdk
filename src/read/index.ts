@@ -247,7 +247,7 @@ export class DecibelReadDex {
   async accountBalance(addr: AccountAddress) {
     const balance = await this.deps.aptos.view<[number]>({
       payload: {
-        function: `${this.config.deployment.package}::perp_engine::get_account_balance_fungible`,
+        function: `${this.config.deployment.package}::perp_engine::get_account_balance_fungible_signed`,
         typeArguments: [],
         functionArguments: [addr],
       },
