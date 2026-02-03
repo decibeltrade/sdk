@@ -14,7 +14,7 @@ export class UserOpenOrdersReader extends BaseReader {
    */
   async getByAddr({ subAddr, limit, offset, fetchOptions }: UserOpenOrdersRequestArgs) {
     const queryParams: Record<string, string> = {
-      user: subAddr,
+      account: subAddr,
     };
     if (limit !== undefined) {
       queryParams.limit = limit.toString();

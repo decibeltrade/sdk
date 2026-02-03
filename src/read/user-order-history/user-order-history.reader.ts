@@ -9,7 +9,7 @@ import {
 export class UserOrderHistoryReader extends BaseReader {
   async getByAddr({ subAddr, limit, offset, fetchOptions }: UserOrderHistoryRequestArgs) {
     const queryParams: Record<string, string> = {
-      user: subAddr,
+      account: subAddr,
     };
     if (limit !== undefined) {
       queryParams.limit = limit.toString();
