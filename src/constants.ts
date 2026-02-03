@@ -90,7 +90,7 @@ export const TESTNET_CONFIG: DecibelConfig = {
   fullnodeUrl: "https://api.testnet.aptoslabs.com/v1",
   tradingHttpUrl: "https://api.testnet.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.testnet.aptoslabs.com/decibel/ws",
-  gasStationUrl: "https://fee-payer-staging-testnet-us-central1-502735673999.us-central1.run.app",
+  gasStationUrl: "https://api.testnet.aptoslabs.com/gs/v1",
   deployment: getDeployment(PACKAGE.TESTNET),
   chainId: 2,
   ...RELEASE_CONFIGS.TESTNET,
