@@ -12,6 +12,7 @@ import { MarketPricesReader } from "./market-prices/market-prices.reader";
 import { MarketTradesReader } from "./market-trades/market-trades.reader";
 import { MarketsReader } from "./markets/markets.reader";
 import { PortfolioChartReader } from "./portfolio-chart/portfolio-chart.reader";
+import { TradingPointsReader } from "./trading-points/trading-points.reader";
 import { CrossedPosition } from "./types";
 import { UserActiveTwapsReader } from "./user-active-twaps/user-active-twaps.reader";
 import { UserBulkOrdersReader } from "./user-bulk-orders/user-bulk-orders.reader";
@@ -58,6 +59,7 @@ export class DecibelReadDex {
   readonly vaults: VaultsReader;
   readonly delegations: DelegationsReader;
   readonly userNotifications: UserNotificationsReader;
+  readonly tradingPoints: TradingPointsReader;
 
   constructor(
     readonly config: DecibelConfig,
@@ -102,6 +104,7 @@ export class DecibelReadDex {
     this.vaults = new VaultsReader(this.deps);
     this.delegations = new DelegationsReader(this.deps);
     this.userNotifications = new UserNotificationsReader(this.deps);
+    this.tradingPoints = new TradingPointsReader(this.deps);
   }
 
   async globalPerpEngineState() {

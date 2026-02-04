@@ -12,6 +12,7 @@ export * from "./market-trades/market-trades.types";
 export * from "./markets/markets.types";
 export * from "./pagination.types";
 export * from "./portfolio-chart/portfolio-chart.types";
+export * from "./trading-points/trading-points.types";
 export * from "./user-active-twaps/user-active-twaps.types";
 export * from "./user-bulk-orders/user-bulk-orders.types";
 export * from "./user-fund-history/user-fund-history.types";
