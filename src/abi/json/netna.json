@@ -622,6 +622,7 @@
         "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>",
         "vector<u8>",
         "vector<address>",
+        "vector<address>",
         "bool"
       ],
       "return": []
@@ -640,6 +641,7 @@
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>",
         "vector<address>",
+        "vector<address>",
         "bool"
       ],
       "return": []
@@ -655,6 +657,7 @@
         "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>",
         "u64",
         "vector<address>",
+        "vector<address>",
         "bool"
       ],
       "return": []
@@ -669,6 +672,7 @@
         "&signer",
         "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>",
         "vector<u8>",
+        "vector<address>",
         "vector<address>",
         "bool"
       ],

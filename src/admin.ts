@@ -257,7 +257,7 @@ export class DecibelAdminDex extends BaseSDK {
     return await this.sendTx({
       function: `${this.config.deployment.package}::admin_apis::update_mark_for_internal_oracle`,
       typeArguments: [],
-      functionArguments: [marketAddr, oraclePrice, [], true],
+      functionArguments: [marketAddr, oraclePrice, [], [], true],
     });
   }
 
@@ -266,7 +266,7 @@ export class DecibelAdminDex extends BaseSDK {
     return await this.sendTx({
       function: `${this.config.deployment.package}::admin_apis::update_mark_for_pyth_oracle`,
       typeArguments: [],
-      functionArguments: [marketAddr, vaa, [], true],
+      functionArguments: [marketAddr, vaa, [], [], true],
     });
   }
 
