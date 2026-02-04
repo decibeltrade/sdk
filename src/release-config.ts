@@ -15,6 +15,7 @@ export interface ReleaseConfig {
 export const PACKAGE = {
   NETNA: "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95",
   TESTNET: "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88",
+  MAINNET: "0xe6683d451db246750f180fb78d9b5e0a855dacba64ddf5810dffdaeb221e46bf",
 };
 
 export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_3;
@@ -35,9 +36,14 @@ const DOCKER_RELEASE_CONFIG: ReleaseConfig = {
   compatVersion: DEFAULT_COMPAT_VERSION,
 };
 
+const MAINNET_RELEASE_CONFIG: ReleaseConfig = {
+  compatVersion: CompatVersion.V0_3,
+};
+
 export const RELEASE_CONFIGS = {
   NETNA: NETNA_RELEASE_CONFIG,
   TESTNET: TESTNET_RELEASE_CONFIG,
   LOCAL: LOCAL_RELEASE_CONFIG,
   DOCKER: DOCKER_RELEASE_CONFIG,
+  MAINNET: MAINNET_RELEASE_CONFIG,
 };

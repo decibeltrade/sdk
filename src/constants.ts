@@ -96,6 +96,26 @@ export const TESTNET_CONFIG: DecibelConfig = {
   ...RELEASE_CONFIGS.TESTNET,
 };
 
+const MAINNET_USDC = "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b";
+
+export const MAINNET_DEPLOYMENT: Deployment = {
+  package: PACKAGE.MAINNET,
+  usdc: MAINNET_USDC,
+  testc: getTestcAddress(PACKAGE.MAINNET).toString(),
+  perpEngineGlobal: getPerpEngineGlobalAddress(PACKAGE.MAINNET).toString(),
+};
+
+export const MAINNET_CONFIG: DecibelConfig = {
+  network: Network.MAINNET,
+  fullnodeUrl: "https://api.mainnet.aptoslabs.com/v1",
+  tradingHttpUrl: "https://api.mainnet.aptoslabs.com/decibel",
+  tradingWsUrl: "wss://api.mainnet.aptoslabs.com/decibel/ws",
+  gasStationUrl: "https://api.mainnet.aptoslabs.com/gs/v1",
+  deployment: MAINNET_DEPLOYMENT,
+  chainId: 1,
+  ...RELEASE_CONFIGS.MAINNET,
+};
+
 export const LOCAL_CONFIG: DecibelConfig = {
   network: Network.CUSTOM,
   fullnodeUrl: "http://localhost:8080/v1",
@@ -122,6 +142,7 @@ export const NAMED_CONFIGS: Record<string, DecibelConfig | undefined> = {
   local: LOCAL_CONFIG,
   docker: DOCKER_CONFIG,
   testnet: TESTNET_CONFIG,
+  mainnet: MAINNET_CONFIG,
 };
 
 export const QUERY_PARAM_KEYS = {
