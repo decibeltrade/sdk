@@ -16,6 +16,7 @@ export const MarketDepthSchema = z.object({
   market: z.string(),
   bids: z.array(MarketOrderSchema),
   asks: z.array(MarketOrderSchema),
+  unix_ms: z.number(),
 });
 
 export type MarketDepthAggregationSize = 1 | 2 | 5 | 10 | 100 | 1000;
