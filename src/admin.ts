@@ -7,15 +7,11 @@ export class DecibelAdminDex extends BaseSDK {
   /**
    * Initialize the global vault system. Only callable by the admin account.
    */
-  async initialize(
-    collateralTokenAddr: string,
-    collateralBalanceDecimals: number,
-    backstopLiquidatorAddr: string,
-  ) {
+  async initialize(collateralTokenAddr: string, backstopLiquidatorAddr: string) {
     return await this.sendTx({
       function: `${this.config.deployment.package}::admin_apis::initialize`,
       typeArguments: [],
-      functionArguments: [collateralTokenAddr, collateralBalanceDecimals, backstopLiquidatorAddr],
+      functionArguments: [collateralTokenAddr, backstopLiquidatorAddr],
     });
   }
 
