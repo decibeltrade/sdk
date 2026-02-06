@@ -94,6 +94,14 @@ export class DecibelAdminDex extends BaseSDK {
     });
   }
 
+  async addMarketRiskGovernor(delegatedAdmin: string) {
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::add_market_risk_governor`,
+      typeArguments: [],
+      functionArguments: [delegatedAdmin],
+    });
+  }
+
   async registerMarketWithInternalOracle(
     name: string,
     szDecimals: number,
@@ -295,6 +303,15 @@ export class DecibelAdminDex extends BaseSDK {
       function: `${this.config.deployment.package}::usdc::set_public_minting`,
       typeArguments: [],
       functionArguments: [allow],
+    });
+  }
+
+  async setMarketAdlTriggerThreshold(marketName: string, threshold: number) {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::set_market_adl_trigger_threshold`,
+      typeArguments: [],
+      functionArguments: [marketAddr, threshold],
     });
   }
 
