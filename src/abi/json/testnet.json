@@ -1081,8 +1081,8 @@
         "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::oracle::OracleSource"
       ]
     },
-    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::get_primary_store_balance_in_balance_precision": {
-      "name": "get_primary_store_balance_in_balance_precision",
+    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::get_global_primary_store_balance_in_balance_precision": {
+      "name": "get_global_primary_store_balance_in_balance_precision",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -1358,8 +1358,8 @@
         "u64"
       ]
     },
-    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::get_account_net_asset_value_fungible": {
-      "name": "get_account_net_asset_value_fungible",
+    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::get_account_net_asset_value": {
+      "name": "get_account_net_asset_value",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -1372,8 +1372,8 @@
         "i64"
       ]
     },
-    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::get_isolated_position_margin": {
-      "name": "get_isolated_position_margin",
+    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::get_isolated_position_total_collateral_value": {
+      "name": "get_isolated_position_total_collateral_value",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -1386,8 +1386,8 @@
         "u64"
       ]
     },
-    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::max_allowed_withdraw_fungible_amount": {
-      "name": "max_allowed_withdraw_fungible_amount",
+    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::perp_engine::max_allowed_withdraw_from_cross": {
+      "name": "max_allowed_withdraw_from_cross",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -2144,8 +2144,8 @@
       ],
       "return": []
     },
-    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::dex_accounts_entry::transfer_margin_to_isolated_position": {
-      "name": "transfer_margin_to_isolated_position",
+    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::dex_accounts_entry::transfer_collateral_to_isolated_position": {
+      "name": "transfer_collateral_to_isolated_position",
       "visibility": "private",
       "is_entry": true,
       "is_view": false,
@@ -2160,8 +2160,8 @@
       ],
       "return": []
     },
-    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::dex_accounts_entry::deposit_to_isolated_position_margin": {
-      "name": "deposit_to_isolated_position_margin",
+    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::dex_accounts_entry::deposit_to_isolated_position_collateral": {
+      "name": "deposit_to_isolated_position_collateral",
       "visibility": "private",
       "is_entry": true,
       "is_view": false,
@@ -2210,8 +2210,8 @@
       ],
       "return": []
     },
-    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::dex_accounts_entry::withdraw_from_isolated_position_margin": {
-      "name": "withdraw_from_isolated_position_margin",
+    "0xd0b2dd565e0f2020d66d581a938e7766b2163db4b8c63410c17578d32b4e9e88::dex_accounts_entry::withdraw_from_isolated_position_collateral": {
+      "name": "withdraw_from_isolated_position_collateral",
       "visibility": "private",
       "is_entry": true,
       "is_view": false,
