@@ -2,7 +2,7 @@
   "packageAddress": "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95",
   "network": "custom",
   "fullnodeUrl": "https://api.netna.staging.aptoslabs.com/v1",
-  "fetchedAt": "2026-01-23T23:19:39.914Z",
+  "fetchedAt": "2026-02-10T21:49:18.686Z",
   "abis": {
     "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::admin_apis::initialize": {
       "name": "initialize",
@@ -172,7 +172,6 @@
         "u64",
         "u64",
         "u8",
-        "u64",
         "bool",
         "vector<u8>",
         "u64",
@@ -199,7 +198,6 @@
         "u64",
         "u64",
         "u8",
-        "u64",
         "bool",
         "vector<u8>",
         "u64",
@@ -227,7 +225,6 @@
         "u64",
         "u64",
         "u8",
-        "u64",
         "bool",
         "u64",
         "u64"
@@ -249,7 +246,6 @@
         "u64",
         "u64",
         "u8",
-        "u64",
         "bool",
         "vector<u8>",
         "u64",
@@ -622,7 +618,6 @@
         "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>",
         "vector<u8>",
         "vector<address>",
-        "vector<address>",
         "bool"
       ],
       "return": []
@@ -641,7 +636,6 @@
         "0x1::option::Option<u64>",
         "0x1::option::Option<u64>",
         "vector<address>",
-        "vector<address>",
         "bool"
       ],
       "return": []
@@ -656,7 +650,6 @@
         "&signer",
         "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>",
         "u64",
-        "vector<address>",
         "vector<address>",
         "bool"
       ],
@@ -673,25 +666,12 @@
         "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>",
         "vector<u8>",
         "vector<address>",
-        "vector<address>",
         "bool"
       ],
       "return": []
     },
     "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::public_apis::close_delisted_position": {
       "name": "close_delisted_position",
-      "visibility": "public",
-      "is_entry": true,
-      "is_view": false,
-      "generic_type_params": [],
-      "params": [
-        "address",
-        "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>"
-      ],
-      "return": []
-    },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::public_apis::liquidate_position": {
-      "name": "liquidate_position",
       "visibility": "public",
       "is_entry": true,
       "is_view": false,
@@ -711,6 +691,30 @@
       "params": [
         "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>",
         "u32"
+      ],
+      "return": []
+    },
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::public_apis::liquidate_positions": {
+      "name": "liquidate_positions",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "vector<address>",
+        "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>"
+      ],
+      "return": []
+    },
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::public_apis::liquidate_position": {
+      "name": "liquidate_position",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_market::PerpMarket>"
       ],
       "return": []
     },
@@ -793,8 +797,8 @@
         "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::oracle::OracleSource"
       ]
     },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::get_global_primary_store_balance_in_balance_precision": {
-      "name": "get_global_primary_store_balance_in_balance_precision",
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::get_primary_store_balance_in_balance_precision": {
+      "name": "get_primary_store_balance_in_balance_precision",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -1070,8 +1074,8 @@
         "u64"
       ]
     },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::get_account_net_asset_value": {
-      "name": "get_account_net_asset_value",
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::get_account_net_asset_value_fungible": {
+      "name": "get_account_net_asset_value_fungible",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -1084,8 +1088,8 @@
         "i64"
       ]
     },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::get_isolated_position_total_collateral_value": {
-      "name": "get_isolated_position_total_collateral_value",
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::get_isolated_position_margin": {
+      "name": "get_isolated_position_margin",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -1098,8 +1102,8 @@
         "u64"
       ]
     },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::max_allowed_withdraw_from_cross": {
-      "name": "max_allowed_withdraw_from_cross",
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::perp_engine::max_allowed_withdraw_fungible_amount": {
+      "name": "max_allowed_withdraw_fungible_amount",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,
@@ -1856,8 +1860,8 @@
       ],
       "return": []
     },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::dex_accounts_entry::transfer_collateral_to_isolated_position": {
-      "name": "transfer_collateral_to_isolated_position",
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::dex_accounts_entry::transfer_margin_to_isolated_position": {
+      "name": "transfer_margin_to_isolated_position",
       "visibility": "private",
       "is_entry": true,
       "is_view": false,
@@ -1872,8 +1876,8 @@
       ],
       "return": []
     },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::dex_accounts_entry::deposit_to_isolated_position_collateral": {
-      "name": "deposit_to_isolated_position_collateral",
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::dex_accounts_entry::deposit_to_isolated_position_margin": {
+      "name": "deposit_to_isolated_position_margin",
       "visibility": "private",
       "is_entry": true,
       "is_view": false,
@@ -1922,8 +1926,8 @@
       ],
       "return": []
     },
-    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::dex_accounts_entry::withdraw_from_isolated_position_collateral": {
-      "name": "withdraw_from_isolated_position_collateral",
+    "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95::dex_accounts_entry::withdraw_from_isolated_position_margin": {
+      "name": "withdraw_from_isolated_position_margin",
       "visibility": "private",
       "is_entry": true,
       "is_view": false,
@@ -2395,8 +2399,8 @@
   "errors": [],
   "summary": {
     "totalModules": 9,
-    "totalFunctions": 171,
-    "successful": 171,
+    "totalFunctions": 172,
+    "successful": 172,
     "failed": 0
   },
   "modules": [
