@@ -64,7 +64,7 @@ export const VaultSchema = z.object({
   average_leverage: z.number().nullable(),
   depositors: z.number().nullable(),
   perp_equity: z.number().nullable(),
-  vault_type: z.enum(vaultTypeValues),
+  vault_type: z.enum(vaultTypeValues).nullable(),
   social_links: z.array(z.string()).nullable(),
 });
 
@@ -129,10 +129,10 @@ export const UserPerformanceOnVaultSchema = z.object({
   total_withdrawn: z.number().nullable(),
   current_num_shares: z.number().nullable(),
   current_value_of_shares: z.number().nullable(),
-  share_price: z.number(),
+  share_price: z.number().nullable(),
   all_time_earned: z.number().nullable(),
   all_time_return: z.number().nullable(),
-  volume: z.number(),
+  volume: z.number().nullable(),
   weekly_win_rate_12w: z.number().nullable(),
   deposits: z.array(VaultDepositSchema).nullable(),
   withdrawals: z.array(VaultWithdrawalSchema).nullable(),
