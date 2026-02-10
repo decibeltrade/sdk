@@ -732,12 +732,14 @@ export class DecibelWriteDex extends BaseSDK {
     vaultDescription,
     vaultSocialLinks,
   }: WithSignerAddress<CreateVaultArgs>) {
+    const signerPrimarySubaccount = this.getPrimarySubaccountAddress(signerAddress);
+
     const transaction = await this.buildTx(
       {
         function: `${this.config.deployment.package}::vault_api::create_and_fund_vault`,
         typeArguments: [],
         functionArguments: [
-          null,
+          signerPrimarySubaccount,
           contributionAssetType,
           vaultName,
           vaultDescription,
@@ -776,7 +778,10 @@ export class DecibelWriteDex extends BaseSDK {
             function: `${this.config.deployment.package}::vault_api::create_and_fund_vault`,
             typeArguments: [],
             functionArguments: [
-              args.subaccountAddr ?? null,
+              args.subaccountAddr ??
+                this.getPrimarySubaccountAddress(
+                  (args.accountOverride ?? this.account).accountAddress,
+                ),
               args.contributionAssetType,
               args.vaultName,
               args.vaultDescription,
@@ -827,9 +832,14 @@ export class DecibelWriteDex extends BaseSDK {
   }: WithSignerAddress<DepositToVaultArgs>) {
     return await this.buildTx(
       {
-        function: `${this.config.deployment.package}::vault_api::contribute`,
+        function: `${this.config.deployment.package}::dex_accounts_entry::contribute_to_vault`,
         typeArguments: [],
-        functionArguments: [vaultAddress, amount],
+        functionArguments: [
+          this.getPrimarySubaccountAddress(signerAddress), // todo - select correct subaccount
+          vaultAddress,
+          this.config.deployment.usdc,
+          amount,
+        ],
       },
       signerAddress,
     );

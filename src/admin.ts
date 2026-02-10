@@ -33,7 +33,7 @@ export class DecibelAdminDex extends BaseSDK {
       function: `${this.config.deployment.package}::vault_api::create_and_fund_vault`,
       typeArguments: [],
       functionArguments: [
-        null,
+        this.getPrimarySubaccountAddress(this.account.accountAddress),
         collateralTokenAddr,
         "Decibel Protocol Vault",
         "(description)",
