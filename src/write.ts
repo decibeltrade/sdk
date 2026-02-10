@@ -926,7 +926,7 @@ export class DecibelWriteDex extends BaseSDK {
   }>) {
     return await this.buildTx(
       {
-        function: `${this.config.deployment.package}::vault::delegate_dex_actions_to`,
+        function: `${this.config.deployment.package}::vault_admin_api::delegate_dex_actions_to`,
         typeArguments: [],
         functionArguments: [vaultAddress, accountToDelegateTo, expirationTimestampSecs],
       },

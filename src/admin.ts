@@ -53,7 +53,7 @@ export class DecibelAdminDex extends BaseSDK {
 
   async delegateProtocolVaultTradingTo(vaultAddress: string, accountToDelegateTo: string) {
     return await this.sendTx({
-      function: `${this.config.deployment.package}::vault::delegate_dex_actions_to`,
+      function: `${this.config.deployment.package}::vault_admin_api::delegate_dex_actions_to`,
       typeArguments: [],
       functionArguments: [vaultAddress, accountToDelegateTo, undefined],
     });
@@ -64,7 +64,7 @@ export class DecibelAdminDex extends BaseSDK {
     useGlobalRedemptionSlippageAdjustment: boolean,
   ) {
     return await this.sendTx({
-      function: `${this.config.deployment.package}::vault::update_vault_use_global_redemption_slippage_adjustment`,
+      function: `${this.config.deployment.package}::vault_admin_api::update_vault_use_global_redemption_slippage_adjustment`,
       typeArguments: [],
       functionArguments: [vaultAddress, useGlobalRedemptionSlippageAdjustment],
     });
