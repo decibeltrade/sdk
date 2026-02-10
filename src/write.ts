@@ -300,7 +300,7 @@ export class DecibelWriteDex extends BaseSDK {
 
   async triggerMatching({ marketAddr, maxWorkUnit }: { marketAddr: string; maxWorkUnit: number }) {
     const txResponse = await this.sendTx({
-      function: `${this.config.deployment.package}::public_apis::trigger_matching`,
+      function: `${this.config.deployment.package}::public_apis::process_perp_market_pending_requests`,
       typeArguments: [],
       functionArguments: [marketAddr, maxWorkUnit],
     });
