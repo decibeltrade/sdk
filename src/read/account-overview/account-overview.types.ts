@@ -38,9 +38,14 @@ export const AccountOverviewSchema = z.object({
   total_margin: z.number(),
   usdc_cross_withdrawable_balance: z.number(),
   usdc_isolated_withdrawable_balance: z.number(),
+  /** Cross-margin deficit: 0 when healthy, negative when the account has a margin hole.
+   *  When negative, new deposits partially fill this deficit before becoming available to trade. */
+  margin_deficit: z.number().optional(), // TODO: Remove optional once back-end is deployed
   realized_pnl: z.number().nullable(),
   liquidation_fees_paid: z.number().nullable(),
   liquidation_losses: z.number().nullable(),
+  /** Total USDC value of vault shares held by this account. NULL when not yet available via WebSocket. */
+  vault_equity: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
 });
 
 export const AccountOverviewWsMessageSchema = z.object({

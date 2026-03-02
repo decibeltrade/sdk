@@ -56,10 +56,15 @@ export class DecibelWsSubscription {
       return;
     }
 
-    const ws = new WebSocket(
-      this.config.tradingWsUrl,
-      this.apiKey ? ["decibel", this.apiKey] : undefined,
-    );
+    const extra = this.config.additionalHeaders;
+    // When additionalHeaders are set (server-side), pass them as HTTP upgrade
+    // headers instead of using API key subprotocol auth. The `ws` library
+    // (Node.js) supports a third `options` argument with `headers`.
+    const ws = extra
+      ? new WebSocket(this.config.tradingWsUrl, ["decibel"], {
+          headers: extra,
+        } as never)
+      : new WebSocket(this.config.tradingWsUrl, this.apiKey ? ["decibel", this.apiKey] : undefined);
 
     ws.addEventListener("open", () => {
       this.#reconnectAttempts = 0;

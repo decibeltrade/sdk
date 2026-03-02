@@ -1,0 +1,84 @@
+import { Aptos, Network } from "@aptos-labs/ts-sdk";
+import { describe, expect, it, vi } from "vitest";
+import { z } from "zod/v4";
+
+import { DecibelConfig, DecibelReaderDeps } from "../constants";
+import { DEFAULT_COMPAT_VERSION } from "../release-config";
+import { BaseReader } from "./base-reader";
+import { DecibelWsSubscription } from "./ws-subscription";
+
+// Expose protected methods for testing
+class TestableReader extends BaseReader {
+  async doGet(url: string) {
+    return this.getRequest({ schema: z.unknown(), url });
+  }
+}
+
+function createMockDeps(additionalHeaders?: Record<string, string>): DecibelReaderDeps {
+  const mockConfig: DecibelConfig = {
+    network: Network.TESTNET,
+    fullnodeUrl: "https://testnet.aptoslabs.com/v1",
+    tradingHttpUrl: "https://api.testnet.example.com",
+    tradingWsUrl: "wss://ws.testnet.example.com",
+    deployment: {
+      package: "0x0000000000000000000000000000000000000000000000000000000000000123",
+      usdc: "0x0000000000000000000000000000000000000000000000000000000000000456",
+      testc: "0x0000000000000000000000000000000000000000000000000000000000000789",
+      perpEngineGlobal: "0x0000000000000000000000000000000000000000000000000000000000000abc",
+    },
+    compatVersion: DEFAULT_COMPAT_VERSION,
+    additionalHeaders,
+  };
+
+  return {
+    aptos: {} as unknown as Aptos,
+    ws: {} as unknown as DecibelWsSubscription,
+    config: mockConfig,
+    apiKey: additionalHeaders ? undefined : "test-api-key",
+  };
+}
+
+describe("BaseReader - additionalHeaders", () => {
+  it("should not inject headers when additionalHeaders is undefined", async () => {
+    const deps = createMockDeps();
+    const reader = new TestableReader(deps);
+
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    await reader.doGet("https://api.example.com/test");
+
+    const calledInit = fetchSpy.mock.calls[0]?.[1];
+    const headers = calledInit?.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer test-api-key");
+    expect(headers.get("x-internal-organization-id")).toBeNull();
+
+    fetchSpy.mockRestore();
+  });
+
+  it("should inject additionalHeaders into requests", async () => {
+    const deps = createMockDeps({
+      "x-internal-organization-id": "org-1",
+      "x-internal-project-id": "proj-1",
+      "x-internal-application-id": "app-1",
+    });
+    const reader = new TestableReader(deps);
+
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    await reader.doGet("https://api.example.com/test");
+
+    const calledInit = fetchSpy.mock.calls[0]?.[1];
+    const headers = calledInit?.headers as Headers;
+    expect(headers.get("x-internal-organization-id")).toBe("org-1");
+    expect(headers.get("x-internal-project-id")).toBe("proj-1");
+    expect(headers.get("x-internal-application-id")).toBe("app-1");
+    // apiKey is undefined when additionalHeaders is set
+    expect(headers.get("Authorization")).toBeNull();
+
+    fetchSpy.mockRestore();
+  });
+});

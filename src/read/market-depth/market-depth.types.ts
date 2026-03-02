@@ -14,8 +14,10 @@ export const MarketOrderSchema = z.object({
 
 export const MarketDepthSchema = z.object({
   market: z.string(),
-  bids: z.array(MarketOrderSchema),
   asks: z.array(MarketOrderSchema),
+  bids: z.array(MarketOrderSchema),
+  best_ask: z.number().nullable().optional(),
+  best_bid: z.number().nullable().optional(),
   unix_ms: z.number(),
 });
 

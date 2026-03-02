@@ -5,13 +5,19 @@ import { DecibelConfig, DecibelReaderDeps } from "../constants";
 import { AccountOverviewReader } from "./account-overview/account-overview.reader";
 import { CandlesticksReader } from "./candlesticks/candlesticks.reader";
 import { DelegationsReader } from "./delegations/delegations.reader";
+import { GlobalPointsStatsReader } from "./global-points-stats/global-points-stats.reader";
 import { LeaderboardReader } from "./leaderboard/leaderboard.reader";
 import { MarketContextsReader } from "./market-contexts/market-contexts.reader";
 import { MarketDepthReader } from "./market-depth/market-depth.reader";
 import { MarketPricesReader } from "./market-prices/market-prices.reader";
 import { MarketTradesReader } from "./market-trades/market-trades.reader";
 import { MarketsReader } from "./markets/markets.reader";
+import { PointsLeaderboardReader } from "./points-leaderboard/points-leaderboard.reader";
 import { PortfolioChartReader } from "./portfolio-chart/portfolio-chart.reader";
+import { ReferralsReader } from "./referrals/referrals.reader";
+import { StreaksReader } from "./streaks/streaks.reader";
+import { TierReader } from "./tier/tier.reader";
+import { TradingAmpsReader } from "./trading-amps/trading-amps.reader";
 import { TradingPointsReader } from "./trading-points/trading-points.reader";
 import { CrossedPosition } from "./types";
 import { UserActiveTwapsReader } from "./user-active-twaps/user-active-twaps.reader";
@@ -28,6 +34,7 @@ import { UserTwapHistoryReader } from "./user-twap-history/user-twap-history.rea
 import { VaultsReader } from "./vaults/vaults.reader";
 import { DecibelWsSubscription } from "./ws-subscription";
 
+export * from "./action-utils";
 export * from "./types";
 
 interface Cache {
@@ -56,10 +63,16 @@ export class DecibelReadDex {
   readonly userTwapHistory: UserTwapHistoryReader;
   readonly portfolioChart: PortfolioChartReader;
   readonly leaderboard: LeaderboardReader;
+  readonly pointsLeaderboard: PointsLeaderboardReader;
   readonly vaults: VaultsReader;
   readonly delegations: DelegationsReader;
   readonly userNotifications: UserNotificationsReader;
   readonly tradingPoints: TradingPointsReader;
+  readonly streaks: StreaksReader;
+  readonly tradingAmps: TradingAmpsReader;
+  readonly tier: TierReader;
+  readonly globalPointsStats: GlobalPointsStatsReader;
+  readonly referrals: ReferralsReader;
 
   constructor(
     readonly config: DecibelConfig,
@@ -71,14 +84,16 @@ export class DecibelReadDex {
     const aptosConfig = new AptosConfig({
       network: config.network,
       fullnode: config.fullnodeUrl,
-      clientConfig: { API_KEY: opts?.nodeApiKey },
+      clientConfig: config.additionalHeaders
+        ? { HEADERS: config.additionalHeaders }
+        : { API_KEY: opts?.nodeApiKey },
     });
 
     this.deps = {
       aptos: new Aptos(aptosConfig),
       ws: new DecibelWsSubscription(config, opts?.nodeApiKey, opts?.onWsError),
       config: this.config,
-      apiKey: opts?.nodeApiKey,
+      apiKey: config.additionalHeaders ? undefined : opts?.nodeApiKey,
     };
 
     this.cache = {};
@@ -101,10 +116,16 @@ export class DecibelReadDex {
     this.candlesticks = new CandlesticksReader(this.deps);
     this.portfolioChart = new PortfolioChartReader(this.deps);
     this.leaderboard = new LeaderboardReader(this.deps);
+    this.pointsLeaderboard = new PointsLeaderboardReader(this.deps);
     this.vaults = new VaultsReader(this.deps);
     this.delegations = new DelegationsReader(this.deps);
     this.userNotifications = new UserNotificationsReader(this.deps);
     this.tradingPoints = new TradingPointsReader(this.deps);
+    this.streaks = new StreaksReader(this.deps);
+    this.tradingAmps = new TradingAmpsReader(this.deps);
+    this.tier = new TierReader(this.deps);
+    this.globalPointsStats = new GlobalPointsStatsReader(this.deps);
+    this.referrals = new ReferralsReader(this.deps);
   }
 
   async globalPerpEngineState() {

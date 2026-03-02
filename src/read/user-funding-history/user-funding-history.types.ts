@@ -11,9 +11,8 @@ export interface UserFundingHistoryRequestArgs extends BaseRequestArgs {
 
 export const UserFundingSchema = z.object({
   market: z.string(),
-  action: z.string(),
+  action: z.enum(["CloseLong", "CloseShort"]),
   size: z.number(),
-  is_funding_positive: z.boolean(),
   realized_funding_amount: z.number(),
   is_rebate: z.boolean(),
   fee_amount: z.number(),

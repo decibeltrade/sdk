@@ -17,14 +17,12 @@ import netnaAbis from "./abi/json/netna.json";
 import testnetAbis from "./abi/json/testnet.json";
 import { ABIData } from "./abi/types";
 import { DecibelConfig, NETNA_CONFIG, TESTNET_CONFIG } from "./constants";
-import { submitFeePaidTransaction } from "./fee-pay";
 import { GasPriceManager } from "./gas/gas-price-manager";
 import { buildSimpleTransactionSync } from "./transaction-builder";
 import { generateRandomReplayProtectionNonce, getPrimarySubaccountAddr } from "./utils";
 
 export interface Options {
   skipSimulate?: boolean;
-  noFeePayer?: boolean;
   nodeApiKey?: string;
   gasPriceManager?: GasPriceManager;
   /**
@@ -41,11 +39,7 @@ if (TESTNET_CONFIG.chainId) chainIdToAbi[TESTNET_CONFIG.chainId] = testnetAbis a
 export class BaseSDK {
   readonly aptos: Aptos;
   readonly skipSimulate: boolean;
-  readonly noFeePayer: boolean;
-  /**
-   * Whether we're using the new GasStationClient (API key based) vs legacy gasStationUrl
-   */
-  private readonly useGasStationClient: boolean;
+  private readonly useGasStation: boolean;
   private readonly chainId: number | undefined;
   private readonly abi = netnaAbis as ABIData;
   private readonly gasPriceManager: GasPriceManager | undefined;
@@ -72,11 +66,10 @@ export class BaseSDK {
       );
     }
 
-    this.noFeePayer = opts?.noFeePayer ?? false;
-    this.useGasStationClient = !this.noFeePayer && !!config.gasStationApiKey;
+    this.useGasStation = !!config.gasStationApiKey;
 
     const pluginSettings =
-      this.useGasStationClient && config.gasStationApiKey
+      this.useGasStation && config.gasStationApiKey
         ? {
             TRANSACTION_SUBMITTER: new GasStationTransactionSubmitter(
               new GasStationClient({
@@ -92,7 +85,9 @@ export class BaseSDK {
     const aptosConfig = new AptosConfig({
       network: config.network,
       fullnode: config.fullnodeUrl,
-      clientConfig: { API_KEY: opts?.nodeApiKey },
+      clientConfig: config.additionalHeaders
+        ? { HEADERS: config.additionalHeaders }
+        : { API_KEY: opts?.nodeApiKey },
       pluginSettings,
     });
 
@@ -111,17 +106,12 @@ export class BaseSDK {
     transaction: SimpleTransaction,
     senderAuthenticator: AccountAuthenticator,
   ): Promise<PendingTransactionResponse> {
-    if (this.noFeePayer || this.useGasStationClient) {
-      // When using GasStationClient, the plugin handles fee payer signing automatically
-      // When noFeePayer is true, submit directly without fee payer
-      return await this.aptos.transaction.submit.simple({
-        transaction,
-        senderAuthenticator,
-      });
-    } else {
-      // Legacy: use custom fee payer service via gasStationUrl
-      return await submitFeePaidTransaction(this.config, transaction, senderAuthenticator);
-    }
+    // When gasStationApiKey is set, the GasStationTransactionSubmitter plugin
+    // handles fee payer signing automatically. Otherwise, submits directly (self-pay).
+    return await this.aptos.transaction.submit.simple({
+      transaction,
+      senderAuthenticator,
+    });
   }
 
   public async buildTx(
@@ -133,7 +123,7 @@ export class BaseSDK {
     sender: AccountAddress,
   ) {
     const functionAbi = "function" in payload ? this.getABI(payload.function) : undefined;
-    const withFeePayer = !this.noFeePayer;
+    const withFeePayer = this.useGasStation;
 
     const replayProtectionNonce = generateRandomReplayProtectionNonce();
 

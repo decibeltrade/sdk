@@ -330,4 +330,100 @@ export class DecibelAdminDex extends BaseSDK {
     });
     return balance[0];
   }
+
+  /**
+   * Get the max open interest for a market (unit-based)
+   * @param marketName The market name (e.g., "BTC/USD")
+   * @returns The max open interest in szDecimals units as a string to preserve precision
+   */
+  async getMaxOpenInterest(marketName: string): Promise<string> {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    const result = await this.aptos.view<[string]>({
+      payload: {
+        function: `${this.config.deployment.package}::perp_engine::get_max_open_interest`,
+        typeArguments: [],
+        functionArguments: [marketAddr.toString()],
+      },
+    });
+    return result[0];
+  }
+
+  /**
+   * Decrease the max open interest for a market (unit-based)
+   * @param marketName The market name (e.g., "BTC/USD")
+   * @param newOpenInterest The new max open interest in szDecimals units (must be lower than current)
+   */
+  async decreaseMarketOpenInterest(marketName: string, newOpenInterest: number | bigint) {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::decrease_market_open_interest`,
+      typeArguments: [],
+      functionArguments: [marketAddr.toString(), newOpenInterest.toString()],
+    });
+  }
+
+  /**
+   * Increase the max open interest for a market (unit-based)
+   * @param marketName The market name (e.g., "BTC/USD")
+   * @param newOpenInterest The new max open interest in szDecimals units (must be higher than current)
+   */
+  async increaseMarketOpenInterest(marketName: string, newOpenInterest: number | bigint) {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::increase_market_open_interest`,
+      typeArguments: [],
+      functionArguments: [marketAddr.toString(), newOpenInterest.toString()],
+    });
+  }
+
+  /**
+   * Get the max notional open interest for a market
+   * @param marketName The market name (e.g., "BTC/USD")
+   * @returns The max notional open interest in collateral units (USDC decimals) as a string to preserve precision for large values
+   */
+  async getMaxNotionalOpenInterest(marketName: string): Promise<string> {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    const result = await this.aptos.view<[string]>({
+      payload: {
+        function: `${this.config.deployment.package}::perp_engine::get_max_notional_open_interest`,
+        typeArguments: [],
+        functionArguments: [marketAddr.toString()],
+      },
+    });
+    return result[0];
+  }
+
+  /**
+   * Decrease the max notional open interest for a market
+   * @param marketName The market name (e.g., "BTC/USD")
+   * @param newNotionalOpenInterest The new max notional open interest in collateral units (must be lower than current)
+   */
+  async decreaseMarketNotionalOpenInterest(
+    marketName: string,
+    newNotionalOpenInterest: number | bigint,
+  ) {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::decrease_market_notional_open_interest`,
+      typeArguments: [],
+      functionArguments: [marketAddr.toString(), newNotionalOpenInterest.toString()],
+    });
+  }
+
+  /**
+   * Increase the max notional open interest for a market
+   * @param marketName The market name (e.g., "BTC/USD")
+   * @param newNotionalOpenInterest The new max notional open interest in collateral units (must be higher than current)
+   */
+  async increaseMarketNotionalOpenInterest(
+    marketName: string,
+    newNotionalOpenInterest: number | bigint,
+  ) {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::increase_market_notional_open_interest`,
+      typeArguments: [],
+      functionArguments: [marketAddr.toString(), newNotionalOpenInterest.toString()],
+    });
+  }
 }

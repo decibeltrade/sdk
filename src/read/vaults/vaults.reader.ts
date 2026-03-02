@@ -22,6 +22,8 @@ export class VaultsReader extends BaseReader {
     if (args.offset) queryParams.set("offset", args.offset.toString());
     if (args.address) queryParams.set("vault_address", args.address);
     if (args.search) queryParams.set("search", args.search);
+    if (args.sortKey) queryParams.set("sort_key", args.sortKey);
+    if (args.sortDir) queryParams.set("sort_dir", args.sortDir);
 
     const response = await this.getRequest({
       schema: VaultsResponseSchema,

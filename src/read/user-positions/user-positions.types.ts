@@ -26,6 +26,7 @@ export const UserPositionSchema = z.object({
   sl_trigger_price: z.number().nullable(),
   sl_limit_price: z.number().nullable(),
   has_fixed_sized_tpsls: z.boolean(),
+  transaction_version: z.number(),
 });
 
 export const UserPositionsSchema = z.array(UserPositionSchema);

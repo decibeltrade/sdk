@@ -154,7 +154,7 @@ export class DecibelWriteDex extends BaseSDK {
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts_entry::withdraw_from_subaccount`,
+          function: `${this.config.deployment.package}::dex_accounts_entry::withdraw_from_cross_collateral`,
           typeArguments: [],
           functionArguments: [subaccountAddr, this.config.deployment.usdc, amount],
         }),
@@ -439,6 +439,37 @@ export class DecibelWriteDex extends BaseSDK {
             function: `${this.config.deployment.package}::dex_accounts_entry::cancel_client_order_to_subaccount`,
             typeArguments: [],
             functionArguments: [subaccountAddr, clientOrderId, marketAddr.toString()],
+          },
+          accountOverride,
+        ),
+      subaccountAddr,
+    );
+  }
+
+  async cancelBulkOrder({
+    subaccountAddr,
+    accountOverride,
+    ...args
+  }: {
+    subaccountAddr?: string;
+    /**
+     * Optional account to use for the transaction. Primarily set as the session
+     * account.  If not provided, the default constructor account will be used
+     */
+    accountOverride?: Account;
+  } & ({ marketName: string } | { marketAddr: string })) {
+    const marketAddr =
+      "marketName" in args
+        ? getMarketAddr(args.marketName, this.config.deployment.perpEngineGlobal)
+        : args.marketAddr;
+
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx(
+          {
+            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_bulk_order_to_subaccount`,
+            typeArguments: [],
+            functionArguments: [subaccountAddr, marketAddr.toString()],
           },
           accountOverride,
         ),

@@ -15,7 +15,6 @@ export const MarketTradeSchema = z.object({
   price: z.number(),
   is_profit: z.boolean(),
   realized_pnl_amount: z.number(),
-  is_funding_positive: z.boolean(),
   realized_funding_amount: z.number(),
   is_rebate: z.boolean(),
   fee_amount: z.number(),

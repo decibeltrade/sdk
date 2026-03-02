@@ -14,12 +14,36 @@ export interface UserOwnedVaultsRequestArgs extends BaseRequestArgs {
 
 export const vaultTypeValues = ["user", "protocol"] as const;
 export type VaultType = (typeof vaultTypeValues)[number];
+
+/**
+ * Sort keys for vault listing
+ */
+export const vaultSortKeyValues = [
+  "tvl",
+  "age",
+  "pnl",
+  "sharpe_ratio",
+  "weekly_win_rate",
+  "max_drawdown",
+] as const;
+export type VaultSortKey = (typeof vaultSortKeyValues)[number];
+
+/**
+ * Sort direction for vault listing
+ */
+export const sortDirValues = ["ASC", "DESC"] as const;
+export type SortDir = (typeof sortDirValues)[number];
+
 export interface PublicVaultsRequestArgs extends BaseRequestArgs {
   limit?: number;
   offset?: number;
   vaultType?: VaultType;
   address?: string;
   search?: string;
+  /** Sort key - defaults to "tvl" */
+  sortKey?: VaultSortKey;
+  /** Sort direction - defaults to "DESC" */
+  sortDir?: SortDir;
 }
 
 /**
@@ -66,6 +90,8 @@ export const VaultSchema = z.object({
   perp_equity: z.number().nullable(),
   vault_type: z.enum(vaultTypeValues).nullable(),
   social_links: z.array(z.string()).nullable(),
+  /** Lockdown period in seconds (0 = no lockdown, up to 604800 = 7 days) */
+  lockdown_period_s: z.number().nullable(),
 });
 
 export const VaultsResponseSchema = PaginatedResponseSchema(VaultSchema).extend({

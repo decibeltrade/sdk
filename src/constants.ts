@@ -30,18 +30,22 @@ export interface DecibelConfig extends ReleaseConfig {
   tradingHttpUrl: string;
   tradingWsUrl: string;
   /**
-   * Gas station URL. When used with gasStationApiKey, this is the base URL for the Aptos Labs Gas Station API.
-   * When used without gasStationApiKey, this is the URL for the legacy self-hosted fee payer (local dev only).
-   * Example: "https://api.netna.aptoslabs.com/gs/v1"
+   * Base URL for the Geomi Gas Station API.
+   * Example: "https://api.testnet.aptoslabs.com/gs/v1"
    */
   gasStationUrl?: string;
   /**
-   * API key for Aptos Labs Gas Station Client.
+   * API key for Geomi Gas Station Client.
    * When provided, uses GasStationClient with gasStationUrl as base URL.
    */
   gasStationApiKey?: string;
   deployment: Deployment;
   chainId?: number;
+  /**
+   * Additional HTTP headers to include in all requests (Node API, trading API, WebSocket).
+   * When set, replaces API key auth. All headers are passed through as-is.
+   */
+  additionalHeaders?: Record<string, string>;
 }
 
 export interface DecibelReaderDeps {
@@ -69,10 +73,10 @@ const getDeployment = (pkg: string): Deployment => {
 
 export const NETNA_CONFIG: DecibelConfig = {
   network: Network.CUSTOM,
-  fullnodeUrl: "https://api.netna.staging.aptoslabs.com/v1",
-  tradingHttpUrl: "https://api.netna.staging.aptoslabs.com/decibel",
-  tradingWsUrl: "wss://api.netna.staging.aptoslabs.com/decibel/ws",
-  gasStationUrl: "https://api.netna.staging.aptoslabs.com/gs/v1",
+  fullnodeUrl: "https://api.netna.aptoslabs.com/v1",
+  tradingHttpUrl: "https://api.netna.aptoslabs.com/decibel",
+  tradingWsUrl: "wss://api.netna.aptoslabs.com/decibel/ws",
+  gasStationUrl: "https://api.netna.aptoslabs.com/gs/v1",
   deployment: getDeployment(PACKAGE.NETNA),
   chainId: 208,
   ...RELEASE_CONFIGS.NETNA,
@@ -98,6 +102,25 @@ export const TESTNET_CONFIG: DecibelConfig = {
 
 const MAINNET_USDC = "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b";
 
+export const PREDEPOSIT_DEPLOYMENT: Deployment = {
+  package: PACKAGE.PREDEPOSIT,
+  usdc: MAINNET_USDC,
+  testc: getTestcAddress(PACKAGE.PREDEPOSIT).toString(),
+  perpEngineGlobal: getPerpEngineGlobalAddress(PACKAGE.PREDEPOSIT).toString(),
+};
+
+export const PREDEPOSIT_CONFIG: DecibelConfig = {
+  network: Network.MAINNET,
+  fullnodeUrl: "https://api.mainnet.aptoslabs.com/v1",
+  tradingHttpUrl:
+    "https://api-http-prod-mainnet-predeposit-asia-northeast1-51995220960.asia-northeast1.run.app",
+  tradingWsUrl: "wss://api.mainnet.aptoslabs.com/decibel/ws",
+  gasStationUrl: "https://api.mainnet.aptoslabs.com/gs/v1",
+  deployment: PREDEPOSIT_DEPLOYMENT,
+  chainId: 1,
+  ...RELEASE_CONFIGS.PREDEPOSIT,
+};
+
 export const MAINNET_DEPLOYMENT: Deployment = {
   package: PACKAGE.MAINNET,
   usdc: MAINNET_USDC,
@@ -121,7 +144,6 @@ export const LOCAL_CONFIG: DecibelConfig = {
   fullnodeUrl: "http://localhost:8080/v1",
   tradingHttpUrl: "http://localhost:8084",
   tradingWsUrl: "ws://localhost:8083",
-  gasStationUrl: "http://localhost:8085",
   deployment: getDeployment(PACKAGE.NETNA),
   ...RELEASE_CONFIGS.LOCAL,
 };
@@ -132,7 +154,6 @@ export const DOCKER_CONFIG: DecibelConfig = {
   tradingHttpUrl: "http://trading-api-http:8080",
   // nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket
   tradingWsUrl: "ws://trading-api-ws:8080",
-  gasStationUrl: "http://fee-payer:8080",
   deployment: getDeployment(PACKAGE.NETNA),
   ...RELEASE_CONFIGS.DOCKER,
 };
@@ -142,6 +163,7 @@ export const NAMED_CONFIGS: Record<string, DecibelConfig | undefined> = {
   local: LOCAL_CONFIG,
   docker: DOCKER_CONFIG,
   testnet: TESTNET_CONFIG,
+  predeposit: PREDEPOSIT_CONFIG,
   mainnet: MAINNET_CONFIG,
 };
 

@@ -2,7 +2,7 @@
   "packageAddress": "0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f",
   "network": "testnet",
   "fullnodeUrl": "https://api.testnet.aptoslabs.com/v1",
-  "fetchedAt": "2026-02-10T21:49:20.794Z",
+  "fetchedAt": "2026-02-14T00:08:07.405Z",
   "abis": {
     "0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f::admin_apis::initialize": {
       "name": "initialize",
@@ -138,7 +138,8 @@
       "generic_type_params": [],
       "params": [
         "&signer",
-        "0x1::object::Object<0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f::perp_market::PerpMarket>"
+        "0x1::object::Object<0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f::perp_market::PerpMarket>",
+        "u64"
       ],
       "return": []
     },
@@ -360,8 +361,8 @@
       ],
       "return": []
     },
-    "0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f::admin_apis::set_market_cooldown_period_ms": {
-      "name": "set_market_cooldown_period_ms",
+    "0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f::admin_apis::set_market_cooldown_period_micros": {
+      "name": "set_market_cooldown_period_micros",
       "visibility": "private",
       "is_entry": true,
       "is_view": false,
@@ -1848,8 +1849,8 @@
         "vector<address>"
       ]
     },
-    "0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f::perp_engine::market_cooldown_period_ms": {
-      "name": "market_cooldown_period_ms",
+    "0x952535c3049e52f195f26798c2f1340d7dd5100edbe0f464e520a974d16fbe9f::perp_engine::market_cooldown_period_micros": {
+      "name": "market_cooldown_period_micros",
       "visibility": "public",
       "is_entry": false,
       "is_view": true,

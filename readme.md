@@ -143,7 +143,8 @@ const customConfig: DecibelConfig = {
   fullnodeUrl: "https://api.testnet.aptoslabs.com/v1",
   tradingHttpUrl: "https://api.testnet.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.testnet.aptoslabs.com/decibel/ws",
-  gasStationUrl: "https://your-fee-payer.com",
+  gasStationUrl: "https://api.testnet.aptoslabs.com/gs/v1", // optional: enables gas sponsorship
+  gasStationApiKey: "your-gas-station-api-key", // optional: enables gas sponsorship
   deployment: {
     package: "0x...",
     usdc: "0x...",
@@ -904,20 +905,17 @@ class DecibelTransactionManager {
   private aptos: Aptos;
   private config: DecibelConfig;
   private skipSimulate: boolean;
-  private noFeePayer: boolean;
 
   constructor(
     config: DecibelConfig,
     private account: Account,
     options?: {
       skipSimulate?: boolean;
-      noFeePayer?: boolean;
       nodeApiKey?: string;
     },
   ) {
     this.config = config;
     this.skipSimulate = options?.skipSimulate ?? false;
-    this.noFeePayer = options?.noFeePayer ?? false;
 
     const aptosConfig = new AptosConfig({
       network: config.network,
@@ -958,45 +956,6 @@ class DecibelTransactionManager {
     });
   }
 
-  private async submitTransaction(
-    transaction: SimpleTransaction,
-    senderAuthenticator: AccountAuthenticator,
-  ): Promise<PendingTransactionResponse> {
-    if (this.noFeePayer) {
-      return await this.aptos.transaction.submit.simple({
-        transaction,
-        senderAuthenticator,
-      });
-    } else {
-      return await this.submitFeePaidTransaction(transaction, senderAuthenticator);
-    }
-  }
-
-  private async submitFeePaidTransaction(
-    transaction: SimpleTransaction,
-    senderAuthenticator: AccountAuthenticator,
-  ): Promise<PendingTransactionResponse> {
-    const signatureBcs = Array.from(senderAuthenticator.bcsToBytes());
-    const transactionBcs = Array.from(transaction.rawTransaction.bcsToBytes());
-
-    const response = await fetch(this.config.gasStationUrl + "/transactions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        signature: signatureBcs,
-        transaction: transactionBcs,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Fee payer service error: ${response.status}`);
-    }
-
-    return (await response.json()) as PendingTransactionResponse;
-  }
-
   async sendTransaction(
     payload: InputGenerateTransactionPayloadData,
     accountOverride?: Account,
@@ -1009,11 +968,9 @@ class DecibelTransactionManager {
     if (!this.skipSimulate) {
       transaction = await this.getSimulatedTransaction(payload, sender);
     } else {
-      const withFeePayer = !this.noFeePayer;
       transaction = await this.aptos.transaction.build.simple({
         sender,
         data: payload,
-        withFeePayer,
       });
     }
 
@@ -1022,7 +979,10 @@ class DecibelTransactionManager {
       transaction,
     });
 
-    const pendingTransaction = await this.submitTransaction(transaction, senderAuthenticator);
+    const pendingTransaction = await this.aptos.transaction.submit.simple({
+      transaction,
+      senderAuthenticator,
+    });
     return await this.aptos.waitForTransaction({
       transactionHash: pendingTransaction.hash,
     });
@@ -1123,7 +1083,7 @@ async function withdrawCollateral(
     subaccountAddr ?? getPrimarySubaccountAddress(transactionManager.account.accountAddress);
 
   return await transactionManager.sendTransaction({
-    function: `${config.deployment.package}::dex_accounts::withdraw_from_subaccount`,
+    function: `${config.deployment.package}::dex_accounts::withdraw_from_cross_collateral`,
     typeArguments: [],
     functionArguments: [subaccount, config.deployment.usdc, amount],
   });
@@ -1408,7 +1368,6 @@ async function basicTradingExample() {
   const account = Account.fromPrivateKey({ privateKey });
   const transactionManager = new DecibelTransactionManager(NETNA_CONFIG, account, {
     skipSimulate: false,
-    noFeePayer: false,
   });
 
   try {

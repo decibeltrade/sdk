@@ -16,6 +16,6 @@ export const PortfolioChartPnlItemSchema = z.object({
 export const PortfolioChartSchema = z.array(PortfolioChartPnlItemSchema);
 
 export type PortfolioChartType = "pnl" | "account_value";
-export type PortfolioChartTimeRange = "24h" | "7d" | "30d" | "90d";
+export type PortfolioChartTimeRange = "24h" | "7d" | "30d" | "90d" | "all";
 export type PortfolioChartItem = z.infer<typeof PortfolioChartPnlItemSchema>;
 export type PortfolioChart = z.infer<typeof PortfolioChartSchema>;

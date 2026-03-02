@@ -26,7 +26,9 @@ export class GasPriceManager {
       new AptosConfig({
         network: config.network,
         fullnode: config.fullnodeUrl,
-        clientConfig: { API_KEY: opts?.nodeApiKey },
+        clientConfig: config.additionalHeaders
+          ? { HEADERS: config.additionalHeaders }
+          : { API_KEY: opts?.nodeApiKey },
       }),
     );
     this.refreshIntervalMs = opts?.refreshIntervalMs ?? 60_000; // default to 1 minute
