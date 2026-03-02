@@ -101,6 +101,19 @@ export class DecibelWriteDex extends BaseSDK {
     });
   }
 
+  /**
+   * Admin: create a new subaccount for the given owner address.
+   * The signer (this.account) must be an admin.
+   * @param ownerAddress The address of the owner to create a subaccount for
+   */
+  async adminCreateSubaccount(ownerAddress: string) {
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::dex_accounts_entry::admin_create_new_subaccount`,
+      typeArguments: [],
+      functionArguments: [ownerAddress],
+    });
+  }
+
   async sendSubaccountTx(
     sendTx: (subaccountAddr: string) => Promise<CommittedTransactionResponse>,
     subaccountAddr?: string,

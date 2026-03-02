@@ -13,10 +13,11 @@ import {
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 
+import mainnetAbis from "./abi/json/mainnet.json";
 import netnaAbis from "./abi/json/netna.json";
 import testnetAbis from "./abi/json/testnet.json";
 import { ABIData } from "./abi/types";
-import { DecibelConfig, NETNA_CONFIG, TESTNET_CONFIG } from "./constants";
+import { DecibelConfig, MAINNET_CONFIG, NETNA_CONFIG, TESTNET_CONFIG } from "./constants";
 import { GasPriceManager } from "./gas/gas-price-manager";
 import { buildSimpleTransactionSync } from "./transaction-builder";
 import { generateRandomReplayProtectionNonce, getPrimarySubaccountAddr } from "./utils";
@@ -35,6 +36,7 @@ export interface Options {
 const chainIdToAbi: Record<number, ABIData> = {};
 if (NETNA_CONFIG.chainId) chainIdToAbi[NETNA_CONFIG.chainId] = netnaAbis as ABIData;
 if (TESTNET_CONFIG.chainId) chainIdToAbi[TESTNET_CONFIG.chainId] = testnetAbis as ABIData;
+if (MAINNET_CONFIG.chainId) chainIdToAbi[MAINNET_CONFIG.chainId] = mainnetAbis as ABIData;
 
 export class BaseSDK {
   readonly aptos: Aptos;

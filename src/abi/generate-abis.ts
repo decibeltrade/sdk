@@ -8,7 +8,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
-import { DecibelConfig, NETNA_CONFIG, TESTNET_CONFIG } from "../constants";
+import { DecibelConfig, MAINNET_CONFIG, NETNA_CONFIG, TESTNET_CONFIG } from "../constants";
 import { ABIData, ABIs } from "./types";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 // @Todo: There should be a global config that takes care of config across all the packages and apps
 // @Todo: Generate ABIs for all the networks as well, or as per global config depending upon how that will work
 // Remove NETNA_CONFIG and use getSdkConfig() instead once we implement it as a global config
-const CONFIGS = [NETNA_CONFIG, TESTNET_CONFIG];
+const CONFIGS = [NETNA_CONFIG, TESTNET_CONFIG, MAINNET_CONFIG];
 
 // All modules used in the SDK (extracted from source code analysis)
 const SDK_MODULES = [
