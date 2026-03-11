@@ -25,6 +25,7 @@ export const vaultSortKeyValues = [
   "sharpe_ratio",
   "weekly_win_rate",
   "max_drawdown",
+  "apr",
 ] as const;
 export type VaultSortKey = (typeof vaultSortKeyValues)[number];
 
