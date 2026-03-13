@@ -11,6 +11,11 @@ export interface PortfolioChartRequestArgs extends BaseRequestArgs {
 export const PortfolioChartPnlItemSchema = z.object({
   timestamp: z.number(),
   data_points: z.number(),
+  vault_equity: z
+    .number()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? 0),
 });
 
 export const PortfolioChartSchema = z.array(PortfolioChartPnlItemSchema);

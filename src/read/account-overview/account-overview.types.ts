@@ -44,6 +44,8 @@ export const AccountOverviewSchema = z.object({
   realized_pnl: z.number().nullable(),
   liquidation_fees_paid: z.number().nullable(),
   liquidation_losses: z.number().nullable(),
+  /** Non-trade fee income (vault/BLP accounts only). Protocol fee distributions not captured in realized_pnl. */
+  fee_income: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
   /** Total USDC value of vault shares held by this account. NULL when not yet available via WebSocket. */
   vault_equity: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
 });
