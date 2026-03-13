@@ -73,7 +73,7 @@ export class DecibelWsSubscription {
       }
     });
 
-    ws.addEventListener("message", (event) => {
+    ws.addEventListener("message", (event: WebSocket.MessageEvent) => {
       const parsedMessage = this.#parseMessageData(event.data);
       if (!parsedMessage) {
         // Response messages (subscribe/unsubscribe confirmations) are silently ignored
