@@ -22,6 +22,8 @@ export const PointsLeaderboardItemSchema = z.object({
   realized_pnl: z.number(),
   referral_amps: z.number(),
   vault_amps: z.number(),
+  streak_amps: z.number(),
+  bonus_amps: z.number(),
 });
 
 export const PointsLeaderboardSchema = PaginatedResponseSchema(PointsLeaderboardItemSchema);
