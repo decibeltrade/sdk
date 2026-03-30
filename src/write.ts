@@ -1101,4 +1101,16 @@ export class DecibelWriteDex extends BaseSDK {
       subaccountAddr,
     );
   }
+
+  /**
+   * Claim reward from a campaign by ID. The signer must have an allocation in the campaign.
+   * @param campaignId The numeric ID of the campaign to claim from
+   */
+  async claimCampaignReward(campaignId: number) {
+    return await this.sendTx({
+      function: `${this.config.deployment.campaignPackage}::campaign_manager::claim_by_id`,
+      typeArguments: [],
+      functionArguments: [campaignId],
+    });
+  }
 }

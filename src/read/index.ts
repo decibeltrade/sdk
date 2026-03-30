@@ -3,6 +3,7 @@ import { ErrorEvent } from "isomorphic-ws";
 
 import { DecibelConfig, DecibelReaderDeps } from "../constants";
 import { AccountOverviewReader } from "./account-overview/account-overview.reader";
+import { CampaignsReader } from "./campaigns/campaigns.reader";
 import { CandlesticksReader } from "./candlesticks/candlesticks.reader";
 import { DelegationsReader } from "./delegations/delegations.reader";
 import { GlobalPointsStatsReader } from "./global-points-stats/global-points-stats.reader";
@@ -45,6 +46,7 @@ export class DecibelReadDex {
   readonly cache: Cache;
   readonly deps: DecibelReaderDeps;
   readonly accountOverview: AccountOverviewReader;
+  readonly campaigns: CampaignsReader;
   readonly markets: MarketsReader;
   readonly marketContexts: MarketContextsReader;
   readonly marketDepth: MarketDepthReader;
@@ -98,6 +100,7 @@ export class DecibelReadDex {
 
     this.cache = {};
     this.accountOverview = new AccountOverviewReader(this.deps);
+    this.campaigns = new CampaignsReader(this.deps);
     this.markets = new MarketsReader(this.deps);
     this.marketContexts = new MarketContextsReader(this.deps);
     this.marketDepth = new MarketDepthReader(this.deps);

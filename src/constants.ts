@@ -70,6 +70,7 @@ export interface DecibelReaderDeps {
 export interface Deployment {
   package: string;
   predepositPackage: string;
+  campaignPackage: string;
   usdc: string;
   testc: string;
   perpEngineGlobal: string;
@@ -77,10 +78,11 @@ export interface Deployment {
   dlpShare: string;
 }
 
-const getDeployment = (pkg: string): Deployment => {
+const getDeployment = (pkg: string, campaignPkg: string): Deployment => {
   return {
     package: pkg,
     predepositPackage: PACKAGE.PREDEPOSIT,
+    campaignPackage: campaignPkg,
     usdc: getUsdcAddress(pkg).toString(),
     testc: getTestcAddress(pkg).toString(),
     perpEngineGlobal: getPerpEngineGlobalAddress(pkg).toString(),
@@ -95,7 +97,7 @@ export const NETNA_CONFIG: DecibelConfig = {
   tradingHttpUrl: "https://api.netna.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.netna.aptoslabs.com/decibel/ws",
   gasStationUrl: "https://api.netna.aptoslabs.com/gs/v1",
-  deployment: getDeployment(PACKAGE.NETNA),
+  deployment: getDeployment(PACKAGE.NETNA, PACKAGE.CAMPAIGN_NETNA),
   chainId: 208,
   ...RELEASE_CONFIGS.NETNA,
 };
@@ -103,6 +105,7 @@ export const NETNA_CONFIG: DecibelConfig = {
 export const TESTNET_DEPLOYMENT: Deployment = {
   package: PACKAGE.TESTNET,
   predepositPackage: PACKAGE.PREDEPOSIT,
+  campaignPackage: PACKAGE.CAMPAIGN_TESTNET,
   usdc: getUsdcAddress(PACKAGE.TESTNET).toString(),
   testc: getTestcAddress(PACKAGE.TESTNET).toString(),
   perpEngineGlobal: getPerpEngineGlobalAddress(PACKAGE.TESTNET).toString(),
@@ -116,7 +119,7 @@ export const TESTNET_CONFIG: DecibelConfig = {
   tradingHttpUrl: "https://api.testnet.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.testnet.aptoslabs.com/decibel/ws",
   gasStationUrl: "https://api.testnet.aptoslabs.com/gs/v1",
-  deployment: getDeployment(PACKAGE.TESTNET),
+  deployment: getDeployment(PACKAGE.TESTNET, PACKAGE.CAMPAIGN_TESTNET),
   chainId: 2,
   ...RELEASE_CONFIGS.TESTNET,
 };
@@ -126,6 +129,7 @@ const MAINNET_USDC = "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c941
 export const MAINNET_DEPLOYMENT: Deployment = {
   package: PACKAGE.MAINNET,
   predepositPackage: PACKAGE.PREDEPOSIT,
+  campaignPackage: PACKAGE.CAMPAIGN_MAINNET,
   usdc: MAINNET_USDC,
   testc: getTestcAddress(PACKAGE.MAINNET).toString(),
   perpEngineGlobal: getPerpEngineGlobalAddress(PACKAGE.MAINNET).toString(),
@@ -149,7 +153,7 @@ export const LOCAL_CONFIG: DecibelConfig = {
   fullnodeUrl: "http://localhost:8080/v1",
   tradingHttpUrl: "http://localhost:8084",
   tradingWsUrl: "ws://localhost:8083",
-  deployment: getDeployment(PACKAGE.NETNA),
+  deployment: getDeployment(PACKAGE.NETNA, PACKAGE.CAMPAIGN_NETNA),
   ...RELEASE_CONFIGS.LOCAL,
 };
 
@@ -159,7 +163,7 @@ export const DOCKER_CONFIG: DecibelConfig = {
   tradingHttpUrl: "http://trading-api-http:8080",
   // nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket
   tradingWsUrl: "ws://trading-api-ws:8080",
-  deployment: getDeployment(PACKAGE.NETNA),
+  deployment: getDeployment(PACKAGE.NETNA, PACKAGE.CAMPAIGN_NETNA),
   ...RELEASE_CONFIGS.DOCKER,
 };
 

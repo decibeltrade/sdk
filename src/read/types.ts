@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 // Export all types from readers
 export * from "./account-overview/account-overview.types";
+export * from "./campaigns/campaigns.types";
 export * from "./candlesticks/candlesticks.types";
 export * from "./delegations/delegations.types";
 export * from "./global-points-stats/global-points-stats.types";
