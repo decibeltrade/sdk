@@ -17,10 +17,6 @@ export const PACKAGE = {
   TESTNET: "0xe7da2794b1d8af76532ed95f38bfdf1136abfd8ea3a240189971988a83101b7f",
   PREDEPOSIT: "0xc5939ec6e7e656cb6fed9afa155e390eb2aa63ba74e73157161829b2f80e1538",
   MAINNET: "0x50ead22afd6ffd9769e3b3d6e0e64a2a350d68e8b102c4e72e33d0b8cfdfdb06",
-  // Campaign package addresses — update after deployment
-  CAMPAIGN_NETNA: "0x4e110",
-  CAMPAIGN_TESTNET: "0x4e110",
-  CAMPAIGN_MAINNET: "0x4e110",
 };
 
 export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_4;
