@@ -15,6 +15,7 @@ export class CandlesticksReader extends BaseReader {
    * @param interval The time interval of the candlestick data points
    * @param startTime The start time of the candlestick data points
    * @param endTime The end time of the candlestick data points
+   * @param hideOutliers Whether to hide outliers from the candlestick data points
    * @returns The candlestick data points for the given market during the given time period
    */
   async getByName({
@@ -22,19 +23,27 @@ export class CandlesticksReader extends BaseReader {
     interval,
     startTime,
     endTime,
+    hideOutliers,
     fetchOptions,
   }: CandlesticksRequestArgs) {
     const marketAddr = getMarketAddr(marketName, this.deps.config.deployment.perpEngineGlobal);
 
+    const queryParams = new URLSearchParams({
+      market: marketAddr.toString(),
+      interval,
+      startTime: startTime.toString(),
+      endTime: endTime.toString(),
+    });
+
+    if (hideOutliers) {
+      queryParams.set("filterWicks", "true");
+      queryParams.set("nSigma", "3.0");
+    }
+
     const response = await this.getRequest({
       schema: CandlesticksSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/candlesticks`,
-      queryParams: {
-        market: marketAddr.toString(),
-        interval,
-        startTime: startTime.toString(),
-        endTime: endTime.toString(),
-      },
+      queryParams,
       options: fetchOptions,
     });
 

@@ -7,6 +7,7 @@ export interface CandlesticksRequestArgs extends BaseRequestArgs {
   interval: CandlestickInterval;
   startTime: number;
   endTime: number;
+  hideOutliers?: boolean;
 }
 export const CandlestickInterval = {
   OneMinute: "1m",
