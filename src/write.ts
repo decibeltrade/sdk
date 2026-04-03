@@ -619,6 +619,7 @@ export class DecibelWriteDex extends BaseSDK {
     tpSize,
     subaccountAddr,
     accountOverride,
+    tickSize,
   }: {
     marketAddr: string;
     prevOrderId: number | string;
@@ -627,7 +628,17 @@ export class DecibelWriteDex extends BaseSDK {
     tpSize?: number;
     subaccountAddr?: string;
     accountOverride?: Account;
+    tickSize?: number;
   }) {
+    const roundedTpTriggerPrice =
+      tpTriggerPrice !== undefined && tickSize
+        ? roundToTickSize(tpTriggerPrice, tickSize)
+        : tpTriggerPrice;
+    const roundedTpLimitPrice =
+      tpLimitPrice !== undefined && tickSize
+        ? roundToTickSize(tpLimitPrice, tickSize)
+        : tpLimitPrice;
+
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
@@ -638,8 +649,8 @@ export class DecibelWriteDex extends BaseSDK {
               subaccountAddr,
               BigInt(prevOrderId.toString()),
               marketAddr,
-              tpTriggerPrice,
-              tpLimitPrice,
+              roundedTpTriggerPrice,
+              roundedTpLimitPrice,
               tpSize,
             ],
           },
@@ -660,6 +671,7 @@ export class DecibelWriteDex extends BaseSDK {
     slSize,
     subaccountAddr,
     accountOverride,
+    tickSize,
   }: {
     marketAddr: string;
     prevOrderId: number | string;
@@ -668,7 +680,17 @@ export class DecibelWriteDex extends BaseSDK {
     slSize?: number;
     subaccountAddr?: string;
     accountOverride?: Account;
+    tickSize?: number;
   }) {
+    const roundedSlTriggerPrice =
+      slTriggerPrice !== undefined && tickSize
+        ? roundToTickSize(slTriggerPrice, tickSize)
+        : slTriggerPrice;
+    const roundedSlLimitPrice =
+      slLimitPrice !== undefined && tickSize
+        ? roundToTickSize(slLimitPrice, tickSize)
+        : slLimitPrice;
+
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
         this.sendTx(
@@ -679,8 +701,8 @@ export class DecibelWriteDex extends BaseSDK {
               subaccountAddr,
               BigInt(prevOrderId.toString()),
               marketAddr,
-              slTriggerPrice,
-              slLimitPrice,
+              roundedSlTriggerPrice,
+              roundedSlLimitPrice,
               slSize,
             ],
           },
