@@ -39,6 +39,18 @@ function roundToTickSize(price: number, tickSize: number): number {
   return Math.round(price / tickSize) * tickSize;
 }
 
+/**
+ * Converts a basis point (bps) to chain units
+ * @param bps The basis point value (e.g. 10 for 0.1%)
+ * @returns The basis point value in chain units
+ */
+function bpsToChainUnits(bps: number): number {
+  // From contract:
+  // const FEE_PRECISION: u64 = 10000; // 10000 => 1%
+  // Since a basis point is 1/100th of a percent, we multiply by 100 to get the chain units.
+  return Math.round(bps * 100);
+}
+
 export class DecibelWriteDex extends BaseSDK {
   readonly cache: Cache;
   readonly orderStatusClient: OrderStatusClient;
@@ -298,7 +310,7 @@ export class DecibelWriteDex extends BaseSDK {
                 roundedSlTriggerPrice,
                 roundedSlLimitPrice,
                 builderAddr,
-                builderFee,
+                builderFee ? bpsToChainUnits(builderFee) : undefined,
               ],
             },
             accountOverride,
@@ -382,7 +394,7 @@ export class DecibelWriteDex extends BaseSDK {
               twapFrequencySeconds,
               twapDurationSeconds,
               builderAddress,
-              builderFees,
+              builderFees ? bpsToChainUnits(builderFees) : undefined,
             ],
           },
           accountOverride,
@@ -1095,7 +1107,7 @@ export class DecibelWriteDex extends BaseSDK {
         this.sendTx({
           function: `${this.config.deployment.package}::dex_accounts_entry::approve_max_builder_fee_for_subaccount`,
           typeArguments: [],
-          functionArguments: [subaccountAddr, builderAddr, maxFee],
+          functionArguments: [subaccountAddr, builderAddr, bpsToChainUnits(maxFee)],
         }),
       subaccountAddr,
     );
