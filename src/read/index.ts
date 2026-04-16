@@ -33,10 +33,25 @@ import { UserSubaccountsReader } from "./user-subaccounts/user-subaccounts.reade
 import { UserTradeHistoryReader } from "./user-trade-history/user-trade-history.reader";
 import { UserTwapHistoryReader } from "./user-twap-history/user-twap-history.reader";
 import { VaultsReader } from "./vaults/vaults.reader";
+import { WithdrawQueueReader } from "./withdraw-queue/withdraw-queue.reader";
 import { DecibelWsSubscription } from "./ws-subscription";
 
 export * from "./action-utils";
 export * from "./types";
+export type {
+  KnownWithdrawCancelReason,
+  PendingWithdrawRequest,
+  WithdrawCancelReason,
+  WithdrawQueueEntry,
+  WithdrawQueueRequestArgs,
+  WithdrawQueueResponse,
+  WithdrawQueueStatus,
+  WithdrawQueueUpdate,
+} from "./withdraw-queue/withdraw-queue.types";
+export {
+  isKnownCancelReason,
+  mergeWithdrawQueueEntries,
+} from "./withdraw-queue/withdraw-queue.types";
 
 interface Cache {
   usdcDecimals?: number;
@@ -75,6 +90,7 @@ export class DecibelReadDex {
   readonly tier: TierReader;
   readonly globalPointsStats: GlobalPointsStatsReader;
   readonly referrals: ReferralsReader;
+  readonly withdrawQueue: WithdrawQueueReader;
 
   constructor(
     readonly config: DecibelConfig,
@@ -129,6 +145,7 @@ export class DecibelReadDex {
     this.tier = new TierReader(this.deps);
     this.globalPointsStats = new GlobalPointsStatsReader(this.deps);
     this.referrals = new ReferralsReader(this.deps);
+    this.withdrawQueue = new WithdrawQueueReader(this.deps);
   }
 
   async globalPerpEngineState() {
