@@ -27,4 +27,20 @@ export class UserSubaccountsReader extends BaseReader {
 
     return response.data;
   }
+
+  /**
+   * Check if an address is a Decibel subaccount by checking for the on-chain Subaccount resource.
+   */
+  async isSubaccount(address: string): Promise<boolean> {
+    try {
+      // eslint-disable-next-line custom/no-get-account-resource
+      await this.deps.aptos.getAccountResource({
+        accountAddress: address,
+        resourceType: `${this.deps.config.deployment.package}::dex_accounts::Subaccount`,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
