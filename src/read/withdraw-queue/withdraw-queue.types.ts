@@ -3,6 +3,8 @@ import z from "zod/v4";
 import { BaseRequestArgs } from "../base-reader";
 import { PageParams, PaginatedResponseSchema } from "../pagination.types";
 
+const RequestIdSchema = z.string().regex(/^\d{1,20}$/, "request_id must be a numeric string (u64)");
+
 /**
  * On-chain view function response shape (used for liveness-check fallback polling).
  *
@@ -13,7 +15,7 @@ import { PageParams, PaginatedResponseSchema } from "../pagination.types";
  * To correlate between on-chain and indexed data, use `request_id` as the shared key.
  */
 export const PendingWithdrawRequestSchema = z.object({
-  request_id: z.string(),
+  request_id: RequestIdSchema,
   user: z.string(),
   recipient: z.string(),
   /** Move `Option<T>` decoded: `null` when the withdrawal is not market-specific. */
@@ -58,14 +60,19 @@ export const WithdrawQueueEntrySchema = z.object({
     .nonnegative()
     .refine(Number.isFinite, "fungible_amount must be finite"),
   /**
-   * Equals `fungible_amount` when `status` is `"Processed"`; always `0` for
-   * `"Queued"` and `"Cancelled"`. Partial fills are not supported.
+   * Amount processed in this event row. For a full fill, equals `fungible_amount`.
+   * Always `0` for `"Queued"` and `"Cancelled"` rows.
+   *
+   * Partial fills are possible (rate limit or liquidity cap). Each partial fill
+   * emits a separate `WithdrawProcessedEvent` with the same `request_id` — the
+   * indexer stores each as a distinct row. The remainder stays in the queue.
    */
   processed_amount: z
     .number()
     .nonnegative()
     .refine(Number.isFinite, "processed_amount must be finite"),
-  request_id: z.string(),
+  /** On-chain u64 request ID — validated as a numeric string with max 20 digits. */
+  request_id: RequestIdSchema,
   status: WithdrawQueueStatusSchema,
   /**
    * Only meaningful when `status === "Cancelled"`. Always null/undefined for Queued and
@@ -89,15 +96,7 @@ export const WithdrawQueueEntrySchema = z.object({
    * submission time. Show a placeholder (e.g. "—") instead.
    */
   queued_at_ms: z.number().int().nullish(),
-  /**
-   * Aptos ledger version of the transaction that produced this event.
-   *
-   * **JS precision caveat:** This refine catches programmer mistakes (passing a float)
-   * but cannot detect precision loss from JSON.parse on values > 2^53-1 — the number
-   * is already rounded before Zod sees it. Aptos versions are well within safe-integer
-   * range today (~10^9), so this is acceptable. If the chain ever approaches 2^53,
-   * the field must switch to string-based parsing.
-   */
+  /** Aptos ledger version. Refine catches programmer mistakes (passing a float). */
   transaction_version: z
     .number()
     .int()
@@ -146,35 +145,15 @@ export interface WithdrawQueueRequestArgs extends BaseRequestArgs, PageParams {
 /**
  * Merge incremental WS deltas into an existing entry list.
  *
- * For each delta entry, finds an existing entry by `request_id`:
- * - If found and `delta.transaction_version > existing.transaction_version`: applies a
- *   field-level merge, preserving non-null `recipient`, `market`, and `queued_at_ms`
- *   from the existing entry when the delta has null for those fields.
- * - If found but `delta.transaction_version <= existing.transaction_version`: ignored
- *   (duplicate or stale). Uses `<=` (not `<`) because the indexer uses at-least-once
- *   delivery — duplicate events with the same `transaction_version` can arrive, and
- *   accepting `>=` would re-overwrite field-level merged values with null from the dup.
- * - If not found: appended.
- *
- * **Argument order matters on WS reconnect re-seed.** Pass
- * `{ existing: wsCache, delta: httpSnapshot }` so that fresher WS state is not
- * overwritten by stale HTTP data. The function only applies a delta entry when its
- * `transaction_version` is strictly greater than the existing entry's, so passing
- * the HTTP snapshot as `delta` ensures it cannot regress entries that the WS already
- * advanced.
- *
- * **Sorts the output by queue time descending (newest first).** For `Queued` entries
- * with null `queued_at_ms`, `timestamp_ms` is used as the fallback because it IS the
- * queue time for that status. For terminal entries (`Processed`/`Cancelled`) with null
- * `queued_at_ms`, a `0` sentinel sinks them to the bottom — using `timestamp_ms` would
- * be incorrect because it reflects the completion time, not the submission time, which
- * would cause recently-processed withdrawals to sort above older still-queued ones.
- *
- * **Deduplicates `existing` internally.** If the `existing` array contains multiple
- * entries for the same `request_id` (e.g. an unfiltered HTTP snapshot), the entry with
- * the highest `transaction_version` wins before delta processing begins.
- *
- * Returns a new array (does not mutate inputs).
+ * - Matches by `request_id`; applies delta only when `transaction_version` is strictly
+ *   greater (at-least-once delivery means `<=` must be ignored).
+ * - Field-level merge: preserves non-null `recipient`, `market`, `queued_at_ms` from
+ *   existing entries when the delta has null.
+ * - Deduplicates `existing` internally (highest version wins per `request_id`).
+ * - **Argument order matters on WS reconnect:** pass `{ existing: wsCache, delta: httpSnapshot }`
+ *   so HTTP data cannot regress entries the WS already advanced.
+ * - Sorts by queue time descending. Terminal entries with null `queued_at_ms` sink to bottom.
+ * - Returns a new array (does not mutate inputs).
  */
 export function mergeWithdrawQueueEntries({
   existing,
