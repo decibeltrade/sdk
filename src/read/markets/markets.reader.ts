@@ -15,7 +15,7 @@ export class MarketsReader extends BaseReader {
   private static readonly marketNameByAddressAbi = {
     typeParameters: [],
     parameters: [new TypeTagAddress()],
-    returnTypes: [new TypeTagVector(MarketsReader.stringTypeTag)],
+    returnTypes: [MarketsReader.stringTypeTag],
   };
 
   /**
