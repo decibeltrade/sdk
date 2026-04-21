@@ -1,8 +1,23 @@
+import { stringStructTag, TypeTagAddress, TypeTagStruct, TypeTagVector } from "@aptos-labs/ts-sdk";
+
 import { getMarketAddr } from "../../utils";
 import { BaseReader, BaseRequestArgs } from "../base-reader";
 import { PerpMarketConfig, PerpMarketConfigSchema, PerpMarketsSchema } from "./markets.types";
 
 export class MarketsReader extends BaseReader {
+  private static readonly stringTypeTag = new TypeTagStruct(stringStructTag());
+  private static readonly listMarketAddressesAbi = {
+    typeParameters: [],
+    parameters: [],
+    returnTypes: [new TypeTagVector(MarketsReader.stringTypeTag)],
+  };
+
+  private static readonly marketNameByAddressAbi = {
+    typeParameters: [],
+    parameters: [new TypeTagAddress()],
+    returnTypes: [new TypeTagVector(MarketsReader.stringTypeTag)],
+  };
+
   /**
    * Get all of the available markets
    * @returns The list of available markets
@@ -59,6 +74,7 @@ export class MarketsReader extends BaseReader {
         function: `${this.deps.config.deployment.package}::perp_engine::list_markets`,
         typeArguments: [],
         functionArguments: [],
+        abi: MarketsReader.listMarketAddressesAbi,
       },
     });
     return markets[0];
@@ -75,6 +91,7 @@ export class MarketsReader extends BaseReader {
         function: `${this.deps.config.deployment.package}::perp_engine::market_name`,
         typeArguments: [],
         functionArguments: [marketAddr],
+        abi: MarketsReader.marketNameByAddressAbi,
       },
     });
     return name[0];
