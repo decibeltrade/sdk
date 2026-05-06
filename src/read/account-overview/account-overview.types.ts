@@ -17,6 +17,24 @@ export const VolumeWindow = {
 
 export type VolumeWindow = (typeof VolumeWindow)[keyof typeof VolumeWindow];
 
+/** Secondary (non-USDC) collateral held in cross margin. */
+export const SecondaryCollateralSchema = z.object({
+  /** On-chain asset type address (e.g., DLP fungible asset address). */
+  asset_type: z.string(),
+  /** Raw balance normalized to human units (balance / 10^decimals). */
+  amount: z.number(),
+  /** USDC-equivalent value after applying the haircut. */
+  value_in_usdc: z.number(),
+  /** NAV per unit in USDC terms (oracle price / 10^collateral_decimals). */
+  nav_per_unit: z.number(),
+  /** Haircut applied to the oracle price for margin purposes (in basis points). */
+  haircut_bps: z.number(),
+  /** Maximum amount of this secondary asset that can be withdrawn without violating margin requirements. */
+  withdrawable_amount: z.number(),
+});
+
+export type SecondaryCollateral = z.infer<typeof SecondaryCollateralSchema>;
+
 export const AccountOverviewSchema = z.object({
   perp_equity_balance: z.number(),
   unrealized_pnl: z.number(),
@@ -38,8 +56,10 @@ export const AccountOverviewSchema = z.object({
   total_margin: z.number(),
   usdc_cross_withdrawable_balance: z.number(),
   usdc_isolated_withdrawable_balance: z.number(),
-  /** Cross-margin deficit: 0 when healthy, negative when the account has a margin hole.
-   *  When negative, new deposits partially fill this deficit before becoming available to trade. */
+  /**
+   * Cross-margin deficit: 0 when healthy, negative when the account has a margin hole.
+   * When negative, new deposits partially fill this deficit before becoming available to trade.
+   */
   margin_deficit: z.number().optional(), // TODO: Remove optional once back-end is deployed
   realized_pnl: z.number().nullable(),
   liquidation_fees_paid: z.number().nullable(),
@@ -48,6 +68,13 @@ export const AccountOverviewSchema = z.object({
   fee_income: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
   /** Total USDC value of vault shares held by this account. NULL when not yet available via WebSocket. */
   vault_equity: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
+  /** Secondary (non-USDC) collateral held in cross margin. NULL when none exists or oracle data is unavailable. */
+  secondary_collateral: z.array(SecondaryCollateralSchema).nullable().optional(), // TODO: Remove optional once back-end is deployed,
+  /**
+   * Total cross-margin buying power across all collateral assets (USDC + secondary).
+   * = max(0, raw_free_collateral − order_margin). Use this for "Available to Trade" display.
+   */
+  cross_available_to_trade: z.number().optional(), // TODO: Remove optional once back-end is deployed
 });
 
 export const AccountOverviewWsMessageSchema = z.object({
