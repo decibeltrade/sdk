@@ -13,7 +13,7 @@ export const PricesSchema = z.object({
   oracle_px: z.number(),
   funding_rate_bps: z.number(),
   is_funding_positive: z.boolean(),
-  funding_period_s: z.number().optional(),
+  funding_period_s: z.number(),
   open_interest: z.number(),
   transaction_unix_ms: z.number(),
 });
@@ -27,7 +27,7 @@ export const MarketPriceSchema = z.object({
   oracle_px: z.number(),
   funding_rate_bps: z.number(),
   is_funding_positive: z.boolean(),
-  funding_period_s: z.number().optional(),
+  funding_period_s: z.number(),
   open_interest: z.number(),
   transaction_unix_ms: z.number(),
 });
