@@ -66,8 +66,24 @@ export const AccountOverviewSchema = z.object({
   liquidation_losses: z.number().nullable(),
   /** Non-trade fee income (vault/BLP accounts only). Protocol fee distributions not captured in realized_pnl. */
   fee_income: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
-  /** Total USDC value of vault shares held by this account. NULL when not yet available via WebSocket. */
+  /**
+   * Total USDC value of vault shares attributed to this subaccount (free shares
+   * + pledged-as-collateral). For display only — DO NOT sum with
+   * `perp_equity_balance`, since the pledged portion is already counted in
+   * `perp_equity_balance` via `secondary_collateral`. Use `free_vault_equity`
+   * (additive complement) for total-wealth calculations.
+   * NULL when not yet available via WebSocket.
+   */
   vault_equity: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
+  /**
+   * USDC value of vault shares NOT currently pledged as DLP collateral on this
+   * subaccount's perp account ("free" shares × NAV). Additive complement to
+   * `perp_equity_balance`: `perp_equity_balance + free_vault_equity` gives
+   * total subaccount wealth with no double-count of pledged DLP.
+   * Equals 0 for users who pledge all their vault shares as collateral.
+   * NULL when not yet available via WebSocket.
+   */
+  free_vault_equity: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
   /** Secondary (non-USDC) collateral held in cross margin. NULL when none exists or oracle data is unavailable. */
   secondary_collateral: z.array(SecondaryCollateralSchema).nullable().optional(), // TODO: Remove optional once back-end is deployed,
   /**
