@@ -7,16 +7,23 @@ import {
 } from "./user-order-history.types";
 
 export class UserOrderHistoryReader extends BaseReader {
-  async getByAddr({ subAddr, limit, offset, fetchOptions }: UserOrderHistoryRequestArgs) {
+  async getByAddr({
+    subAddr,
+    limit,
+    offset,
+    startTimestamp,
+    endTimestamp,
+    sortDir,
+    fetchOptions,
+  }: UserOrderHistoryRequestArgs) {
     const queryParams: Record<string, string> = {
       account: subAddr,
     };
-    if (limit !== undefined) {
-      queryParams.limit = limit.toString();
-    }
-    if (offset !== undefined) {
-      queryParams.offset = offset.toString();
-    }
+    if (limit !== undefined) queryParams.limit = limit.toString();
+    if (offset !== undefined) queryParams.offset = offset.toString();
+    if (startTimestamp !== undefined) queryParams.start_timestamp = startTimestamp.toString();
+    if (endTimestamp !== undefined) queryParams.end_timestamp = endTimestamp.toString();
+    if (sortDir !== undefined) queryParams.sort_dir = sortDir;
 
     const response = await this.getRequest({
       schema: UserOrdersSchema,

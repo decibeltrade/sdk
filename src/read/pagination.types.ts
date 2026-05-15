@@ -16,3 +16,13 @@ export interface PageParams {
   limit?: number;
   offset?: number;
 }
+
+// History filter params supported by all history endpoints
+export interface HistoryFilterParams {
+  /** Unix milliseconds, inclusive start of date range */
+  startTimestamp?: number;
+  /** Unix milliseconds, inclusive end of date range */
+  endTimestamp?: number;
+  /** Sort direction for results */
+  sortDir?: "ASC" | "DESC";
+}

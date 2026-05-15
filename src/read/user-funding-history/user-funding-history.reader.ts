@@ -16,12 +16,24 @@ export class UserFundingHistoryReader extends BaseReader {
     subAddr,
     limit = 10,
     offset = 0,
+    startTimestamp,
+    endTimestamp,
+    sortDir,
     fetchOptions,
   }: UserFundingHistoryRequestArgs) {
+    const queryParams: Record<string, string> = {
+      account: subAddr,
+      limit: limit.toString(),
+      offset: offset.toString(),
+    };
+    if (startTimestamp !== undefined) queryParams.start_timestamp = startTimestamp.toString();
+    if (endTimestamp !== undefined) queryParams.end_timestamp = endTimestamp.toString();
+    if (sortDir !== undefined) queryParams.sort_dir = sortDir;
+
     const response = await this.getRequest({
       schema: UserFundingHistorySchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/funding_rate_history`,
-      queryParams: { account: subAddr, limit: limit.toString(), offset: offset.toString() },
+      queryParams,
       options: fetchOptions,
     });
 

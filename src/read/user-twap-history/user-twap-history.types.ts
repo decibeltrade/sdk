@@ -1,10 +1,10 @@
 import z from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";
-import { PaginatedResponseSchema } from "../pagination.types";
+import { HistoryFilterParams, PaginatedResponseSchema } from "../pagination.types";
 import { UserActiveTwapSchema } from "../user-active-twaps/user-active-twaps.types";
 
-export interface UserTwapHistoryRequestArgs extends BaseRequestArgs {
+export interface UserTwapHistoryRequestArgs extends BaseRequestArgs, HistoryFilterParams {
   subAddr: string;
   limit?: number;
   offset?: number;

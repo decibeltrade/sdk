@@ -14,11 +14,28 @@ export class UserTradeHistoryReader extends BaseReader {
    * @param offset The offset for pagination (default: 0)
    * @returns The trade history for the given user
    */
-  async getByAddr({ subAddr, limit = 10, offset = 0, fetchOptions }: UserTradeHistoryRequestArgs) {
+  async getByAddr({
+    subAddr,
+    limit = 10,
+    offset = 0,
+    startTimestamp,
+    endTimestamp,
+    sortDir,
+    fetchOptions,
+  }: UserTradeHistoryRequestArgs) {
+    const queryParams: Record<string, string> = {
+      account: subAddr,
+      limit: limit.toString(),
+      offset: offset.toString(),
+    };
+    if (startTimestamp !== undefined) queryParams.start_timestamp = startTimestamp.toString();
+    if (endTimestamp !== undefined) queryParams.end_timestamp = endTimestamp.toString();
+    if (sortDir !== undefined) queryParams.sort_dir = sortDir;
+
     const response = await this.getRequest({
       schema: UserTradesSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/trade_history`,
-      queryParams: { account: subAddr, limit: limit.toString(), offset: offset.toString() },
+      queryParams,
       options: fetchOptions,
     });
 
