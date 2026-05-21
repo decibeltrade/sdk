@@ -1454,7 +1454,7 @@ async function basicTradingExample() {
 ## Resources
 
 - 📚 [Full Documentation](https://docs.decibel.trade) - Complete API and transaction documentation
-- 🔌 [REST API](https://docs.decibel.trade/api-reference/user/get-account-overview) - REST API reference
-- 🔌 [WebSocket API](https://docs.decibel.trade/api-reference/websockets/bulkorderfills) - WebSocket API reference
+- 🔌 [REST API](https://docs.decibel.trade/api-reference/rest/overview) - REST API reference
+- 🔌 [WebSocket API](https://docs.decibel.trade/api-reference/websocket/overview) - WebSocket API reference
 - 💬 [Discord](https://discord.gg/decibel) - Join our community for support
 - 🌐 [Trading Platform](https://app.decibel.trade) - Access the Decibel trading platform
