@@ -41,7 +41,7 @@ export const ReferrerStatsSchema = z.object({
 });
 
 // GET /api/v1/affiliates/codes/{account}
-const ReferralCodeSourceSchema = z.enum(["admin", "auto", "predeposit", "unknown"]);
+const ReferralCodeSourceSchema = z.enum(["admin", "auto", "reusable", "predeposit", "unknown"]);
 
 // GET /api/v1/referrals/users
 export const UserReferralSchema = z.object({
