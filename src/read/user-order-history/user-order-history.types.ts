@@ -30,6 +30,7 @@ export const UserOrderSchema = z.object({
   tp_limit_price: z.number().nullable(),
   sl_trigger_price: z.number().nullable(),
   sl_limit_price: z.number().nullable(),
+  cancellation_reason: z.string().default(""),
   transaction_version: z.number(),
   unix_ms: z.number(),
 });
