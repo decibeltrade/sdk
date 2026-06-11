@@ -15,8 +15,11 @@ export interface ReleaseConfig {
 export const PACKAGE = {
   NETNA: "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95",
   TESTNET: "0xe7da2794b1d8af76532ed95f38bfdf1136abfd8ea3a240189971988a83101b7f",
+  // Same address on testnet and mainnet.
   PREDEPOSIT: "0xc5939ec6e7e656cb6fed9afa155e390eb2aa63ba74e73157161829b2f80e1538",
   MAINNET: "0x50ead22afd6ffd9769e3b3d6e0e64a2a350d68e8b102c4e72e33d0b8cfdfdb06",
+  CAMPAIGN_TESTNET: "0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3",
+  CAMPAIGN_MAINNET: "0x7dd60d4445490318a073a600d6109ff587d21e634a22ea08a1b154cc591b3cf4",
 };
 
 export const DEFAULT_COMPAT_VERSION = CompatVersion.V0_4;

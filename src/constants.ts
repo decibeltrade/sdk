@@ -36,6 +36,12 @@ export function getDlpShareAddress(publisherAddr: string) {
   const dlpVaultAddr = getDlpVaultAddress(publisherAddr);
   return createObjectAddress(dlpVaultAddr, new TextEncoder().encode("vault_share_asset"));
 }
+
+export function getCampaignPackage(publisherAddr: string): string {
+  if (publisherAddr === PACKAGE.TESTNET) return PACKAGE.CAMPAIGN_TESTNET;
+  if (publisherAddr === PACKAGE.MAINNET) return PACKAGE.CAMPAIGN_MAINNET;
+  return "";
+}
 export interface DecibelConfig extends ReleaseConfig {
   network: Network;
   fullnodeUrl: string;
@@ -82,7 +88,7 @@ const getDeployment = (pkg: string): Deployment => {
   return {
     package: pkg,
     predepositPackage: PACKAGE.PREDEPOSIT,
-    campaignPackage: "",
+    campaignPackage: getCampaignPackage(pkg),
     usdc: getUsdcAddress(pkg).toString(),
     testc: getTestcAddress(pkg).toString(),
     perpEngineGlobal: getPerpEngineGlobalAddress(pkg).toString(),
@@ -102,16 +108,7 @@ export const NETNA_CONFIG: DecibelConfig = {
   ...RELEASE_CONFIGS.NETNA,
 };
 
-export const TESTNET_DEPLOYMENT: Deployment = {
-  package: PACKAGE.TESTNET,
-  predepositPackage: PACKAGE.PREDEPOSIT,
-  campaignPackage: "",
-  usdc: getUsdcAddress(PACKAGE.TESTNET).toString(),
-  testc: getTestcAddress(PACKAGE.TESTNET).toString(),
-  perpEngineGlobal: getPerpEngineGlobalAddress(PACKAGE.TESTNET).toString(),
-  dlpVault: getDlpVaultAddress(PACKAGE.TESTNET).toString(),
-  dlpShare: getDlpShareAddress(PACKAGE.TESTNET).toString(),
-};
+export const TESTNET_DEPLOYMENT: Deployment = getDeployment(PACKAGE.TESTNET);
 
 export const TESTNET_CONFIG: DecibelConfig = {
   network: Network.TESTNET,
@@ -119,7 +116,7 @@ export const TESTNET_CONFIG: DecibelConfig = {
   tradingHttpUrl: "https://api.testnet.aptoslabs.com/decibel",
   tradingWsUrl: "wss://api.testnet.aptoslabs.com/decibel/ws",
   gasStationUrl: "https://api.testnet.aptoslabs.com/gs/v1",
-  deployment: getDeployment(PACKAGE.TESTNET),
+  deployment: TESTNET_DEPLOYMENT,
   chainId: 2,
   ...RELEASE_CONFIGS.TESTNET,
 };
@@ -127,14 +124,8 @@ export const TESTNET_CONFIG: DecibelConfig = {
 const MAINNET_USDC = "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b";
 
 export const MAINNET_DEPLOYMENT: Deployment = {
-  package: PACKAGE.MAINNET,
-  predepositPackage: PACKAGE.PREDEPOSIT,
-  campaignPackage: "",
+  ...getDeployment(PACKAGE.MAINNET),
   usdc: MAINNET_USDC,
-  testc: getTestcAddress(PACKAGE.MAINNET).toString(),
-  perpEngineGlobal: getPerpEngineGlobalAddress(PACKAGE.MAINNET).toString(),
-  dlpVault: getDlpVaultAddress(PACKAGE.MAINNET).toString(),
-  dlpShare: getDlpShareAddress(PACKAGE.MAINNET).toString(),
 };
 
 export const MAINNET_CONFIG: DecibelConfig = {
