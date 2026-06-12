@@ -1,37 +1,31 @@
-import { DecibelReaderDeps } from "../../constants";
+import { BaseReader } from "../base-reader";
 import {
-  CampaignViewSchema,
-  ClaimViewSchema,
-  GetCampaignArgs,
-  GetUserCampaignClaimsArgs,
+  ActiveCampaignsSchema,
+  CampaignSummarySchema,
+  GetActiveCampaignsArgs,
+  GetCampaignSummaryArgs,
 } from "./campaigns.types";
 
-export class CampaignsReader {
-  constructor(private readonly deps: DecibelReaderDeps) {}
-
-  private get campaignPackage() {
-    return this.deps.config.deployment.campaignPackage;
+export class CampaignsReader extends BaseReader {
+  async getActive({ fetchOptions }: GetActiveCampaignsArgs = {}) {
+    const response = await this.getRequest({
+      schema: ActiveCampaignsSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/campaigns/active`,
+      options: fetchOptions,
+    });
+    return response.data;
   }
 
-  async getCampaign({ campaignAddress }: GetCampaignArgs) {
-    const [result] = await this.deps.aptos.view<[Record<string, unknown>]>({
-      payload: {
-        function: `${this.campaignPackage}::campaign_manager::get_campaign`,
-        typeArguments: [],
-        functionArguments: [campaignAddress],
-      },
+  async getSummary({ accountAddress, limit, offset, fetchOptions }: GetCampaignSummaryArgs) {
+    const queryParams = new URLSearchParams({ account: accountAddress });
+    if (limit !== undefined) queryParams.set("limit", String(limit));
+    if (offset !== undefined) queryParams.set("offset", String(offset));
+    const response = await this.getRequest({
+      schema: CampaignSummarySchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/campaigns/account`,
+      queryParams,
+      options: fetchOptions,
     });
-    return CampaignViewSchema.parse(result);
-  }
-
-  async getUserCampaignClaims({ userAddress, campaignIds }: GetUserCampaignClaimsArgs) {
-    const [result] = await this.deps.aptos.view<[Array<Record<string, unknown>>]>({
-      payload: {
-        function: `${this.campaignPackage}::campaign_manager::get_user_campaign_claims`,
-        typeArguments: [],
-        functionArguments: [userAddress, campaignIds],
-      },
-    });
-    return result.map((item) => ClaimViewSchema.parse(item));
+    return response.data;
   }
 }

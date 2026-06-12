@@ -1,72 +1,152 @@
 import { z } from "zod/v4";
 
-// Campaign type constants (matches Move u8 constants)
-export const CampaignType = {
-  FeeRebate: 0,
-  MakerIncentive: 1,
-  LiquidationRebate: 2,
-  VolumeMilestone: 3,
-} as const;
-export type CampaignType = (typeof CampaignType)[keyof typeof CampaignType];
+import { BaseRequestArgs } from "../base-reader";
 
-// Campaign status constants (matches Move u8 constants)
-export const CampaignStatus = {
-  Draft: 0,
-  Funded: 1,
-  Active: 2,
-  Expired: 3,
-  Reclaimed: 4,
-  Cancelled: 5,
-} as const;
-export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus];
+export const CampaignTypeNameSchema = z.enum([
+  "fee_rebate",
+  "maker_incentive",
+  "liquidation_rebate",
+  "volume_milestone",
+]);
+export type CampaignTypeName = z.infer<typeof CampaignTypeNameSchema>;
 
-/**
- * Schema for CampaignView returned by get_campaign view function.
- * Fields match the Move CampaignView struct.
- */
-export const CampaignViewSchema = z.object({
-  campaign_id: z.coerce.string(),
-  campaign_type: z.coerce.number(),
-  title: z.string(),
-  description: z.string(),
-  reward_asset: z.object({ inner: z.string() }).transform((v) => v.inner),
-  start_ts_sec: z.coerce.string(),
-  end_ts_sec: z.coerce.string(),
-  claim_start_ts_sec: z.coerce.string(),
-  claim_end_ts_sec: z.coerce.string(),
-  sponsor: z.string(),
-  status: z.coerce.number(),
-  total_funded: z.coerce.string(),
-  total_allocated: z.coerce.string(),
-  total_claimed: z.coerce.string(),
-});
-export type CampaignView = z.infer<typeof CampaignViewSchema>;
+export const CampaignStatusNameSchema = z.enum([
+  "draft",
+  "funded",
+  "active",
+  "expired",
+  "reclaimed",
+  "cancelled",
+]);
+export type CampaignStatusName = z.infer<typeof CampaignStatusNameSchema>;
 
-/**
- * Schema for ClaimView returned by get_user_campaign_claim view function.
- * Fields match the Move ClaimView struct.
- */
-export const ClaimViewSchema = z.object({
-  campaign_id: z.coerce.string(),
-  campaign_type: z.coerce.number(),
-  status: z.coerce.number(),
-  reward_asset: z.object({ inner: z.string() }).transform((v) => v.inner),
-  claimable_amount: z.coerce.string(),
-  claimed_amount: z.coerce.string(),
-  claim_window_open: z.boolean(),
-  claim_expired: z.boolean(),
-  metric_value: z.coerce.string(),
-  title: z.string(),
-  description: z.string(),
-  has_allocation: z.boolean(),
-});
-export type ClaimView = z.infer<typeof ClaimViewSchema>;
+export const CampaignMetadataHttpSchema = z
+  .object({
+    campaign_id: z.coerce.number(),
+    campaign_type: CampaignTypeNameSchema,
+    status: CampaignStatusNameSchema,
+    title: z.string(),
+    reward_asset: z.string(),
+    start_ts_sec: z.coerce.number(),
+    end_ts_sec: z.coerce.number(),
+    claim_start_ts_sec: z.coerce.number(),
+    claim_end_ts_sec: z.coerce.number(),
+    total_funded: z.coerce.number(),
+    description: z.string().nullish(),
+  })
+  .transform((v) => ({
+    campaignId: v.campaign_id,
+    campaignType: v.campaign_type,
+    status: v.status,
+    title: v.title,
+    rewardAsset: v.reward_asset,
+    startTsSec: v.start_ts_sec,
+    endTsSec: v.end_ts_sec,
+    claimStartTsSec: v.claim_start_ts_sec,
+    claimEndTsSec: v.claim_end_ts_sec,
+    totalFunded: v.total_funded,
+    description: v.description ?? undefined,
+  }));
+export type CampaignMetadataHttp = z.infer<typeof CampaignMetadataHttpSchema>;
 
-export interface GetCampaignArgs {
-  campaignAddress: string;
-}
+export const CampaignClaimSchema = z
+  .object({
+    campaign_id: z.coerce.number(),
+    campaign_type: CampaignTypeNameSchema,
+    status: CampaignStatusNameSchema,
+    title: z.string(),
+    reward_asset: z.string(),
+    start_ts_sec: z.coerce.number(),
+    end_ts_sec: z.coerce.number(),
+    claim_start_ts_sec: z.coerce.number(),
+    claim_end_ts_sec: z.coerce.number(),
+    total_funded: z.coerce.number(),
+    description: z.string().nullish(),
+    has_allocation: z.boolean(),
+    claimable_amount: z.coerce.number(),
+    claimed_amount: z.coerce.number(),
+    ready_to_claim: z.coerce.number(),
+    claimed_at_ts_sec: z.coerce.number().nullish(),
+    claim_tx_hash: z.string().nullish(),
+  })
+  .transform((v) => ({
+    campaignId: v.campaign_id,
+    campaignType: v.campaign_type,
+    status: v.status,
+    title: v.title,
+    rewardAsset: v.reward_asset,
+    startTsSec: v.start_ts_sec,
+    endTsSec: v.end_ts_sec,
+    claimStartTsSec: v.claim_start_ts_sec,
+    claimEndTsSec: v.claim_end_ts_sec,
+    totalFunded: v.total_funded,
+    description: v.description ?? undefined,
+    hasAllocation: v.has_allocation,
+    claimableAmount: v.claimable_amount,
+    claimedAmount: v.claimed_amount,
+    readyToClaim: v.ready_to_claim,
+    claimedAtTsSec: v.claimed_at_ts_sec,
+    claimTxHash: v.claim_tx_hash,
+  }));
+export type CampaignClaim = z.infer<typeof CampaignClaimSchema>;
 
-export interface GetUserCampaignClaimsArgs {
-  userAddress: string;
-  campaignIds: number[];
+export const WeeklyEarningSchema = z
+  .object({
+    week_start_ts_sec: z.coerce.number(),
+    reward_amount: z.coerce.number(),
+  })
+  .transform((v) => ({
+    weekStartTsSec: v.week_start_ts_sec,
+    rewardAmount: v.reward_amount,
+  }));
+export type WeeklyEarning = z.infer<typeof WeeklyEarningSchema>;
+
+export const TypeBreakdownSchema = z
+  .object({
+    campaign_type: CampaignTypeNameSchema,
+    lifetime_earned: z.coerce.number(),
+    ready_to_claim: z.coerce.number(),
+    total_claimed: z.coerce.number(),
+  })
+  .transform((v) => ({
+    campaignType: v.campaign_type,
+    lifetimeEarned: v.lifetime_earned,
+    readyToClaim: v.ready_to_claim,
+    totalClaimed: v.total_claimed,
+  }));
+export type TypeBreakdown = z.infer<typeof TypeBreakdownSchema>;
+
+export const CampaignSummarySchema = z
+  .object({
+    lifetime_earned: z.coerce.number(),
+    ready_to_claim: z.coerce.number(),
+    total_claimed: z.coerce.number(),
+    breakdown_by_type: z.array(TypeBreakdownSchema),
+    claims: z.array(CampaignClaimSchema),
+    year_to_date: z.coerce.number(),
+    weekly_wow_bps: z.number(),
+    weekly_breakdown: z.array(WeeklyEarningSchema),
+    total_claims: z.coerce.number(),
+  })
+  .transform((v) => ({
+    lifetimeEarned: v.lifetime_earned,
+    readyToClaim: v.ready_to_claim,
+    totalClaimed: v.total_claimed,
+    breakdownByType: v.breakdown_by_type,
+    claims: v.claims,
+    yearToDate: v.year_to_date,
+    weeklyWowBps: v.weekly_wow_bps,
+    weeklyBreakdown: v.weekly_breakdown,
+    totalClaims: v.total_claims,
+  }));
+export type CampaignSummary = z.infer<typeof CampaignSummarySchema>;
+
+export const ActiveCampaignsSchema = z.array(CampaignMetadataHttpSchema);
+
+export type GetActiveCampaignsArgs = BaseRequestArgs;
+
+export interface GetCampaignSummaryArgs extends BaseRequestArgs {
+  accountAddress: string;
+  limit?: number;
+  offset?: number;
 }
