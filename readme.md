@@ -59,23 +59,35 @@ const depth = await read.marketDepth.getBySymbol("BTC-PERP", { depth: 10 });
 ### Write: Submit Transactions
 
 ```typescript
-import { DecibelWriteDex, NETNA_CONFIG } from "@decibeltrade/sdk";
+import { DecibelReadDex, DecibelWriteDex, NETNA_CONFIG } from "@decibeltrade/sdk";
 import { Ed25519Account, Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
 
 const account = new Ed25519Account({
   privateKey: new Ed25519PrivateKey(process.env.PRIVATE_KEY!),
 });
 
+const read = new DecibelReadDex(NETNA_CONFIG, {
+  nodeApiKey: process.env.APTOS_NODE_API_KEY,
+});
+
 const write = new DecibelWriteDex(NETNA_CONFIG, account, {
   nodeApiKey: process.env.APTOS_NODE_API_KEY, // optional
 });
+
+const markets = await read.markets.getAll();
+const market = markets.find((m) => m.market_addr === "0x...");
+if (!market) throw new Error("Market not found");
+
+function amountToChainUnits(amount: number, decimals: number) {
+  return Math.floor(amount * 10 ** decimals);
+}
 
 // Place an order
 const order = await write.placeOrder({
   subaccountAddr: "0x...",
   marketAddr: "0x...",
-  price: 5670000000, // 5.67 with 9 decimals
-  size: 1000000000, // 1.0 with 9 decimals
+  price: amountToChainUnits(5.67, market.px_decimals),
+  size: amountToChainUnits(1, market.sz_decimals),
   isBuy: true,
   timeInForce: 0, // GoodTillCanceled
 });
@@ -429,32 +441,84 @@ const vaults = await readDex.vaults.getAll();
 
 ### DecibelWriteDex
 
-The main write client for executing trades and managing account operations.
+The main write client for executing trades and managing Trading Accounts, positions, vaults, and campaign rewards.
 
 #### Constructor
 
 ```typescript
+import { GasPriceManager } from "@decibeltrade/sdk";
 import { Ed25519Account, Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
 
 const account = new Ed25519Account({
   privateKey: new Ed25519PrivateKey("your-private-key"),
 });
 
-const writeDex = new DecibelWriteDex(config, account, opts?: {
-  nodeApiKey?: string;
-  sponsorAccount?: Ed25519Account;
-  maxGasAmount?: number;
-  gasUnitPrice?: number;
+const gasPriceManager = new GasPriceManager(config);
+
+const writeDex = new DecibelWriteDex(config, account, {
+  nodeApiKey: process.env.APTOS_NODE_API_KEY,
+  skipSimulate: false,
+  gasPriceManager,
+  timeDeltaMs: 0,
 });
 ```
 
-### Account Management
+### Public write methods
 
-#### Subaccount Operations
+- Trading Accounts and collateral:
+  `renameSubaccount`,
+  `createSubaccount`,
+  `adminCreateSubaccount`,
+  `sendSubaccountTx`,
+  `withSubaccount`,
+  `deposit`,
+  `withdraw`,
+  `withdrawNonCollateral`,
+  `configureUserSettingsForMarket`,
+  `buildDeactiveSubaccountTx`
+- Orders and matching:
+  `placeOrder`,
+  `triggerMatching`,
+  `placeTwapOrder`,
+  `cancelOrder`,
+  `cancelClientOrder`,
+  `cancelBulkOrder`,
+  `updateOrder`,
+  `cancelTwapOrder`
+- Position TP/SL:
+  `placeTpSlOrderForPosition`,
+  `updateTpOrderForPosition`,
+  `updateSlOrderForPosition`,
+  `cancelTpSlOrderForPosition`
+- Delegation, vaults, and rewards:
+  `delegateTradingToForSubaccount`,
+  `revokeDelegation`,
+  `createVault`,
+  `buildCreateVaultTx`,
+  `buildActivateVaultTx`,
+  `buildDepositToVaultTx`,
+  `depositToVault`,
+  `buildWithdrawFromVaultTx`,
+  `withdrawFromVault`,
+  `buildDelegateDexActionsToTx`,
+  `approveMaxBuilderFee`,
+  `revokeMaxBuilderFee`,
+  `claimCampaignReward`
+
+### Trading Accounts and Collateral
 
 ```typescript
 // Create a new subaccount
 await writeDex.createSubaccount();
+
+// Admin-only: create a subaccount for another owner
+await writeDex.adminCreateSubaccount("0x...owner");
+
+// Rename a subaccount via trading API
+await writeDex.renameSubaccount({
+  subaccountAddress: "0x...subaccount",
+  newName: "Treasury",
+});
 
 // Deposit collateral to primary subaccount
 await writeDex.deposit(1000000); // amount in smallest unit
@@ -464,15 +528,19 @@ await writeDex.deposit(1000000, "subaccount_address");
 
 // Withdraw from subaccount
 await writeDex.withdraw(500000, "subaccount_address");
+
+// Withdraw a non-collateral asset from a subaccount
+await writeDex.withdrawNonCollateral("0x...asset_metadata", 250000, "subaccount_address");
 ```
 
-#### Trading Delegation
+### Trading Delegation and Builder Fees
 
 ```typescript
 // Delegate trading permissions
-await writeDex.delegateTradingTo({
+await writeDex.delegateTradingToForSubaccount({
   subaccountAddr: "your_subaccount",
   accountToDelegateTo: "delegate_account_address",
+  expirationTimestampSecs: 1735689600, // optional
 });
 
 // Revoke delegation
@@ -480,9 +548,19 @@ await writeDex.revokeDelegation({
   subaccountAddr: "your_subaccount",
   accountToRevoke: "delegate_account_address",
 });
+
+// Approve and revoke builder fees (values are basis points)
+await writeDex.approveMaxBuilderFee({
+  builderAddr: "0x...builder",
+  maxFee: 25,
+});
+
+await writeDex.revokeMaxBuilderFee({
+  builderAddr: "0x...builder",
+});
 ```
 
-#### Market Configuration
+### Market Configuration
 
 ```typescript
 // Configure user settings for a market
@@ -496,16 +574,25 @@ await writeDex.configureUserSettingsForMarket({
 
 ### Order Management
 
-#### Place Orders
-
 ```typescript
-import { TimeInForce } from "@decibeltrade/sdk";
+import { DecibelReadDex, getMarketAddr, TimeInForce } from "@decibeltrade/sdk";
+
+const readDex = new DecibelReadDex(config, {
+  nodeApiKey: process.env.APTOS_NODE_API_KEY,
+});
+
+const marketAddr = getMarketAddr("BTC-USD", config.deployment.perpEngineGlobal).toString();
+const market = await readDex.markets.getByName("BTC-USD");
+if (!market) throw new Error("Market not found");
+
+const amountToChainUnits = (amount: number, decimals: number) =>
+  Math.floor(amount * 10 ** decimals);
 
 // Place a limit order
 const result = await writeDex.placeOrder({
   marketName: "BTC-USD",
-  price: 45000,
-  size: 1.5,
+  price: amountToChainUnits(45_000, market.px_decimals),
+  size: amountToChainUnits(1.5, market.sz_decimals),
   isBuy: true,
   timeInForce: TimeInForce.GoodTillCanceled,
   isReduceOnly: false,
@@ -513,144 +600,211 @@ const result = await writeDex.placeOrder({
   subaccountAddr: "subaccount_address", // optional
 });
 
-// Place a post-only order
-await writeDex.placeOrder({
-  marketName: "ETH-USD",
-  price: 3000,
-  size: 2.0,
-  isBuy: false,
-  timeInForce: TimeInForce.PostOnly,
-  isReduceOnly: false,
-});
-
-// Place an IOC (Immediate or Cancel) order
-await writeDex.placeOrder({
-  marketName: "SOL-USD",
-  price: 100,
-  size: 10,
-  isBuy: true,
-  timeInForce: TimeInForce.ImmediateOrCancel,
-  isReduceOnly: true,
-});
-```
-
-#### Advanced Order Types
-
-```typescript
 // Place order with stop-loss and take-profit
 await writeDex.placeOrder({
   marketName: "BTC-USD",
-  price: 45000,
-  size: 1.0,
+  price: amountToChainUnits(45_000, market.px_decimals),
+  size: amountToChainUnits(1, market.sz_decimals),
   isBuy: true,
   timeInForce: TimeInForce.GoodTillCanceled,
   isReduceOnly: false,
-  stopPrice: 44000, // stop-loss trigger
-  tpTriggerPrice: 46000, // take-profit trigger
-  tpLimitPrice: 45900, // take-profit limit price
-  slTriggerPrice: 44000, // stop-loss trigger
-  slLimitPrice: 44100, // stop-loss limit price
+  stopPrice: amountToChainUnits(44_000, market.px_decimals),
+  tpTriggerPrice: amountToChainUnits(46_000, market.px_decimals),
+  tpLimitPrice: amountToChainUnits(45_900, market.px_decimals),
+  slTriggerPrice: amountToChainUnits(44_000, market.px_decimals),
+  slLimitPrice: amountToChainUnits(44_100, market.px_decimals),
 });
 
-// Place order with builder fee
+// Place order with builder fee and automatic tick-size snapping
 await writeDex.placeOrder({
   marketName: "BTC-USD",
-  price: 45000,
-  size: 1.0,
+  price: amountToChainUnits(45_000, market.px_decimals),
+  size: amountToChainUnits(1, market.sz_decimals),
   isBuy: true,
   timeInForce: TimeInForce.GoodTillCanceled,
   isReduceOnly: false,
   builderAddr: "builder_account_address",
-  builderFee: 100, // fee in basis points
+  builderFee: 100,
+  tickSize: market.tick_size,
 });
-```
 
-#### TWAP Orders
-
-```typescript
-// Place a Time-Weighted Average Price order
+// Place a TWAP order
 await writeDex.placeTwapOrder({
   marketName: "BTC-USD",
-  size: 10.0,
+  size: amountToChainUnits(10, market.sz_decimals),
   isBuy: true,
   isReduceOnly: false,
-  twapFrequencySeconds: 60, // execute every 60 seconds
-  twapDurationSeconds: 3600, // over 1 hour period
-  subaccountAddr: "subaccount_address", // optional
+  twapFrequencySeconds: 60,
+  twapDurationSeconds: 3600,
 });
-```
 
-#### Cancel Orders
-
-```typescript
-// Cancel order by ID and market name
+// Cancel orders
+// Choose `marketName` when you only have a symbol/name.
 await writeDex.cancelOrder({
   orderId: 12345,
   marketName: "BTC-USD",
   subaccountAddr: "subaccount_address", // optional
 });
 
-// Cancel order by ID and market address
+// Choose `marketAddr` when the address is already resolved/cached.
 await writeDex.cancelOrder({
   orderId: 12345,
-  marketAddr: "market_address",
+  marketAddr,
   subaccountAddr: "subaccount_address", // optional
 });
 
-// Cancel order by client order ID
 await writeDex.cancelClientOrder({
   clientOrderId: "54321",
   marketName: "BTC-USD",
-  subaccountAddr: "subaccount_address", // optional
 });
 
-// Cancel TWAP order
 await writeDex.cancelTwapOrder({
   orderId: "twap_order_id",
+  marketAddr,
+});
+
+// Cancel all bulk orders for a market
+// By market name (symbol-driven flow)
+await writeDex.cancelBulkOrder({
+  marketName: "BTC-USD",
   subaccountAddr: "subaccount_address", // optional
 });
 
-// Cancel bulk orders
+// By market address (address-driven flow)
 await writeDex.cancelBulkOrder({
-  orderIds: [12345, 12346, 12347],
-  marketName: "BTC-USD",
+  marketAddr,
   subaccountAddr: "subaccount_address", // optional
+});
+
+// Update an existing order
+await writeDex.updateOrder({
+  orderId: 12345,
+  marketAddr,
+  price: amountToChainUnits(45_500, market.px_decimals),
+  size: amountToChainUnits(1.25, market.sz_decimals),
+  isBuy: true,
+  timeInForce: TimeInForce.GoodTillCanceled,
+  isReduceOnly: false,
+  tpTriggerPrice: amountToChainUnits(47_000, market.px_decimals),
+  tpLimitPrice: amountToChainUnits(46_900, market.px_decimals),
 });
 ```
 
 ### Position Management
 
-#### Take-Profit / Stop-Loss Orders
-
 ```typescript
-// Place TP/SL order for existing position
+const markets = await readDex.markets.getAll();
+const market = markets.find((m) => m.market_addr === "market_address");
+if (!market) throw new Error("Market not found");
+
+// Place TP/SL order for an existing position
 await writeDex.placeTpSlOrderForPosition({
   marketAddr: "market_address",
-  tpTriggerPrice: 46000,
-  tpLimitPrice: 45900,
-  tpSize: 0.5, // partial position size
-  slTriggerPrice: 44000,
-  slLimitPrice: 44100,
-  slSize: 1.0, // full position size
-  subaccountAddr: "subaccount_address", // optional
+  tpTriggerPrice: amountToChainUnits(46_000, market.px_decimals),
+  tpLimitPrice: amountToChainUnits(45_900, market.px_decimals),
+  tpSize: amountToChainUnits(0.5, market.sz_decimals),
+  slTriggerPrice: amountToChainUnits(44_000, market.px_decimals),
+  slLimitPrice: amountToChainUnits(44_100, market.px_decimals),
+  slSize: amountToChainUnits(1, market.sz_decimals),
+  subaccountAddr: "subaccount_address",
 });
 
-// Update existing TP/SL order
-await writeDex.updateTpSlOrderForPosition({
+// Update TP and SL orders independently
+await writeDex.updateTpOrderForPosition({
   marketAddr: "market_address",
-  prevOrderId: "previous_order_id",
-  tpTriggerPrice: 47000, // new TP trigger
-  tpLimitPrice: 46900,
-  tpSize: 0.75,
-  // ... other parameters
+  prevOrderId: "previous_tp_order_id",
+  tpTriggerPrice: amountToChainUnits(47_000, market.px_decimals),
+  tpLimitPrice: amountToChainUnits(46_900, market.px_decimals),
+  tpSize: amountToChainUnits(0.75, market.sz_decimals),
 });
 
-// Cancel TP/SL order
-await writeDex.cancelTpSlOrderForPosition({
-  marketName: "BTC-USD",
-  orderId: 12345,
-  subaccountAddr: "subaccount_address", // optional
+await writeDex.updateSlOrderForPosition({
+  marketAddr: "market_address",
+  prevOrderId: "previous_sl_order_id",
+  slTriggerPrice: amountToChainUnits(43_800, market.px_decimals),
+  slLimitPrice: amountToChainUnits(43_750, market.px_decimals),
+  slSize: amountToChainUnits(1, market.sz_decimals),
 });
+
+await writeDex.cancelTpSlOrderForPosition({
+  marketAddr: "market_address",
+  orderId: 12345,
+  subaccountAddr: "subaccount_address",
+});
+```
+
+### Vaults and Campaign Rewards
+
+```typescript
+// Create a vault
+await writeDex.createVault({
+  // Asset metadata object address (for example USDC metadata), not a Move type tag
+  contributionAssetType: writeDex.config.deployment.usdc,
+  vaultName: "Basis Trade",
+  vaultDescription: "Example strategy",
+  vaultSocialLinks: [],
+  vaultShareSymbol: "BASIS",
+  feeBps: 0,
+  feeIntervalS: 0,
+  contributionLockupDurationS: 0,
+  initialFunding: 0,
+  acceptsContributions: false,
+  delegateToCreator: false,
+});
+
+// Contribute to and redeem from a vault
+await writeDex.depositToVault({
+  vaultAddress: "0x...vault",
+  amount: 1000000,
+  subaccountAddr: "0x...subaccount",
+});
+
+await writeDex.withdrawFromVault({
+  vaultAddress: "0x...vault",
+  shares: 1000000,
+});
+
+// Build transactions for custom signing flows
+await writeDex.buildCreateVaultTx({
+  contributionAssetType: writeDex.config.deployment.usdc,
+  vaultName: "Basis Trade",
+  vaultDescription: "Example strategy",
+  vaultSocialLinks: [],
+  vaultShareSymbol: "BASIS",
+  feeBps: 0,
+  feeIntervalS: 0,
+  contributionLockupDurationS: 0,
+  initialFunding: 0,
+  acceptsContributions: false,
+  delegateToCreator: false,
+  signerAddress: account.accountAddress,
+});
+
+await writeDex.buildActivateVaultTx({
+  vaultAddress: "0x...vault",
+  signerAddress: account.accountAddress,
+});
+
+await writeDex.buildDepositToVaultTx({
+  vaultAddress: "0x...vault",
+  amount: 1000000,
+  signerAddress: account.accountAddress,
+});
+
+await writeDex.buildWithdrawFromVaultTx({
+  vaultAddress: "0x...vault",
+  shares: 1000000,
+  signerAddress: account.accountAddress,
+});
+
+await writeDex.buildDelegateDexActionsToTx({
+  vaultAddress: "0x...vault",
+  accountToDelegateTo: "0x...delegate",
+  signerAddress: account.accountAddress,
+});
+
+// Claim a campaign reward by numeric campaign ID
+await writeDex.claimCampaignReward(42);
 ```
 
 ### Session Accounts
@@ -658,15 +812,20 @@ await writeDex.cancelTpSlOrderForPosition({
 You can override the default account for specific transactions using session accounts:
 
 ```typescript
+import { TimeInForce } from "@decibeltrade/sdk";
 import { Ed25519Account } from "@aptos-labs/ts-sdk";
 
 const sessionAccount = Ed25519Account.generate();
+const market = await readDex.markets.getByName("BTC-USD");
+if (!market) throw new Error("Market not found");
 
-// Use session account for this transaction
+const amountToChainUnits = (amount: number, decimals: number) =>
+  Math.floor(amount * 10 ** decimals);
+
 await writeDex.placeOrder({
   marketName: "BTC-USD",
-  price: 45000,
-  size: 1.0,
+  price: amountToChainUnits(45_000, market.px_decimals),
+  size: amountToChainUnits(1, market.sz_decimals),
   isBuy: true,
   timeInForce: TimeInForce.GoodTillCanceled,
   isReduceOnly: false,
@@ -679,12 +838,16 @@ await writeDex.placeOrder({
 All write operations return transaction results. For order placement, you get a structured result:
 
 ```typescript
-interface PlaceOrderResult {
-  success: boolean;
-  orderId?: string;
-  transactionHash: string;
-  error?: string;
-}
+type PlaceOrderResult =
+  | {
+      success: true;
+      orderId: string | undefined;
+      transactionHash: string;
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
 const result = await writeDex.placeOrder({
   // ... order parameters
@@ -733,7 +896,7 @@ import { getPrimarySubaccountAddr, getMarketAddr } from "@decibeltrade/sdk";
 // Get primary subaccount address for an account
 const subaccountAddr = getPrimarySubaccountAddr(
   "account_address",
-  sdkConfig.compat_version,
+  sdkConfig.compatVersion,
   sdkConfig.deployment.package,
 );
 
@@ -1114,12 +1277,16 @@ async function configureMarketSettings(
 #### Place Order
 
 ```typescript
-interface PlaceOrderResult {
-  success: boolean;
-  orderId?: string;
-  transactionHash: string | null;
-  error?: string;
-}
+type PlaceOrderResult =
+  | {
+      success: true;
+      orderId: string | undefined;
+      transactionHash: string;
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
 async function placeOrder(
   transactionManager: DecibelTransactionManager,
@@ -1131,7 +1298,7 @@ async function placeOrder(
     isBuy: boolean;
     timeInForce: number;
     isReduceOnly: boolean;
-    clientOrderId?: number;
+    clientOrderId?: string;
     stopPrice?: number;
     tpTriggerPrice?: number;
     tpLimitPrice?: number;
@@ -1184,7 +1351,6 @@ async function placeOrder(
   } catch (error) {
     return {
       success: false,
-      transactionHash: null,
       error: error instanceof Error ? error.message : "Unknown error",
     };
   }
@@ -1317,7 +1483,7 @@ async function placeTpSlOrderForPosition(
 #### Delegate Trading
 
 ```typescript
-async function delegateTradingTo(
+async function delegateTradingToForSubaccount(
   transactionManager: DecibelTransactionManager,
   config: DecibelConfig,
   params: {
