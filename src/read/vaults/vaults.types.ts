@@ -62,6 +62,20 @@ export interface VaultSharePriceRequestArgs extends BaseRequestArgs {
 }
 
 /**
+ * Arguments for fetching the vault's net asset value
+ */
+export interface VaultNetAssetValueRequestArgs extends BaseRequestArgs {
+  vaultAddress: string;
+}
+
+/**
+ * Arguments for fetching the vault's total number of shares outstanding
+ */
+export interface VaultNumSharesRequestArgs extends BaseRequestArgs {
+  vaultAddress: string;
+}
+
+/**
  * Arguments for fetching max synchronous (instant) redemption amount for a vault
  */
 export interface MaxSynchronousRedemptionRequestArgs {

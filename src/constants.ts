@@ -3,6 +3,16 @@ import { AccountAddress, Aptos, createObjectAddress, Network } from "@aptos-labs
 import { DecibelWsSubscription } from "./read/ws-subscription";
 import { PACKAGE, RELEASE_CONFIGS, ReleaseConfig } from "./release-config";
 
+/**
+ * Decimal precision for USDC, the protocol's primary collateral asset.
+ *
+ * Raw u64 values returned by on-chain view functions denominated in USDC
+ * (e.g. `vault::get_vault_net_asset_value`, `vault::get_vault_num_shares` —
+ * vault shares are minted at the same precision as the contribution asset)
+ * must be divided by `10 ** USDC_DECIMALS` to convert to human-readable units.
+ */
+export const USDC_DECIMALS = 6;
+
 export function getUsdcAddress(publisherAddr: string) {
   return createObjectAddress(
     AccountAddress.fromString(publisherAddr),

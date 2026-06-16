@@ -6,6 +6,8 @@ import {
   UserOwnedVaultsResponseSchema,
   UserPerformancesOnVaultsRequestArgs,
   UserPerformancesOnVaultsResponseSchema,
+  VaultNetAssetValueRequestArgs,
+  VaultNumSharesRequestArgs,
   VaultSharePriceRequestArgs,
   VaultsResponseSchema,
 } from "./vaults.types";
@@ -84,39 +86,70 @@ export class VaultsReader extends BaseReader {
   }
 
   /**
-   * Get vault share price by calculating NAV / num_shares
+   * Get the vault's net asset value (NAV) in raw chain units.
+   *
+   * Wraps the on-chain `vault::get_vault_net_asset_value` view function. NAV is
+   * denominated in the protocol's primary collateral asset (USDC); divide the
+   * return value by `10 ** USDC_DECIMALS` for human-readable units.
+   *
+   * @param args The arguments containing the vault address
+   * @returns The vault NAV as raw u64 chain units
+   */
+  async getVaultNetAssetValue({ vaultAddress }: VaultNetAssetValueRequestArgs) {
+    const [result] = await this.deps.aptos.view<[string]>({
+      payload: {
+        function: `${this.deps.config.deployment.package}::vault::get_vault_net_asset_value`,
+        typeArguments: [],
+        functionArguments: [vaultAddress],
+      },
+    });
+
+    return Number(BigInt(result));
+  }
+
+  /**
+   * Get the total number of shares outstanding for the vault, in raw chain units.
+   *
+   * Wraps the on-chain `vault::get_vault_num_shares` view function. Vault shares
+   * are minted at the same precision as the contribution asset (USDC); divide the
+   * return value by `10 ** USDC_DECIMALS` for human-readable units.
+   *
+   * @param args The arguments containing the vault address
+   * @returns The total number of shares outstanding as raw u64 chain units
+   */
+  async getVaultNumShares({ vaultAddress }: VaultNumSharesRequestArgs) {
+    const [result] = await this.deps.aptos.view<[string]>({
+      payload: {
+        function: `${this.deps.config.deployment.package}::vault::get_vault_num_shares`,
+        typeArguments: [],
+        functionArguments: [vaultAddress],
+      },
+    });
+
+    return Number(BigInt(result));
+  }
+
+  /**
+   * Get vault share price by calculating NAV / num_shares.
+   *
+   * Returns 1 when the vault has zero shares outstanding (no depositors yet).
+   * Both NAV and num_shares share the same precision so the ratio is unitless
+   * and requires no decimal normalization.
+   *
    * @param args The arguments containing the vault address
    * @returns The share price of the vault
    */
-  async getVaultSharePrice({ ...args }: VaultSharePriceRequestArgs) {
+  async getVaultSharePrice({ vaultAddress }: VaultSharePriceRequestArgs) {
     const [nav, numShares] = await Promise.all([
-      this.deps.aptos.view<[string]>({
-        payload: {
-          function: `${this.deps.config.deployment.package}::vault::get_vault_net_asset_value`,
-          typeArguments: [],
-          functionArguments: [args.vaultAddress],
-        },
-      }),
-      this.deps.aptos.view<[string]>({
-        payload: {
-          function: `${this.deps.config.deployment.package}::vault::get_vault_num_shares`,
-          typeArguments: [],
-          functionArguments: [args.vaultAddress],
-        },
-      }),
+      this.getVaultNetAssetValue({ vaultAddress }),
+      this.getVaultNumShares({ vaultAddress }),
     ]);
 
-    const navValue = BigInt(nav[0]);
-    const sharesValue = BigInt(numShares[0]);
-
-    if (Number(sharesValue) === 0) {
+    if (numShares === 0) {
       return 1;
     }
 
-    // Calculate share price: NAV / num_shares
-    // Using BigInt for precision, then converting to number
-    // Note: This may lose precision for very large numbers
-    return Number(navValue) / Number(sharesValue);
+    return nav / numShares;
   }
 
   /**
