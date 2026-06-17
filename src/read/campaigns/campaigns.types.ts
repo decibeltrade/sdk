@@ -49,6 +49,8 @@ export const CampaignMetadataHttpSchema = z
   }));
 export type CampaignMetadataHttp = z.infer<typeof CampaignMetadataHttpSchema>;
 
+// u64 raw chain units; FE divides by 10^6 for USDC.
+// readyToClaim = claimableAmount - claimedAmount - in-flight; use it for "Claim $X" CTAs.
 export const CampaignClaimSchema = z
   .object({
     campaign_id: z.coerce.number(),
@@ -116,6 +118,8 @@ export const TypeBreakdownSchema = z
   }));
 export type TypeBreakdown = z.infer<typeof TypeBreakdownSchema>;
 
+// lifetimeEarned = readyToClaim + totalClaimed.
+// weeklyWowBps: cumulative WoW basis points; see handle_campaigns.rs:494-497. 0 when prior cumulative is 0 or growth is non-positive.
 export const CampaignSummarySchema = z
   .object({
     lifetime_earned: z.coerce.number(),
