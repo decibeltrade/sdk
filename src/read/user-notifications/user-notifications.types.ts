@@ -35,9 +35,11 @@ export enum ClientNotificationType {
   TwapPlaced = "TwapPlaced",
   OrderCancellationPlaced = "OrderCancellationPlaced",
   PositionCancellationPlaced = "PositionCancellationPlaced",
+  PositionReversalPlaced = "PositionReversalPlaced",
   TwapCancellationPlaced = "TwapCancellationPlaced",
   OrderCancellationErrored = "OrderCancellationErrored",
   PositionCancellationErrored = "PositionCancellationErrored",
+  PositionReversalErrored = "PositionReversalErrored",
   TwapCancellationErrored = "TwapCancellationErrored",
   LimitOrderSubmitted = "LimitOrderSubmitted",
 }
