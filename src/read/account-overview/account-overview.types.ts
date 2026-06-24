@@ -37,6 +37,7 @@ export type SecondaryCollateral = z.infer<typeof SecondaryCollateralSchema>;
 
 export const AccountOverviewSchema = z.object({
   perp_equity_balance: z.number(),
+  perp_equity_haircutted: z.number().optional(),
   unrealized_pnl: z.number(),
   unrealized_funding_cost: z.number(),
   cross_margin_ratio: z.number(),
