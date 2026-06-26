@@ -249,6 +249,19 @@ const unsubscribe = readDex.accountOverview.subscribeByAddr("subaccount_address"
 unsubscribe();
 ```
 
+### User Fees
+
+Get a subaccount's effective maker/taker fee rates, current fee tier, the full
+VIP fee schedule, and its daily volume history for the on-chain fee window. Fee
+rates are decimals (e.g. `0.00034` = 0.034%); volume values are whole-USD integer
+strings.
+
+```typescript
+const fees = await readDex.userFees.getByAddr({ subAddr: "subaccount_address" });
+// fees.user_taker_rate, fees.user_maker_rate, fees.fee_tier
+// fees.fee_schedule.tiers.vip[], fees.daily_user_volume[]
+```
+
 ### User Positions
 
 Query user positions across markets.

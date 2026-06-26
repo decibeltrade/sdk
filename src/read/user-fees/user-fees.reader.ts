@@ -1,0 +1,26 @@
+import { BaseReader } from "../base-reader";
+import { UserFeesRequestArgs, UserFeesSchema } from "./user-fees.types";
+
+export class UserFeesReader extends BaseReader {
+  /**
+   * Get the user's fee rates and the full fee schedule for a subaccount.
+   *
+   * Returns the user's effective maker/taker rates, current fee tier (based on the
+   * on-chain fee window), the full schedule for all VIP tiers, and the daily volume
+   * history for that same window. Fee rates are decimals (e.g. 0.000340 = 0.034%).
+   * @param subAddr The subaccount address to get fees for
+   * @returns The user's fees and fee schedule
+   */
+  async getByAddr({ subAddr, fetchOptions }: UserFeesRequestArgs) {
+    const queryParams = new URLSearchParams({ account: subAddr });
+
+    const response = await this.getRequest({
+      schema: UserFeesSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/user_fee_rates`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+}

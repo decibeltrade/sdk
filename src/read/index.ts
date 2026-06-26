@@ -23,6 +23,7 @@ import { TradingPointsReader } from "./trading-points/trading-points.reader";
 import { CrossedPosition } from "./types";
 import { UserActiveTwapsReader } from "./user-active-twaps/user-active-twaps.reader";
 import { UserBulkOrdersReader } from "./user-bulk-orders/user-bulk-orders.reader";
+import { UserFeesReader } from "./user-fees/user-fees.reader";
 import { UserFundHistoryReader } from "./user-fund-history/user-fund-history.reader";
 import { UserFundingHistoryReader } from "./user-funding-history/user-funding-history.reader";
 import { UserNotificationsReader } from "./user-notifications/user-notifications.reader";
@@ -38,6 +39,7 @@ import { DecibelWsSubscription } from "./ws-subscription";
 
 export * from "./action-utils";
 export * from "./types";
+export * from "./user-fees/user-fees.types";
 export type {
   KnownWithdrawCancelReason,
   PendingWithdrawRequest,
@@ -91,6 +93,7 @@ export class DecibelReadDex {
   readonly globalPointsStats: GlobalPointsStatsReader;
   readonly referrals: ReferralsReader;
   readonly withdrawQueue: WithdrawQueueReader;
+  readonly userFees: UserFeesReader;
 
   constructor(
     readonly config: DecibelConfig,
@@ -146,6 +149,7 @@ export class DecibelReadDex {
     this.globalPointsStats = new GlobalPointsStatsReader(this.deps);
     this.referrals = new ReferralsReader(this.deps);
     this.withdrawQueue = new WithdrawQueueReader(this.deps);
+    this.userFees = new UserFeesReader(this.deps);
   }
 
   async globalPerpEngineState() {
