@@ -9,6 +9,7 @@ export interface DelegationsRequestArgs extends BaseRequestArgs {
 export const DelegationSchema = z.object({
   delegated_account: z.string(),
   permission_type: z.string(),
+  permission_market: z.string().nullable().optional(),
   expiration_time_s: z.number().nullable(),
 });
 
