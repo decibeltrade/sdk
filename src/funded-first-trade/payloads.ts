@@ -1,0 +1,96 @@
+import { InputEntryFunctionData } from "@aptos-labs/ts-sdk";
+
+/**
+ * Payload builders for the on-chain `funded_first_trade` entry functions.
+ * Standalone rather than on `DecibelWriteDex`: the on-chain per-owner checks
+ * key off the signer, so the user's own wallet must sign these.
+ */
+
+export interface BuildLockPayloadArgs {
+  /** Address the campaign package is published at. */
+  campaignPackage: string;
+  /** Campaign object address (not the package address). */
+  campaignAddr: string;
+  /** Raw chain units (USDC × 10⁶). */
+  amount: bigint;
+  /** Integer days within `campaign_lock` duration bounds (default 1–49). */
+  durationDays: number;
+}
+
+export function buildLockPayload({
+  campaignPackage,
+  campaignAddr,
+  amount,
+  durationDays,
+}: BuildLockPayloadArgs): InputEntryFunctionData {
+  return {
+    function: `${campaignPackage}::funded_first_trade::lock`,
+    typeArguments: [],
+    functionArguments: [campaignAddr, amount.toString(), durationDays],
+  };
+}
+
+export interface BuildClaimUnlockPayloadArgs {
+  campaignPackage: string;
+  campaignAddr: string;
+  lockId: bigint;
+  /** Lock owner — the caller's own address for wallet-signed self-claims. */
+  owner: string;
+}
+
+/** Claim a matured lock (on-chain entry is `unlock`). */
+export function buildClaimUnlockPayload({
+  campaignPackage,
+  campaignAddr,
+  lockId,
+  owner,
+}: BuildClaimUnlockPayloadArgs): InputEntryFunctionData {
+  return {
+    function: `${campaignPackage}::funded_first_trade::unlock`,
+    typeArguments: [],
+    functionArguments: [campaignAddr, lockId.toString(), owner],
+  };
+}
+
+export interface BuildSettleTrialPayloadArgs {
+  campaignPackage: string;
+  campaignAddr: string;
+  trialId: number;
+}
+
+/**
+ * `funded_first_trade::settle_trial` — permissionless keeper entry; any signer
+ * can settle an expired trial. Exposed to users as the backup path when the
+ * keeper is down.
+ */
+export function buildSettleTrialPayload({
+  campaignPackage,
+  campaignAddr,
+  trialId,
+}: BuildSettleTrialPayloadArgs): InputEntryFunctionData {
+  return {
+    function: `${campaignPackage}::funded_first_trade::settle_trial`,
+    typeArguments: [],
+    functionArguments: [campaignAddr, trialId.toString()],
+  };
+}
+
+export interface BuildOpenTrialPayloadArgs {
+  campaignPackage: string;
+  campaignAddr: string;
+  /** Trial recipient — the caller's own address for wallet-signed self-opens. */
+  owner: string;
+}
+
+/** No side argument by design: the trial's side is derived on-chain via randomness. */
+export function buildOpenTrialPayload({
+  campaignPackage,
+  campaignAddr,
+  owner,
+}: BuildOpenTrialPayloadArgs): InputEntryFunctionData {
+  return {
+    function: `${campaignPackage}::funded_first_trade::open_trial`,
+    typeArguments: [],
+    functionArguments: [campaignAddr, owner],
+  };
+}

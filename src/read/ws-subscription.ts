@@ -14,6 +14,7 @@ export class DecibelWsSubscription {
   #ws: WebSocket | null = null;
   #subscriptions = new Map<string, Set<(data: unknown) => void | Promise<void>>>();
   #reconnectAttempts = 0;
+  #reconnectListeners = new Set<() => void>();
 
   #getSubscribeMessage(topic: string) {
     return JSON.stringify({ method: "subscribe", topic });
@@ -67,9 +68,13 @@ export class DecibelWsSubscription {
       : new WebSocket(this.config.tradingWsUrl, this.apiKey ? ["decibel", this.apiKey] : undefined);
 
     ws.addEventListener("open", () => {
+      const isReconnect = this.#reconnectAttempts > 0;
       this.#reconnectAttempts = 0;
       for (const topic of this.#subscriptions.keys()) {
         ws.send(this.#getSubscribeMessage(topic));
+      }
+      if (isReconnect) {
+        this.#reconnectListeners.forEach((listener) => listener());
       }
     });
 
@@ -103,12 +108,25 @@ export class DecibelWsSubscription {
 
       // If there are still subscriptions, reconnect.
       if (this.#subscriptions.size > 0) {
-        setTimeout(() => this.#open(), Math.pow(1.5, this.#reconnectAttempts) * 1000);
+        setTimeout(
+          () => this.#open(),
+          Math.min(Math.pow(1.5, this.#reconnectAttempts) * 1000, 30_000),
+        );
         this.#reconnectAttempts++;
       }
     });
 
     this.#ws = ws;
+  }
+
+  /**
+   * Fires after a dropped connection is re-established and subscribe frames are
+   * re-sent. Streaming-only topics get no replay of events missed during the
+   * outage — re-seed their state over HTTP from this callback.
+   */
+  onReconnect(listener: () => void): () => void {
+    this.#reconnectListeners.add(listener);
+    return () => this.#reconnectListeners.delete(listener);
   }
 
   subscribe<TMessageData>(

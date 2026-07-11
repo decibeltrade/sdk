@@ -1,0 +1,348 @@
+import { Aptos, Network } from "@aptos-labs/ts-sdk";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { ChainFallbackInfo, DecibelConfig, DecibelReaderDeps } from "../../constants";
+import { DEFAULT_COMPAT_VERSION } from "../../release-config";
+import { DecibelWsSubscription } from "../ws-subscription";
+import { FundedFirstTradeReader } from "./funded-first-trade.reader";
+import { TrialDto } from "./funded-first-trade.types";
+
+function createMockDeps() {
+  const mockConfig: DecibelConfig = {
+    network: Network.TESTNET,
+    fullnodeUrl: "https://testnet.aptoslabs.com/v1",
+    tradingHttpUrl: "https://api.testnet.example.com",
+    tradingWsUrl: "wss://ws.testnet.example.com",
+    deployment: {
+      package: "0x0000000000000000000000000000000000000000000000000000000000000123",
+      predepositPackage: "0x0000000000000000000000000000000000000000000000000000000000000456",
+      campaignPackage: "0x0000000000000000000000000000000000000000000000000000000000004e110",
+      usdc: "0x0000000000000000000000000000000000000000000000000000000000000789",
+      testc: "0x0000000000000000000000000000000000000000000000000000000000000abc",
+      perpEngineGlobal: "0x0000000000000000000000000000000000000000000000000000000000000def",
+      dlpVault: "0x0000000000000000000000000000000000000000000000000000000000000ghi",
+      dlpShare: "0x0000000000000000000000000000000000000000000000000000000000000jkl",
+    },
+    compatVersion: DEFAULT_COMPAT_VERSION,
+  };
+
+  const mockWs = {
+    subscribe: vi.fn(),
+    reset: vi.fn(),
+  } as unknown as DecibelWsSubscription;
+
+  const deps: DecibelReaderDeps = {
+    aptos: {} as unknown as Aptos,
+    ws: mockWs,
+    config: mockConfig,
+    apiKey: "test-api-key",
+  };
+
+  return { deps };
+}
+
+const settledTrial: TrialDto = {
+  trial_id: 7,
+  user: "0xu1",
+  campaign_addr: "0xc1",
+  status: "Settled",
+  size: 0.006667,
+  settle_reason: "ExpiredClean",
+};
+
+function mockFetch(body: unknown) {
+  return vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
+}
+
+function requestedUrl(spy: ReturnType<typeof mockFetch>): URL {
+  return new URL(spy.mock.calls[0][0] as string);
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe("FundedFirstTradeReader.getTrialHistory", () => {
+  it("maps the envelope to { history, historyTotalCount }", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    // historyTotalCount ≠ history.length proves the HTTP path parsed instead
+    // of the catch-all chain fallback (which would return { [], 0 }).
+    mockFetch({
+      account: "0xu1",
+      active_trial: null,
+      active_trials: [],
+      history: [settledTrial],
+      history_total_count: 7,
+    });
+
+    const page = await reader.getTrialHistory({ account: "0xu1", limit: 20, offset: 0 });
+
+    expect(page.history).toEqual([settledTrial]);
+    expect(page.historyTotalCount).toBe(7);
+  });
+});
+
+describe("FundedFirstTradeReader.getActiveTrial", () => {
+  it("returns null when active_trial is null", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    mockFetch({
+      account: "0xu1",
+      active_trial: null,
+      active_trials: [],
+      history: [],
+      history_total_count: 3,
+    });
+
+    expect(await reader.getActiveTrial({ account: "0xu1" })).toBeNull();
+  });
+
+  it("returns the populated active_trial", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const activeTrial: TrialDto = { ...settledTrial, status: "Active", settle_reason: undefined };
+    mockFetch({
+      account: "0xu1",
+      active_trial: activeTrial,
+      active_trials: [activeTrial],
+      history: [],
+      history_total_count: 0,
+    });
+
+    expect(await reader.getActiveTrial({ account: "0xu1" })).toMatchObject({
+      trial_id: 7,
+      status: "Active",
+    });
+  });
+});
+
+describe("FundedFirstTradeReader chain-fallback visibility", () => {
+  function createFallbackReader() {
+    const { deps } = createMockDeps();
+    // Blanket empty-option view: getActiveTrialFromChain sees no active trial.
+    deps.aptos = { view: vi.fn().mockResolvedValue([{ vec: [] }]) } as unknown as Aptos;
+    const onChainFallback = vi.fn<(info: ChainFallbackInfo) => void>();
+    deps.onChainFallback = onChainFallback;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("fetch failed"));
+    return { reader: new FundedFirstTradeReader(deps), onChainFallback, warn };
+  }
+
+  it("warns and fires onChainFallback once across repeated failures", async () => {
+    const { reader, onChainFallback, warn } = createFallbackReader();
+
+    await reader.getActiveTrial({ account: "0xu1" });
+    await reader.getActiveTrial({ account: "0xu1" });
+
+    expect(onChainFallback).toHaveBeenCalledTimes(1);
+    const [info] = onChainFallback.mock.calls[0];
+    expect(info.method).toBe("getActiveTrial");
+    expect(info.error).toBeInstanceOf(TypeError);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("latches per method, not per instance", async () => {
+    const { reader, onChainFallback } = createFallbackReader();
+
+    await reader.getActiveTrial({ account: "0xu1" });
+    await reader.getTrialHistory({ account: "0xu1" });
+
+    expect(onChainFallback.mock.calls.map(([info]) => info.method)).toEqual([
+      "getActiveTrial",
+      "getTrialHistory",
+    ]);
+  });
+});
+
+describe("FundedFirstTradeReader.getEligibility — active lock source", () => {
+  const ACCOUNT = `0x${"a11ce".padStart(64, "0")}`;
+
+  const activeLockRow = {
+    lock_id: 123,
+    campaign_addr: "0xc1",
+    trial_id: 0,
+    amount: 5_000_000,
+    amount_usd: 5,
+    duration_days: 30,
+    lock_subaccount: "0xsubhttp",
+    locked_at_ms: 1_750_000_000_000,
+    unlocks_at_ms: 1_752_592_000_000,
+    status: "Active",
+    was_extended: false,
+  };
+
+  /** Dispatches `aptos.view` by `module::fn`; records call order for scan-avoidance asserts. */
+  function mockViews(overrides: Record<string, unknown[] | undefined> = {}) {
+    const calls: string[] = [];
+    const table: Record<string, unknown[] | undefined> = {
+      "campaign_lock::get_owner_lock_totals": ["5000000", 30, "1"],
+      "user_credits::get_credit_account": [1, 0, 0, 1],
+      "protected_trial::trials_paused": [false],
+      "campaign_lock::locks_paused": [false],
+      "protected_trial::all_trials_frozen": [false],
+      "protected_trial::trial_state_config": [
+        {
+          market: { inner: "0xm" },
+          expiry_ms: "60000",
+          min_lock_amount: "1000000",
+          size_decimals_pow10: "100",
+          payout_low_lock: "1000000",
+          payout_low_protected: "1000000",
+          payout_high_lock: "10000000",
+          payout_high_protected: "5000000",
+        },
+      ],
+      "protected_trial::daily_burn_view": [
+        { cap_usd: "100000000", window_total_usd: "0", live_reservation_count: "0" },
+      ],
+      "protected_trial::oi_state": [{ total_notional: "0", cap: "100000000" }],
+      "protected_trial::active_trial_id_for": [{ vec: [] }],
+      "campaign_manager::get_campaign": [{ title: "FFT" }],
+      "perp_engine::is_market_open": [true],
+      "campaign_lock::next_lock_id": ["1"],
+      "campaign_lock::is_lock_active": [true],
+      "campaign_lock::get_lock": [
+        {
+          user: ACCOUNT,
+          unlocks_at_ms: "1750000001000",
+          lock_subaccount: { inner: "0xsubchain" },
+        },
+      ],
+      ...overrides,
+    };
+    const view = vi.fn(({ payload }: { payload: { function: string } }) => {
+      const fn = payload.function.split("::").slice(1).join("::");
+      calls.push(fn);
+      const result = table[fn];
+      if (result === undefined) throw new Error(`unmocked view: ${payload.function}`);
+      return Promise.resolve(result);
+    });
+    return { view, calls };
+  }
+
+  function createReader(overrides: Record<string, unknown[] | undefined> = {}) {
+    const { deps } = createMockDeps();
+    const { view, calls } = mockViews(overrides);
+    deps.aptos = { view } as unknown as Aptos;
+    return { reader: new FundedFirstTradeReader(deps), calls };
+  }
+
+  it("resolves the active lock via /campaign_locks without a chain scan", async () => {
+    const { reader, calls } = createReader();
+    const spy = mockFetch({ account: ACCOUNT, locks: [activeLockRow], total_count: 1 });
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    expect(eligibility.activeLockId).toBe(123n);
+    expect(eligibility.activeLockUnlockAtMs).toBe(1_752_592_000_000);
+    expect(eligibility.activeLockSubaccount).toBe("0xsubhttp");
+    const url = requestedUrl(spy);
+    expect(url.pathname).toBe("/api/v1/campaign_locks");
+    expect(url.searchParams.get("status")).toBe("Active");
+    expect(calls).not.toContain("campaign_lock::next_lock_id");
+  });
+
+  it("falls back to the chain scan when the endpoint is unavailable", async () => {
+    const { reader } = createReader();
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("fetch failed"));
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    expect(eligibility.activeLockId).toBe(0n);
+    expect(eligibility.activeLockSubaccount).toBe("0xsubchain");
+  });
+
+  it("falls back to the chain scan when the indexer lags the just-created lock", async () => {
+    const { reader } = createReader();
+    mockFetch({ account: ACCOUNT, locks: [], total_count: 0 });
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    expect(eligibility.activeLockSubaccount).toBe("0xsubchain");
+  });
+
+  it("blocks with trial_already_active when the chain reports a live trial", async () => {
+    const { reader } = createReader({
+      "protected_trial::active_trial_id_for": [{ vec: ["7"] }],
+    });
+    mockFetch({ account: ACCOUNT, locks: [activeLockRow], total_count: 1 });
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    expect(eligibility.canOpenTrial).toBe(false);
+    expect(eligibility.blockerCodes).toContain("trial_already_active");
+  });
+
+  it("blocks with market_not_open when the trial market is closed", async () => {
+    const { reader } = createReader({ "perp_engine::is_market_open": [false] });
+    mockFetch({ account: ACCOUNT, locks: [activeLockRow], total_count: 1 });
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    expect(eligibility.canOpenTrial).toBe(false);
+    expect(eligibility.blockerCodes).toContain("market_not_open");
+  });
+
+  it("fails open when the market-mode probe errors", async () => {
+    const { reader } = createReader({ "perp_engine::is_market_open": undefined });
+    mockFetch({ account: ACCOUNT, locks: [activeLockRow], total_count: 1 });
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    expect(eligibility.blockerCodes).not.toContain("market_not_open");
+  });
+
+  it("skips the lock lookup entirely when no lock is active", async () => {
+    const { reader } = createReader({
+      "campaign_lock::get_owner_lock_totals": ["0", 0, "0"],
+    });
+    const spy = vi.spyOn(globalThis, "fetch");
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    expect(eligibility.activeLockId).toBeNull();
+    expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe("FundedFirstTradeReader.getCampaignLocks", () => {
+  const lockEnvelope = { account: "0xu1", locks: [], total_count: 4 };
+
+  it("maps camelCase args to snake_case query params", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const spy = mockFetch(lockEnvelope);
+
+    const response = await reader.getCampaignLocks({
+      account: "0xu1",
+      campaignAddr: "0xc1",
+      status: "Active",
+      limit: 10,
+      offset: 20,
+    });
+
+    const url = requestedUrl(spy);
+    expect(url.pathname).toBe("/api/v1/campaign_locks");
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      account: "0xu1",
+      campaign_addr: "0xc1",
+      status: "Active",
+      limit: "10",
+      offset: "20",
+    });
+    expect(response).toEqual(lockEnvelope);
+  });
+
+  it("omits unset optional params", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const spy = mockFetch(lockEnvelope);
+
+    await reader.getCampaignLocks({ account: "0xu1" });
+
+    expect(Object.fromEntries(requestedUrl(spy).searchParams)).toEqual({ account: "0xu1" });
+  });
+});

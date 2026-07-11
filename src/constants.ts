@@ -13,6 +13,9 @@ import { PACKAGE, RELEASE_CONFIGS, ReleaseConfig } from "./release-config";
  */
 export const USDC_DECIMALS = 6;
 
+/** 10 ** USDC_DECIMALS — divisor between raw on-chain USDC and display units. */
+export const USDC_SCALE = 10 ** USDC_DECIMALS;
+
 export function getUsdcAddress(publisherAddr: string) {
   return createObjectAddress(
     AccountAddress.fromString(publisherAddr),
@@ -48,6 +51,7 @@ export function getDlpShareAddress(publisherAddr: string) {
 }
 
 export function getCampaignPackage(publisherAddr: string): string {
+  if (publisherAddr === PACKAGE.NETNA) return PACKAGE.CAMPAIGN_NETNA;
   if (publisherAddr === PACKAGE.TESTNET) return PACKAGE.CAMPAIGN_TESTNET;
   if (publisherAddr === PACKAGE.MAINNET) return PACKAGE.CAMPAIGN_MAINNET;
   return "";
@@ -76,17 +80,26 @@ export interface DecibelConfig extends ReleaseConfig {
   additionalHeaders?: Record<string, string>;
 }
 
+/** A trading-api read failed (HTTP or schema parse) and was rebuilt from chain views. */
+export interface ChainFallbackInfo {
+  method: string;
+  error: unknown;
+}
+
 export interface DecibelReaderDeps {
   aptos: Aptos;
   ws: DecibelWsSubscription;
   config: DecibelConfig;
   apiKey?: string;
+  onChainFallback?: (info: ChainFallbackInfo) => void;
 }
 
 export interface Deployment {
   package: string;
   predepositPackage: string;
   campaignPackage: string;
+  /** FFT campaign object address (`create_campaign` result), not the module address; readers fall back to `campaignPackage` when unset. */
+  fftCampaignAddr?: string;
   usdc: string;
   testc: string;
   perpEngineGlobal: string;

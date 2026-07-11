@@ -1,3 +1,5 @@
+import { MoveFunctionId } from "@aptos-labs/ts-sdk";
+
 import { DecibelReaderDeps } from "../constants";
 import {
   FetchOptions,
@@ -26,6 +28,20 @@ export class BaseReader {
         ...(options?.headers as Record<string, string> | undefined),
       },
     };
+  }
+
+  protected async view<T extends unknown[]>(
+    fn: MoveFunctionId,
+    args: unknown[],
+    typeArguments: string[] = [],
+  ): Promise<T> {
+    return this.deps.aptos.view<T>({
+      payload: {
+        function: fn,
+        typeArguments,
+        functionArguments: args as never,
+      },
+    });
   }
 
   protected async getRequest<TResponseData>(args: Omit<GetRequestArgs<TResponseData>, "apiKey">) {

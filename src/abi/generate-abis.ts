@@ -19,7 +19,8 @@ const __dirname = path.dirname(__filename);
 // Remove NETNA_CONFIG and use getSdkConfig() instead once we implement it as a global config
 const CONFIGS = [NETNA_CONFIG, TESTNET_CONFIG, MAINNET_CONFIG];
 
-// All modules used in the SDK (extracted from source code analysis)
+// All modules used in the SDK (extracted from source code analysis).
+// These are pulled from `config.deployment.package`.
 const SDK_MODULES = [
   "admin_apis",
   "public_apis",
@@ -31,6 +32,10 @@ const SDK_MODULES = [
   "dex_accounts_vault_extension",
   "dex_accounts_entry",
 ];
+
+// Funded First Trade modules, fetched from `config.deployment.campaignPackage` when set.
+// On networks where the FFT modules aren't deployed yet, the fetches land in `errors[]`.
+const CAMPAIGN_MODULES = ["campaign_manager", "protected_trial", "onboarding_lock"];
 
 /**
  * Generates a safe filename based on the network configuration
@@ -69,47 +74,47 @@ async function fetchAllAbis(config: DecibelConfig): Promise<void> {
   const errors: ABIData["errors"] = [];
   const aptos = new Aptos(aptosConfig);
 
-  // Fetch entire modules at once (much more efficient!)
-  for (const module of SDK_MODULES) {
+  const fetchModule = async (packageAddr: string, module: string) => {
     try {
-      console.log("📡 Fetching entire module:", module);
-
-      // Get the entire module ABI
+      console.log("📡 Fetching module:", `${packageAddr}::${module}`);
       const moduleInfo = await aptos.getAccountModule({
-        accountAddress: config.deployment.package,
+        accountAddress: packageAddr,
         moduleName: module,
       });
-
       if (!moduleInfo.abi) {
         throw new Error("Module or ABI not found");
       }
-
-      // Debug: Log the ABI structure
-      console.log("📋 ABI structure for", module, ":", Object.keys(moduleInfo.abi));
-
-      // Get entry functions and view functions from the module
       const exposedFunctions: MoveFunction[] = moduleInfo.abi.exposed_functions;
       const relevantFunctions = exposedFunctions.filter((f) => f.is_entry || f.is_view);
-
-      console.log("🔍 Found", exposedFunctions.length, "exposed/view functions in", module);
-      console.log("🧩 Keeping", relevantFunctions.length, "functions in", module);
-
-      for (const func of relevantFunctions) {
-        const functionId: MoveFunctionId = `${config.deployment.package}::${module}::${func.name}`;
-        abis[functionId] = func;
-      }
-
       console.log(
-        "✅ Successfully collected",
+        "🧩 Keeping",
         relevantFunctions.length,
-        "functions (entry + view) from",
+        "of",
+        exposedFunctions.length,
+        "functions in",
         module,
       );
+      for (const func of relevantFunctions) {
+        const functionId: MoveFunctionId = `${packageAddr}::${module}::${func.name}`;
+        abis[functionId] = func;
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.log("❌", module, ":", errorMessage);
       errors.push({ module, function: "entire_module", error: errorMessage });
     }
+  };
+
+  for (const module of SDK_MODULES) {
+    await fetchModule(config.deployment.package, module);
+  }
+
+  if (config.deployment.campaignPackage) {
+    for (const module of CAMPAIGN_MODULES) {
+      await fetchModule(config.deployment.campaignPackage, module);
+    }
+  } else {
+    console.log("⏭ Skipping campaign modules — campaignPackage is unset for this network");
   }
 
   // Create the final structure
@@ -123,12 +128,13 @@ async function fetchAllAbis(config: DecibelConfig): Promise<void> {
     abis,
     errors,
     summary: {
-      totalModules: SDK_MODULES.length,
+      totalModules:
+        SDK_MODULES.length + (config.deployment.campaignPackage ? CAMPAIGN_MODULES.length : 0),
       totalFunctions,
       successful: totalFunctions,
       failed: errors.length,
     },
-    modules: SDK_MODULES,
+    modules: [...SDK_MODULES, ...(config.deployment.campaignPackage ? CAMPAIGN_MODULES : [])],
   };
 
   // Write to JSON file with network-specific filename

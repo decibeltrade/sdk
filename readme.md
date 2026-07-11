@@ -183,6 +183,7 @@ The main read client providing access to all market data and account information
 new DecibelReadDex(config: DecibelConfig, opts?: {
   nodeApiKey?: string;
   onWsError?: (error: ErrorEvent) => void;
+  onChainFallback?: (info: ChainFallbackInfo) => void;
 })
 ```
 
@@ -448,6 +449,38 @@ const userVaults = await readDex.userVaults.getByAddr("account_address");
 
 // Get public vault information
 const vaults = await readDex.vaults.getAll();
+```
+
+### Funded First Trade
+
+Campaign reads for the Funded First Trade (FFT) flow. Totals are SQL-level counts:
+rows the server skips while shaping still count, so drive pagination with
+`offset + limit < total`, never by probing for an empty/short page.
+
+```typescript
+// Composed on-chain eligibility snapshot (locks, credits, budgets)
+const eligibility = await readDex.fundedFirstTrade.getEligibility({ account: "account_address" });
+
+// Active trial, or null
+const activeTrial = await readDex.fundedFirstTrade.getActiveTrial({ account: "account_address" });
+
+// Terminal trial history — { history, historyTotalCount }
+const page = await readDex.fundedFirstTrade.getTrialHistory({
+  account: "account_address",
+  limit: 20,
+  offset: 0,
+});
+
+// Campaign reward locks — { account, locks, total_count }; server default limit 10
+const locks = await readDex.fundedFirstTrade.getCampaignLocks({
+  account: "account_address",
+  status: "Active", // optional: "Active" | "Claimed"
+});
+
+// Real-time trial updates (TrialOpened / TrialClosed / TrialResetByAdmin)
+const unsubscribe = readDex.fundedFirstTrade.subscribeByAddr("account_address", ({ trials }) => {
+  console.log(trials);
+});
 ```
 
 ## Write Operations API
@@ -938,8 +971,18 @@ function cleanup() {
 const readDex = new DecibelReadDex(NETNA_CONFIG, {
   onWsError: (error) => {
     console.error("WebSocket error:", error);
-    // Implement reconnection logic
   },
+  // Fired (once per method per instance) when a trading-api read fails and is
+  // rebuilt from on-chain views
+  onChainFallback: ({ method, error }) => {
+    console.warn(`${method} fell back to chain views:`, error);
+  },
+});
+
+// The SDK reconnects and resubscribes automatically. Streaming-only topics get
+// no replay of events missed during an outage — re-seed their state on:
+const unregister = readDex.onWsReconnect(() => {
+  // re-fetch WS-seeded state over HTTP
 });
 ```
 

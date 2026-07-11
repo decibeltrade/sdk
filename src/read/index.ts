@@ -1,11 +1,12 @@
 import { AccountAddress, Aptos, AptosConfig, createObjectAddress } from "@aptos-labs/ts-sdk";
 import { ErrorEvent } from "isomorphic-ws";
 
-import { DecibelConfig, DecibelReaderDeps } from "../constants";
+import { ChainFallbackInfo, DecibelConfig, DecibelReaderDeps } from "../constants";
 import { AccountOverviewReader } from "./account-overview/account-overview.reader";
 import { CampaignsReader } from "./campaigns/campaigns.reader";
 import { CandlesticksReader } from "./candlesticks/candlesticks.reader";
 import { DelegationsReader } from "./delegations/delegations.reader";
+import { FundedFirstTradeReader } from "./funded-first-trade/funded-first-trade.reader";
 import { GlobalPointsStatsReader } from "./global-points-stats/global-points-stats.reader";
 import { LeaderboardReader } from "./leaderboard/leaderboard.reader";
 import { MarketContextsReader } from "./market-contexts/market-contexts.reader";
@@ -38,6 +39,38 @@ import { WithdrawQueueReader } from "./withdraw-queue/withdraw-queue.reader";
 import { DecibelWsSubscription } from "./ws-subscription";
 
 export * from "./action-utils";
+export { SOFT_BURN_WARN_RATIO } from "./funded-first-trade/funded-first-trade.eligibility";
+export type {
+  CampaignLocksResponse,
+  Eligibility,
+  FftBlockerCode,
+  GetActiveTrialArgs,
+  GetCampaignLocksArgs,
+  GetEligibilityArgs,
+  GetTrialHistoryArgs,
+  LockDto,
+  LockStatus,
+  ProtectedTrialsResponse,
+  ProtectedTrialUpdate,
+  SettleReason,
+  TradeSide,
+  TrialDto,
+  TrialHistoryPage,
+  TrialPriorStatus,
+  TrialStatus,
+} from "./funded-first-trade/funded-first-trade.types";
+export {
+  CampaignLocksResponseSchema,
+  LockDtoSchema,
+  LockStatusSchema,
+  ProtectedTrialsResponseSchema,
+  ProtectedTrialUpdateSchema,
+  SettleReasonSchema,
+  TradeSideSchema,
+  TrialDtoSchema,
+  TrialPriorStatusSchema,
+  TrialStatusSchema,
+} from "./funded-first-trade/funded-first-trade.types";
 export * from "./types";
 export * from "./user-fees/user-fees.types";
 export type {
@@ -93,6 +126,7 @@ export class DecibelReadDex {
   readonly globalPointsStats: GlobalPointsStatsReader;
   readonly referrals: ReferralsReader;
   readonly withdrawQueue: WithdrawQueueReader;
+  readonly fundedFirstTrade: FundedFirstTradeReader;
   readonly userFees: UserFeesReader;
 
   constructor(
@@ -100,6 +134,8 @@ export class DecibelReadDex {
     opts?: {
       nodeApiKey?: string;
       onWsError?: (error: ErrorEvent) => void;
+      /** Fired (once per method per instance) when a reader falls back to chain views. */
+      onChainFallback?: (info: ChainFallbackInfo) => void;
     },
   ) {
     const aptosConfig = new AptosConfig({
@@ -115,6 +151,7 @@ export class DecibelReadDex {
       ws: new DecibelWsSubscription(config, opts?.nodeApiKey, opts?.onWsError),
       config: this.config,
       apiKey: config.additionalHeaders ? undefined : opts?.nodeApiKey,
+      onChainFallback: opts?.onChainFallback,
     };
 
     this.cache = {};
@@ -149,7 +186,13 @@ export class DecibelReadDex {
     this.globalPointsStats = new GlobalPointsStatsReader(this.deps);
     this.referrals = new ReferralsReader(this.deps);
     this.withdrawQueue = new WithdrawQueueReader(this.deps);
+    this.fundedFirstTrade = new FundedFirstTradeReader(this.deps);
     this.userFees = new UserFeesReader(this.deps);
+  }
+
+  /** See {@link DecibelWsSubscription.onReconnect}. Returns an unregister fn. */
+  onWsReconnect(listener: () => void): () => void {
+    return this.deps.ws.onReconnect(listener);
   }
 
   async globalPerpEngineState() {
