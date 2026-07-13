@@ -75,6 +75,7 @@ export const TrialDtoSchema = z.object({
   settle_reason: SettleReasonSchema.optional(),
   closed_by: z.string().optional(),
   prior_status: TrialPriorStatusSchema.optional(),
+  close_stalled: z.boolean().optional(),
 });
 
 export type TrialDto = z.infer<typeof TrialDtoSchema>;

@@ -152,13 +152,16 @@ export async function getActiveTrialFromChain(
     deps.getTrialStateConfig(),
   ]);
 
-  return toTrialDto(snap, {
+  const dto = toTrialDto(snap, {
     user: account,
     campaignAddr: campaign,
     market: config.marketAddr,
     sizeScale: 1 / config.sizeDecimalsPow10,
     status: "Active",
   });
+  // Closing = 2 (protected_trial.move:2283, pinned by status_u8_encoding_for_test)
+  if (Number(snap.status_u8) === 2) dto.close_stalled = true;
+  return dto;
 }
 
 /** Owner-lock scan fallback for deploys without `/campaign_locks` or indexer lag; null when past LOCK_SCAN_CAP. */
