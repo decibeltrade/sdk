@@ -2,6 +2,14 @@ import { Account, AccountAddress, CommittedTransactionResponse } from "@aptos-la
 
 import { BaseSDK, Options } from "./base";
 import { DecibelConfig } from "./constants";
+import {
+  buildClaimUnlockPayload,
+  BuildClaimUnlockPayloadArgs,
+  buildOpenTrialPayload,
+  BuildOpenTrialPayloadArgs,
+  buildSettleTrialPayload,
+  BuildSettleTrialPayloadArgs,
+} from "./funded-first-trade/payloads";
 import { OrderEvent, PlaceOrderResult, TwapEvent } from "./order-event.types";
 import { OrderStatusClient } from "./order-status";
 import {
@@ -1146,5 +1154,24 @@ export class DecibelWriteDex extends BaseSDK {
       typeArguments: [],
       functionArguments: [campaignId],
     });
+  }
+
+  /**
+   * Open a Funded First Trade trial for `owner`. The signer must be the owner
+   * or hold a TradePerpsAllMarkets delegation on the owner's primary
+   * subaccount (session key).
+   */
+  async openFftTrial(args: BuildOpenTrialPayloadArgs) {
+    return await this.sendTx(buildOpenTrialPayload(args));
+  }
+
+  /** Claim a matured FFT lock for `owner`. Same signer rule as {@link openFftTrial}. */
+  async claimFftUnlock(args: BuildClaimUnlockPayloadArgs) {
+    return await this.sendTx(buildClaimUnlockPayload(args));
+  }
+
+  /** Settle an expired FFT trial — permissionless; any signer works. */
+  async settleFftTrial(args: BuildSettleTrialPayloadArgs) {
+    return await this.sendTx(buildSettleTrialPayload(args));
   }
 }

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildClaimUnlockPayload,
+  buildLockFromSubaccountPayload,
   buildLockPayload,
   buildOpenTrialPayload,
   buildSettleTrialPayload,
@@ -19,6 +20,7 @@ const OWNER = "0xab1e";
 // move/campaign/sources/apis/funded_first_trade.move (alexzander-stone/kinshasa-v3).
 const DEPLOYED_ARITIES = {
   lock: 3,
+  lock_from_subaccount: 3,
   unlock: 3,
   open_trial: 2,
   settle_trial: 2,
@@ -26,6 +28,12 @@ const DEPLOYED_ARITIES = {
 
 const PAYLOADS = {
   lock: buildLockPayload({
+    campaignPackage: PKG,
+    campaignAddr: CAMPAIGN,
+    amount: BigInt(250_000_000),
+    durationDays: 7,
+  }),
+  lock_from_subaccount: buildLockFromSubaccountPayload({
     campaignPackage: PKG,
     campaignAddr: CAMPAIGN,
     amount: BigInt(250_000_000),

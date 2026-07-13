@@ -549,7 +549,10 @@ const writeDex = new DecibelWriteDex(config, account, {
   `buildDelegateDexActionsToTx`,
   `approveMaxBuilderFee`,
   `revokeMaxBuilderFee`,
-  `claimCampaignReward`
+  `claimCampaignReward`,
+  `openFftTrial`,
+  `claimFftUnlock`,
+  `settleFftTrial`
 
 ### Trading Accounts and Collateral
 

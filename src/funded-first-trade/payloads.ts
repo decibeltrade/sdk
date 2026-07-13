@@ -2,8 +2,10 @@ import { InputEntryFunctionData } from "@aptos-labs/ts-sdk";
 
 /**
  * Payload builders for the on-chain `funded_first_trade` entry functions.
- * Standalone rather than on `DecibelWriteDex`: the on-chain per-owner checks
- * key off the signer, so the user's own wallet must sign these.
+ * `lock` / `lock_from_subaccount` require the owner as signer — they move the
+ * owner's own funds, so a session-key delegate can't substitute. `open_trial`
+ * and `unlock` accept a TradePerpsAllMarkets delegate on the owner's primary
+ * subaccount (session-key eligible), and `settle_trial` is permissionless.
  */
 
 export interface BuildLockPayloadArgs {
@@ -25,6 +27,20 @@ export function buildLockPayload({
 }: BuildLockPayloadArgs): InputEntryFunctionData {
   return {
     function: `${campaignPackage}::funded_first_trade::lock`,
+    typeArguments: [],
+    functionArguments: [campaignAddr, amount.toString(), durationDays],
+  };
+}
+
+/** Funds the lock from the owner's primary subaccount instead of the wallet store. */
+export function buildLockFromSubaccountPayload({
+  campaignPackage,
+  campaignAddr,
+  amount,
+  durationDays,
+}: BuildLockPayloadArgs): InputEntryFunctionData {
+  return {
+    function: `${campaignPackage}::funded_first_trade::lock_from_subaccount`,
     typeArguments: [],
     functionArguments: [campaignAddr, amount.toString(), durationDays],
   };
