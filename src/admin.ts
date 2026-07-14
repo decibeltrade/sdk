@@ -114,9 +114,13 @@ export class DecibelAdminDex extends BaseSDK {
     taker_in_next_block = true,
     initial_oracle_price = 1,
     max_staleness_secs = 60,
+    // Funding multiplier is scaled by 1_000_000 on-chain: 1_000_000 = 1.0x.
+    // Range is [0, 10_000_000]. Defaults to 1.0x to preserve existing behavior.
+    fundingRateMultiplier = 1_000_000,
+    isIsolatedOnly = false,
   ) {
     return await this.sendTx({
-      function: `${this.config.deployment.package}::admin_apis::register_market_with_internal_oracle`,
+      function: `${this.config.deployment.package}::admin_apis::register_market_with_internal_oracle_v3`,
       typeArguments: [],
       functionArguments: [
         name,
@@ -128,6 +132,8 @@ export class DecibelAdminDex extends BaseSDK {
         maxLeverage,
         marginCallFeePct,
         taker_in_next_block,
+        isIsolatedOnly,
+        fundingRateMultiplier,
         initial_oracle_price,
         max_staleness_secs,
       ],
@@ -231,9 +237,13 @@ export class DecibelAdminDex extends BaseSDK {
     internalInitialPrice: number,
     oraclesDeviationBps: number,
     consecutiveDeviationCount: number,
+    // Funding multiplier is scaled by 1_000_000 on-chain: 1_000_000 = 1.0x.
+    // Range is [0, 10_000_000]. Defaults to 1.0x to preserve existing behavior.
+    fundingRateMultiplier = 1_000_000,
+    isIsolatedOnly = false,
   ) {
     return await this.sendTx({
-      function: `${this.config.deployment.package}::admin_apis::register_market_with_composite_oracle_primary_chainlink`,
+      function: `${this.config.deployment.package}::admin_apis::register_market_with_composite_oracle_primary_chainlink_v3`,
       typeArguments: [],
       functionArguments: [
         name,
@@ -245,6 +255,8 @@ export class DecibelAdminDex extends BaseSDK {
         maxLeverage,
         marginCallFeePct,
         taker_in_next_block,
+        isIsolatedOnly,
+        fundingRateMultiplier,
         chainlinkFeedIdBytes,
         chainlinkMaxStalenessSecs,
         rescaleDecimals,
@@ -275,9 +287,12 @@ export class DecibelAdminDex extends BaseSDK {
     chainlinkRescaleDecimals: number,
     oraclesDeviationBps: number,
     consecutiveDeviationCount: number,
+    // Funding multiplier is scaled by 1_000_000 on-chain: 1_000_000 = 1.0x.
+    // Range is [0, 10_000_000]. Defaults to 1.0x to preserve existing behavior.
+    fundingRateMultiplier = 1_000_000,
   ) {
     return await this.sendTx({
-      function: `${this.config.deployment.package}::admin_apis::register_market_with_chainlink_blended_oracle`,
+      function: `${this.config.deployment.package}::admin_apis::register_market_with_chainlink_blended_oracle_v2`,
       typeArguments: [],
       functionArguments: [
         name,
@@ -290,6 +305,7 @@ export class DecibelAdminDex extends BaseSDK {
         marginCallFeePct,
         takerInNextBlock,
         isIsolatedOnly,
+        fundingRateMultiplier,
         sourceNames,
         chainlinkFeedIdBytesArray,
         internalInitialPrices,
