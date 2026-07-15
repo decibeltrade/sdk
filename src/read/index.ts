@@ -76,6 +76,7 @@ export {
   TrialPriorStatusSchema,
   TrialStatusSchema,
 } from "./funded-first-trade/funded-first-trade.types";
+export * from "./rwa-insights/rwa-insights.types";
 export * from "./types";
 export * from "./user-fees/user-fees.types";
 export type {
