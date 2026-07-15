@@ -16,6 +16,12 @@ export const USDC_DECIMALS = 6;
 /** 10 ** USDC_DECIMALS — divisor between raw on-chain USDC and display units. */
 export const USDC_SCALE = 10 ** USDC_DECIMALS;
 
+// Geomi gas station rejects any transaction with max_gas_amount > 250_000, while
+// ts-sdk v7's DEFAULT_MAX_GAS_AMOUNT is 2_000_000. Cap every SDK code path at the
+// gas station's exact ceiling — actual gas consumed is refunded, so reserving the
+// full cap costs nothing and gains headroom against rare large transactions.
+export const GAS_STATION_MAX_GAS_AMOUNT = 250_000;
+
 export function getUsdcAddress(publisherAddr: string) {
   return createObjectAddress(
     AccountAddress.fromString(publisherAddr),
@@ -71,6 +77,22 @@ export interface DecibelConfig extends ReleaseConfig {
    * When provided, uses GasStationClient with gasStationUrl as base URL.
    */
   gasStationApiKey?: string;
+  /**
+   * On-chain fee-payer address of the gas station that sponsors transactions.
+   * Consumers supply their own — the SDK ships no gas-station addresses.
+   *
+   * Only required to submit *encrypted* transactions through a sponsoring gas
+   * station: the fee-payer is mixed into the encrypted payload's AEAD associated
+   * data at build time, so it must be known before signing (the usual
+   * `AccountAddress.ZERO` placeholder can't be used). Not needed for sender-paid
+   * (unsponsored) transactions; plaintext sponsored transactions don't need it
+   * either — the gas-station plugin fills the fee payer in at submit time. When a
+   * gas station is active (`gasStationApiKey` set) but this is unset, encryption
+   * is disabled and the transaction falls back to the plaintext path.
+   *
+   * Geomi currently supports a single fee-payer address (no multi-fee-payer).
+   */
+  gasStationAddress?: string;
   deployment: Deployment;
   chainId?: number;
   /**

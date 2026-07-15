@@ -1,7 +1,12 @@
 import { AccountAddress, Aptos, AptosConfig, createObjectAddress } from "@aptos-labs/ts-sdk";
 import { ErrorEvent } from "isomorphic-ws";
 
-import { ChainFallbackInfo, DecibelConfig, DecibelReaderDeps } from "../constants";
+import {
+  ChainFallbackInfo,
+  DecibelConfig,
+  DecibelReaderDeps,
+  GAS_STATION_MAX_GAS_AMOUNT,
+} from "../constants";
 import { AccountOverviewReader } from "./account-overview/account-overview.reader";
 import { CampaignsReader } from "./campaigns/campaigns.reader";
 import { CandlesticksReader } from "./candlesticks/candlesticks.reader";
@@ -144,6 +149,11 @@ export class DecibelReadDex {
       clientConfig: config.additionalHeaders
         ? { HEADERS: config.additionalHeaders }
         : { API_KEY: opts?.nodeApiKey },
+      // Cap wallet-signed fee-payer transactions built via readDexSdk.deps.aptos
+      // at the gas station's ceiling; see GAS_STATION_MAX_GAS_AMOUNT.
+      transactionGenerationConfig: {
+        defaultMaxGasAmount: GAS_STATION_MAX_GAS_AMOUNT,
+      },
     });
 
     this.deps = {

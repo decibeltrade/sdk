@@ -17,8 +17,15 @@ import mainnetAbis from "./abi/json/mainnet.json";
 import netnaAbis from "./abi/json/netna.json";
 import testnetAbis from "./abi/json/testnet.json";
 import { ABIData } from "./abi/types";
-import { DecibelConfig, MAINNET_CONFIG, NETNA_CONFIG, TESTNET_CONFIG } from "./constants";
+import {
+  DecibelConfig,
+  GAS_STATION_MAX_GAS_AMOUNT,
+  MAINNET_CONFIG,
+  NETNA_CONFIG,
+  TESTNET_CONFIG,
+} from "./constants";
 import { GasPriceManager } from "./gas/gas-price-manager";
+import { resolveMaxGasAmount } from "./gas/resolve-max-gas-amount";
 import { buildSimpleTransactionSync } from "./transaction-builder";
 import { generateRandomReplayProtectionNonce, getPrimarySubaccountAddr } from "./utils";
 
@@ -91,6 +98,12 @@ export class BaseSDK {
         ? { HEADERS: config.additionalHeaders }
         : { API_KEY: opts?.nodeApiKey },
       pluginSettings,
+      // ts-sdk v7's DEFAULT_MAX_GAS_AMOUNT jumped to 2_000_000, which the
+      // Geomi gas station rejects (cap is 250_000). Override so every code
+      // path through the SDK falls back to a gas-station-friendly value.
+      transactionGenerationConfig: {
+        defaultMaxGasAmount: GAS_STATION_MAX_GAS_AMOUNT,
+      },
     });
 
     this.aptos = new Aptos(aptosConfig);
@@ -206,13 +219,13 @@ export class BaseSDK {
       const simulatedGasPrice = Number(sim.gas_unit_price);
       const defaultMaxGasAmount = this.aptos.config.getDefaultMaxGasAmount();
 
-      // @Todo: Look into this more, maybe we can use the simulation results directly
-      // Ensure maxGasAmount is at least the default and add a 2x buffer
-      // The simulation might return very low values, so we need to ensure minimums
-      const maxGasAmount = Math.max(
-        Math.ceil(simulatedMaxGas * 2), // 2x buffer from simulation
-        defaultMaxGasAmount, // At least the default minimum
-      );
+      // 2x buffer over simulation with the default as a floor, then clamped to
+      // the gas-station ceiling when sponsored (see resolveMaxGasAmount).
+      const maxGasAmount = resolveMaxGasAmount({
+        simulatedMaxGas,
+        defaultMaxGasAmount,
+        useGasStation: this.useGasStation,
+      });
 
       const gasUnitPrice = Math.max(simulatedGasPrice, 1);
 
