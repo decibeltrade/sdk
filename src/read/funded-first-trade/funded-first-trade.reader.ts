@@ -22,6 +22,8 @@ import {
   TrialHistoryPage,
 } from "./funded-first-trade.types";
 
+const RECENT_SETTLE_WINDOW_MS = 5 * 60 * 1000;
+
 /**
  * Reader for Funded First Trade (FFT): composes the on-chain campaign views
  * into `Eligibility` and serves trials via `/api/v1/protected_trials` + the
@@ -124,10 +126,20 @@ export class FundedFirstTradeReader extends BaseReader {
       const response = await this.getRequest({
         schema: ProtectedTrialsResponseSchema,
         url: `${this.deps.config.tradingHttpUrl}/api/v1/protected_trials`,
-        queryParams: { account, limit: "1", offset: "0" },
+        queryParams: { account, campaign_addr: this.campaignAddr, limit: "1", offset: "0" },
         options: fetchOptions,
       });
-      return response.data.active_trial ?? null;
+      if (response.data.active_trial) return response.data.active_trial;
+      const recent = response.data.history.find((t) => t.campaign_addr === this.campaignAddr);
+      if (
+        recent != null &&
+        recent.status !== "Active" &&
+        recent.closed_at_ms != null &&
+        Date.now() - recent.closed_at_ms < RECENT_SETTLE_WINDOW_MS
+      ) {
+        return recent;
+      }
+      return null;
     } catch (error) {
       // No FFT endpoints on the testnet trading-api yet — rebuild the active
       // trial from on-chain views so throwaway deploys work end to end.

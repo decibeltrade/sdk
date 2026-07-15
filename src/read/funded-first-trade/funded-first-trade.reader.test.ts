@@ -17,6 +17,7 @@ function createMockDeps() {
       package: "0x0000000000000000000000000000000000000000000000000000000000000123",
       predepositPackage: "0x0000000000000000000000000000000000000000000000000000000000000456",
       campaignPackage: "0x0000000000000000000000000000000000000000000000000000000000004e110",
+      fftCampaignAddr: "0xc1",
       usdc: "0x0000000000000000000000000000000000000000000000000000000000000789",
       testc: "0x0000000000000000000000000000000000000000000000000000000000000abc",
       perpEngineGlobal: "0x0000000000000000000000000000000000000000000000000000000000000def",
@@ -86,7 +87,7 @@ describe("FundedFirstTradeReader.getTrialHistory", () => {
 });
 
 describe("FundedFirstTradeReader.getActiveTrial", () => {
-  it("returns null when active_trial is null", async () => {
+  it("returns null when active_trial is null and history is empty", async () => {
     const { deps } = createMockDeps();
     const reader = new FundedFirstTradeReader(deps);
     mockFetch({
@@ -116,6 +117,95 @@ describe("FundedFirstTradeReader.getActiveTrial", () => {
       trial_id: 7,
       status: "Active",
     });
+  });
+
+  it("returns recently-settled trial from history when active_trial is null", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const recentlySettled: TrialDto = {
+      ...settledTrial,
+      closed_at_ms: Date.now() - 60_000,
+      user_payout_usd: 4.27,
+    };
+    mockFetch({
+      account: "0xu1",
+      active_trial: null,
+      active_trials: [],
+      history: [recentlySettled],
+      history_total_count: 1,
+    });
+
+    const result = await reader.getActiveTrial({ account: "0xu1" });
+    expect(result).toMatchObject({
+      trial_id: 7,
+      status: "Settled",
+      user_payout_usd: 4.27,
+    });
+  });
+
+  it("returns null when history[0] is settled but stale (beyond 5 min window)", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const staleTrial: TrialDto = {
+      ...settledTrial,
+      closed_at_ms: Date.now() - 10 * 60 * 1000,
+      user_payout_usd: 4.27,
+    };
+    mockFetch({
+      account: "0xu1",
+      active_trial: null,
+      active_trials: [],
+      history: [staleTrial],
+      history_total_count: 1,
+    });
+
+    expect(await reader.getActiveTrial({ account: "0xu1" })).toBeNull();
+  });
+
+  it("prefers active_trial over recently-settled history", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const activeTrial: TrialDto = {
+      ...settledTrial,
+      trial_id: 8,
+      status: "Active",
+      settle_reason: undefined,
+    };
+    const recentlySettled: TrialDto = {
+      ...settledTrial,
+      closed_at_ms: Date.now() - 30_000,
+      user_payout_usd: 4.27,
+    };
+    mockFetch({
+      account: "0xu1",
+      active_trial: activeTrial,
+      active_trials: [activeTrial],
+      history: [recentlySettled],
+      history_total_count: 1,
+    });
+
+    const result = await reader.getActiveTrial({ account: "0xu1" });
+    expect(result).toMatchObject({ trial_id: 8, status: "Active" });
+  });
+
+  it("ignores recently-settled trial from a different campaign", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const otherCampaignTrial: TrialDto = {
+      ...settledTrial,
+      campaign_addr: "0xother",
+      closed_at_ms: Date.now() - 30_000,
+      user_payout_usd: 4.27,
+    };
+    mockFetch({
+      account: "0xu1",
+      active_trial: null,
+      active_trials: [],
+      history: [otherCampaignTrial],
+      history_total_count: 1,
+    });
+
+    expect(await reader.getActiveTrial({ account: "0xu1" })).toBeNull();
   });
 });
 
