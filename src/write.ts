@@ -858,7 +858,8 @@ export class DecibelWriteDex extends BaseSDK {
     signerAddress,
   }: WithSignerAddress<{
     subaccountAddr: string;
-    revokeAllDelegations: boolean;
+    /** @default true */
+    revokeAllDelegations?: boolean;
   }>) {
     const transaction = await this.buildTx(
       {
@@ -873,7 +874,7 @@ export class DecibelWriteDex extends BaseSDK {
 
   // ======= VAULT FUNCTIONS =======
 
-  // @Todo: We can move this to another Class and this doesnt requires subaccount so dont belong in here
+  // @Todo: We can move this to another Class since it does not require a subaccount
   /**
    * Create a new vault with optional initial funding
    */
@@ -953,9 +954,9 @@ export class DecibelWriteDex extends BaseSDK {
               args.feeBps,
               args.feeIntervalS,
               args.contributionLockupDurationS,
-              args.initialFunding,
-              args.acceptsContributions,
-              args.delegateToCreator,
+              args.initialFunding ?? 0,
+              args.acceptsContributions ?? false,
+              args.delegateToCreator ?? false,
             ],
           },
           args.accountOverride,

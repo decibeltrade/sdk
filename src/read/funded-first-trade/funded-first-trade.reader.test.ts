@@ -58,7 +58,7 @@ function mockFetch(body: unknown) {
 }
 
 function requestedUrl(spy: ReturnType<typeof mockFetch>): URL {
-  return new URL(spy.mock.calls[0][0] as string);
+  return new URL(spy.mock.calls[0][0]);
 }
 
 afterEach(() => {

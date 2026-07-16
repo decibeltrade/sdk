@@ -69,7 +69,7 @@ export class DecibelWsSubscription {
     const ws = extra
       ? new WebSocket(this.config.tradingWsUrl, ["decibel"], {
           headers: extra,
-        } as never)
+        })
       : new WebSocket(this.config.tradingWsUrl, this.apiKey ? ["decibel", this.apiKey] : undefined);
 
     ws.addEventListener("open", () => {

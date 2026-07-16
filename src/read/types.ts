@@ -119,9 +119,12 @@ export interface CreateVaultArgs {
   feeBps: number;
   feeIntervalS: number;
   contributionLockupDurationS: number;
-  initialFunding: number;
-  acceptsContributions: boolean;
-  delegateToCreator: boolean;
+  /** @default 0 */
+  initialFunding?: number;
+  /** @default false */
+  acceptsContributions?: boolean;
+  /** @default false */
+  delegateToCreator?: boolean;
 }
 
 export interface ActivateVaultArgs {
