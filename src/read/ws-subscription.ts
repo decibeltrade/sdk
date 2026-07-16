@@ -44,6 +44,11 @@ export class DecibelWsSubscription {
     ) {
       // Filter out response messages (they have a "success" field; data payloads do not)
       if ("success" in jsonData) {
+        // A rejected subscribe means the topic will never deliver — surface it.
+        if (jsonData.success === false) {
+          const error = "error" in jsonData ? jsonData.error : "unknown error";
+          console.error("WebSocket request rejected for topic:", jsonData.topic, error);
+        }
         return null;
       }
       const { topic, ...rest } = jsonData;

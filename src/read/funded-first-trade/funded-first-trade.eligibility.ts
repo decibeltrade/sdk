@@ -18,7 +18,12 @@ export interface EligibilityInputs {
   allTrialsFrozen: boolean;
   /** Best-effort: mode views are cache — a market can read Open with a dead oracle until first match contact. */
   marketOpen: boolean;
-  trialConfig: { minLockAmount: bigint; expiryMs: number; payoutAnchors: PayoutAnchors };
+  trialConfig: {
+    marketAddr: string;
+    minLockAmount: bigint;
+    expiryMs: number;
+    payoutAnchors: PayoutAnchors;
+  };
   burn: { cap: bigint; windowTotal: bigint; liveReservationCount: number };
   oi: { totalNotional: bigint; cap: bigint };
   campaignTitle: string | null;
@@ -88,6 +93,7 @@ export function computeEligibility({
     activeLockId: activeLock?.lockId ?? null,
     activeLockSubaccount: activeLock?.lockSubaccount ?? null,
     campaignTitle,
+    marketAddr: trialConfig.marketAddr,
     minLockAmount: trialConfig.minLockAmount,
     expiryMs: trialConfig.expiryMs,
     trialsPaused,

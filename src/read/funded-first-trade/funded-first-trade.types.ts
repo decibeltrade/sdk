@@ -220,6 +220,9 @@ export interface Eligibility {
     cap: bigint;
   };
 
+  /** The perp market address the campaign uses for trials. */
+  marketAddr: string;
+
   canOpenTrial: boolean;
 
   /** Human-readable reasons `canOpenTrial` is false; empty when openable. */

@@ -13,7 +13,12 @@ function baseInputs(overrides: Partial<EligibilityInputs> = {}): EligibilityInpu
     locksPaused: false,
     allTrialsFrozen: false,
     marketOpen: true,
-    trialConfig: { minLockAmount: USDC(250), expiryMs: 3_600_000, payoutAnchors: DEFAULT_ANCHORS },
+    trialConfig: {
+      marketAddr: "0xmarket",
+      minLockAmount: USDC(250),
+      expiryMs: 3_600_000,
+      payoutAnchors: DEFAULT_ANCHORS,
+    },
     burn: { cap: USDC(1000), windowTotal: BigInt(0), liveReservationCount: 0 },
     oi: { totalNotional: BigInt(0), cap: USDC(1_000_000) },
     campaignTitle: "FFT",
@@ -148,7 +153,12 @@ describe("computeEligibility — anchors-driven projection", () => {
     const result = computeEligibility(
       baseInputs({
         lockTotals: { activeLockedAmount: USDC(600), minActiveDurationDays: 7, activeLockCount: 1 },
-        trialConfig: { minLockAmount: USDC(100), expiryMs: 3_600_000, payoutAnchors },
+        trialConfig: {
+          marketAddr: "0xmarket",
+          minLockAmount: USDC(100),
+          expiryMs: 3_600_000,
+          payoutAnchors,
+        },
         burn: { cap: USDC(1000), windowTotal: USDC(7), liveReservationCount: 0 },
       }),
     );

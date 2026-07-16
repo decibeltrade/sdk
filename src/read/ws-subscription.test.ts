@@ -105,6 +105,52 @@ describe("DecibelWsSubscription.onReconnect", () => {
   });
 });
 
+describe("DecibelWsSubscription ack handling", () => {
+  it("logs rejected acks instead of dropping them silently", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { socket } = createSubscribed();
+
+    socket()?.emit("message", {
+      data: JSON.stringify({
+        success: false,
+        method: "subscribe",
+        topic: "topic:a",
+        error: "Unknown topic type 'topic'",
+      }),
+    });
+
+    expect(consoleError).toHaveBeenCalledOnce();
+    const logged = consoleError.mock.calls[0].join(" ");
+    expect(logged).toContain("topic:a");
+    expect(logged).toContain("Unknown topic type 'topic'");
+    consoleError.mockRestore();
+  });
+
+  it("stays silent on successful acks", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { socket } = createSubscribed();
+
+    socket()?.emit("message", {
+      data: JSON.stringify({ success: true, method: "subscribe", topic: "topic:a" }),
+    });
+
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it("still routes data payloads to topic listeners", () => {
+    const onData = vi.fn();
+    const ws = new DecibelWsSubscription(config);
+    ws.subscribe("topic:a", z.object({ x: z.number() }), onData);
+
+    FakeWebSocket.instances
+      .at(-1)
+      ?.emit("message", { data: JSON.stringify({ topic: "topic:a", x: 1 }) });
+
+    expect(onData).toHaveBeenCalledWith({ x: 1 });
+  });
+});
+
 describe("DecibelWsSubscription reconnect backoff", () => {
   it("stays capped at 30s even after many failed attempts", () => {
     const { socket } = createSubscribed();
