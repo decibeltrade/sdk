@@ -1,5 +1,6 @@
 import z from "zod/v4";
 
+import { PayoutAnchors, TierSlateTier } from "../../protected-amount";
 import { BaseRequestArgs } from "../base-reader";
 
 // ─── Wire-shape enums (Rust serde default: PascalCase) ───
@@ -201,6 +202,11 @@ export interface Eligibility {
   minLockAmount: bigint;
   /** Milliseconds. */
   expiryMs: number;
+
+  /** Live payout curve; may differ from compiled defaults via `set_payout_config`. */
+  payoutAnchors: PayoutAnchors;
+  /** Live tier table; may differ from compiled defaults via `set_credit_tier_config`. Ascending durations. */
+  tierSlate: TierSlateTier[];
 
   trialsPaused: boolean;
   locksPaused: boolean;

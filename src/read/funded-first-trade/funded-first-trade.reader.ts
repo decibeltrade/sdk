@@ -1,4 +1,4 @@
-import { PayoutAnchors } from "../../protected-amount";
+import { PayoutAnchors, TierSlateTier } from "../../protected-amount";
 import { BaseReader } from "../base-reader";
 import {
   ChainFallbackDeps,
@@ -83,6 +83,7 @@ export class FundedFirstTradeReader extends BaseReader {
       locksPaused,
       allTrialsFrozen,
       trialConfig,
+      tierSlate,
       burn,
       oi,
       campaignTitle,
@@ -94,6 +95,7 @@ export class FundedFirstTradeReader extends BaseReader {
       this.viewBool("campaign_lock", "locks_paused", campaign),
       this.viewBool("protected_trial", "all_trials_frozen", campaign),
       this.viewTrialStateConfig(campaign),
+      this.viewTierSlate(campaign),
       this.viewDailyBurn(campaign),
       this.viewOiState(campaign),
       this.viewCampaignTitle(campaign),
@@ -113,6 +115,7 @@ export class FundedFirstTradeReader extends BaseReader {
       allTrialsFrozen,
       marketOpen,
       trialConfig,
+      tierSlate,
       burn,
       oi,
       campaignTitle,
@@ -324,6 +327,22 @@ export class FundedFirstTradeReader extends BaseReader {
       sizeDecimalsPow10: Number(config.size_decimals_pow10),
       payoutAnchors,
     };
+  }
+
+  private async viewTierSlate(campaign: string): Promise<TierSlateTier[]> {
+    const [config] = await this.campaignView<[Record<string, unknown>]>(
+      "funded_first_trade",
+      "get_tier_config",
+      [campaign],
+    );
+    // Enum view: `{ __variant__: "V1", tier_config_version, tiers: [...] }`; u64 leverage arrives as string.
+    const tiers = config.tiers as Array<Record<string, unknown>>;
+    return tiers.map((tier) => ({
+      durationDays: Number(tier.duration_days),
+      credits: Number(tier.credits),
+      tierRank: Number(tier.tier_rank),
+      leverage: Number(tier.leverage),
+    }));
   }
 
   /**

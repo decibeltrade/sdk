@@ -285,6 +285,17 @@ describe("FundedFirstTradeReader.getEligibility — active lock source", () => {
           payout_high_protected: "5000000",
         },
       ],
+      "funded_first_trade::get_tier_config": [
+        {
+          __variant__: "V1",
+          tier_config_version: 2,
+          tiers: [
+            { __variant__: "V1", duration_days: 1, credits: 1, tier_rank: 1, leverage: "20" },
+            { __variant__: "V1", duration_days: 4, credits: 1, tier_rank: 2, leverage: "30" },
+            { __variant__: "V1", duration_days: 7, credits: 1, tier_rank: 3, leverage: "40" },
+          ],
+        },
+      ],
       "protected_trial::daily_burn_view": [
         { cap_usd: "100000000", window_total_usd: "0", live_reservation_count: "0" },
       ],
@@ -395,6 +406,26 @@ describe("FundedFirstTradeReader.getEligibility — active lock source", () => {
 
     expect(eligibility.activeLockId).toBeNull();
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("decodes the live tier slate and payout anchors from chain views", async () => {
+    const { reader } = createReader();
+    mockFetch({ account: ACCOUNT, locks: [activeLockRow], total_count: 1 });
+
+    const eligibility = await reader.getEligibility({ account: ACCOUNT });
+
+    // u64 leverage arrives as a string on the wire — must land as number.
+    expect(eligibility.tierSlate).toEqual([
+      { durationDays: 1, credits: 1, tierRank: 1, leverage: 20 },
+      { durationDays: 4, credits: 1, tierRank: 2, leverage: 30 },
+      { durationDays: 7, credits: 1, tierRank: 3, leverage: 40 },
+    ]);
+    expect(eligibility.payoutAnchors).toEqual({
+      lowLock: 1_000_000n,
+      lowProtected: 1_000_000n,
+      highLock: 10_000_000n,
+      highProtected: 5_000_000n,
+    });
   });
 });
 

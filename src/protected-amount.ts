@@ -8,19 +8,36 @@
 export const MIN_DURATION_DAYS = 1;
 export const MAX_DURATION_DAYS = 49;
 
+/** One row of the campaign's tier table (`funded_first_trade::get_tier_config`). */
+export interface TierSlateTier {
+  durationDays: number;
+  credits: number;
+  tierRank: number;
+  leverage: number;
+}
+
 /**
  * Mirror of `funded_first_trade::DEFAULT_TIER_{DURATIONS_DAYS,CREDITS_PER_TIER,RANKS,LEVERAGES}`.
  * A lock qualifies for the highest tier with `durationDays <= lock duration`.
+ * Fallback only — `set_credit_tier_config` can change the live table, so
+ * prefer `Eligibility.tierSlate`.
  */
-export const TIER_SLATE = [
+export const TIER_SLATE: readonly TierSlateTier[] = [
   { durationDays: 1, credits: 1, tierRank: 1, leverage: 10 },
   { durationDays: 4, credits: 1, tierRank: 2, leverage: 20 },
   { durationDays: 7, credits: 1, tierRank: 3, leverage: 40 },
-] as const;
+];
 
-/** Tier thresholds, used as the UI's duration presets. */
+/** Compiled tier thresholds — matches `TIER_SLATE` defaults only. */
 export const DURATION_DAYS_RAW = [1, 4, 7] as const;
-export type LockDurationDays = (typeof DURATION_DAYS_RAW)[number];
+
+/** Any valid lock duration; widened from `1 | 4 | 7` for runtime tier config. */
+export type LockDurationDays = number;
+
+/** Non-throwing mirror of `validateLockDuration`. */
+export function isValidLockDuration(n: number): n is LockDurationDays {
+  return Number.isInteger(n) && n >= MIN_DURATION_DAYS && n <= MAX_DURATION_DAYS;
+}
 
 /** Mirror of `payout_math`'s `DEFAULT_{LOW,HIGH}_{LOCK,PROTECTED}` anchors. */
 const PAYOUT_LOW_LOCK = BigInt(250_000_000);
@@ -86,12 +103,16 @@ export interface CreditSlate {
 }
 
 /**
- * Mirror of `user_credits::credit_slate_for_duration_days` over the default
- * slate: highest tier whose `durationDays <= days`, zeros below the first tier.
+ * Mirror of `user_credits::credit_slate_for_duration_days`: highest tier whose
+ * `durationDays <= days`, zeros below the first tier. Pass the live slate from
+ * `Eligibility.tierSlate`; the compiled default is a loading-state fallback.
  */
-export function creditSlateForDurationDays(days: number): CreditSlate {
+export function creditSlateForDurationDays(
+  days: number,
+  slate: readonly TierSlateTier[] = TIER_SLATE,
+): CreditSlate {
   let result: CreditSlate = { credits: 0, tierRank: 0, leverage: 0 };
-  for (const tier of TIER_SLATE) {
+  for (const tier of slate) {
     if (days >= tier.durationDays) {
       result = {
         credits: tier.credits,
@@ -106,9 +127,15 @@ export function creditSlateForDurationDays(days: number): CreditSlate {
 /**
  * Per-credit trial position: `protected_amount × leverage_at_grant`, the
  * notional `funded_first_trade::open_trial` reserves per trial. Raw USDC.
+ * Pass the live anchors/slate from `Eligibility`; defaults are a fallback.
  */
-export function trialSizeFor(activeLocked: bigint, durationDays: number): bigint {
+export function trialSizeFor(
+  activeLocked: bigint,
+  durationDays: number,
+  anchors: PayoutAnchors = DEFAULT_ANCHORS,
+  slate: readonly TierSlateTier[] = TIER_SLATE,
+): bigint {
   validateLockDuration(durationDays);
-  const { leverage } = creditSlateForDurationDays(durationDays);
-  return protectedAmountFor(activeLocked) * BigInt(leverage);
+  const { leverage } = creditSlateForDurationDays(durationDays, slate);
+  return protectedAmountFor(activeLocked, anchors) * BigInt(leverage);
 }

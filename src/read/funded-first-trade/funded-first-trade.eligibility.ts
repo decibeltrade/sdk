@@ -1,4 +1,4 @@
-import { PayoutAnchors, protectedAmountFor } from "../../protected-amount";
+import { PayoutAnchors, protectedAmountFor, TierSlateTier } from "../../protected-amount";
 import { Eligibility, FftBlockerCode } from "./funded-first-trade.types";
 
 /** Warn before the daily-burn hard cap: FE shows a banner once projected burn exceeds this fraction of the cap. */
@@ -24,6 +24,7 @@ export interface EligibilityInputs {
     expiryMs: number;
     payoutAnchors: PayoutAnchors;
   };
+  tierSlate: TierSlateTier[];
   burn: { cap: bigint; windowTotal: bigint; liveReservationCount: number };
   oi: { totalNotional: bigint; cap: bigint };
   campaignTitle: string | null;
@@ -39,6 +40,7 @@ export function computeEligibility({
   allTrialsFrozen,
   marketOpen,
   trialConfig,
+  tierSlate,
   burn,
   oi,
   campaignTitle,
@@ -96,6 +98,8 @@ export function computeEligibility({
     marketAddr: trialConfig.marketAddr,
     minLockAmount: trialConfig.minLockAmount,
     expiryMs: trialConfig.expiryMs,
+    payoutAnchors: trialConfig.payoutAnchors,
+    tierSlate,
     trialsPaused,
     locksPaused,
     allTrialsFrozen,

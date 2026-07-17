@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ANCHORS, protectedAmountFor } from "../../protected-amount";
+import { DEFAULT_ANCHORS, protectedAmountFor, TIER_SLATE } from "../../protected-amount";
 import { computeEligibility, EligibilityInputs } from "./funded-first-trade.eligibility";
 
 const USDC = (n: number) => BigInt(Math.round(n * 1_000_000));
@@ -19,6 +19,7 @@ function baseInputs(overrides: Partial<EligibilityInputs> = {}): EligibilityInpu
       expiryMs: 3_600_000,
       payoutAnchors: DEFAULT_ANCHORS,
     },
+    tierSlate: [...TIER_SLATE],
     burn: { cap: USDC(1000), windowTotal: BigInt(0), liveReservationCount: 0 },
     oi: { totalNotional: BigInt(0), cap: USDC(1_000_000) },
     campaignTitle: "FFT",
@@ -167,5 +168,34 @@ describe("computeEligibility — anchors-driven projection", () => {
     expect(result.dailyBurn.projectedAfterTrial).toBe(
       USDC(7) + protectedAmountFor(USDC(600), payoutAnchors),
     );
+  });
+});
+
+describe("computeEligibility — live config pass-through", () => {
+  it("exposes the campaign's payout anchors and tier slate, not the compiled defaults", () => {
+    const payoutAnchors = {
+      lowLock: USDC(250),
+      lowProtected: USDC(50),
+      highLock: USDC(5000),
+      highProtected: USDC(1100),
+    };
+    const tierSlate = [
+      { durationDays: 1, credits: 1, tierRank: 1, leverage: 20 },
+      { durationDays: 4, credits: 1, tierRank: 2, leverage: 30 },
+      { durationDays: 7, credits: 1, tierRank: 3, leverage: 40 },
+    ];
+    const result = computeEligibility(
+      baseInputs({
+        trialConfig: {
+          marketAddr: "0xmarket",
+          minLockAmount: USDC(250),
+          expiryMs: 120_000,
+          payoutAnchors,
+        },
+        tierSlate,
+      }),
+    );
+    expect(result.payoutAnchors).toEqual(payoutAnchors);
+    expect(result.tierSlate).toEqual(tierSlate);
   });
 });

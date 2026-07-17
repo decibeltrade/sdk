@@ -458,7 +458,7 @@ rows the server skips while shaping still count, so drive pagination with
 `offset + limit < total`, never by probing for an empty/short page.
 
 ```typescript
-// Composed on-chain eligibility snapshot (locks, credits, budgets)
+// Composed on-chain eligibility snapshot (locks, credits, budgets, live tier/payout config)
 const eligibility = await readDex.fundedFirstTrade.getEligibility({ account: "account_address" });
 
 // Active trial, or null

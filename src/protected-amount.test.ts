@@ -111,6 +111,39 @@ describe("trialSizeFor — protected × leverage_at_grant", () => {
   });
 });
 
+// Fixture: testnet campaign #23 (2026-07-17).
+describe("live config overrides — dynamic campaign config", () => {
+  const anchors = {
+    lowLock: USDC(250),
+    lowProtected: USDC(50),
+    highLock: USDC(5000),
+    highProtected: USDC(1100),
+  };
+  const slate = [
+    { durationDays: 1, credits: 1, tierRank: 1, leverage: 20 },
+    { durationDays: 4, credits: 1, tierRank: 2, leverage: 30 },
+    { durationDays: 7, credits: 1, tierRank: 3, leverage: 40 },
+  ];
+
+  it("creditSlateForDurationDays picks from the live slate", () => {
+    expect(creditSlateForDurationDays(1, slate).leverage).toBe(20);
+    expect(creditSlateForDurationDays(4, slate).leverage).toBe(30);
+    expect(creditSlateForDurationDays(49, slate).leverage).toBe(40);
+    expect(creditSlateForDurationDays(1)).toEqual({ credits: 1, tierRank: 1, leverage: 10 });
+  });
+
+  it("trialSizeFor composes live anchors × live slate", () => {
+    // $250 → $50 protected; 4d → 30x
+    expect(trialSizeFor(USDC(250), 4, anchors, slate)).toBe(USDC(1500));
+    // $5,000 → $1,100 protected; 7d → 40x
+    expect(trialSizeFor(USDC(5000), 7, anchors, slate)).toBe(USDC(44_000));
+  });
+
+  it("undefined args fall back to the compiled defaults (loading state)", () => {
+    expect(trialSizeFor(USDC(250), 1, undefined, undefined)).toBe(USDC(100));
+  });
+});
+
 describe("validateLockDuration — campaign_lock default bounds", () => {
   it("accepts every day in [1, 49]", () => {
     for (let d = MIN_DURATION_DAYS; d <= MAX_DURATION_DAYS; d++) {
