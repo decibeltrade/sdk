@@ -29,6 +29,23 @@ export const RWA_TICKERS = [
   // bars corrupting volume / 52-week stats; the 52-week range stays "--" until a
   // full year of real trading exists.
   "SPCX",
+  // Crypto-adjacent and fintech equities
+  "MSTR",
+  "COIN",
+  "CRCL",
+  "HOOD",
+  // Semiconductors and hardware
+  "AMD",
+  "INTC",
+  "ARM",
+  "MRVL",
+  "QCOM",
+  "MU",
+  // Enterprise tech
+  "IBM",
+  // International ADRs on US exchanges
+  "ASML",
+  "BABA",
 ] as const;
 
 export type RwaTicker = (typeof RWA_TICKERS)[number];
