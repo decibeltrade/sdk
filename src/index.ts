@@ -10,6 +10,7 @@ export * from "./order-status";
 export * from "./protected-amount";
 export * from "./read/index";
 export * from "./release-config";
+export * from "./spot-admin";
 export * from "./subaccount-types";
 export * from "./utils";
 export * from "./write";

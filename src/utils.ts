@@ -15,6 +15,19 @@ export function getMarketAddr(name: string, perpEngineGlobalAddr: string) {
   return createObjectAddress(AccountAddress.fromString(perpEngineGlobalAddr), marketNameBytes);
 }
 
+/**
+ * Spot market object address: `create_named_object(GlobalSpotEngine, bcs(name))`,
+ * mirroring `spot_engine::register_market`.
+ */
+export function getSpotMarketAddr(name: string, deploymentPackage: string) {
+  const globalSpotEngineAddr = createObjectAddress(
+    AccountAddress.fromString(deploymentPackage),
+    new TextEncoder().encode("GlobalSpotEngine"),
+  );
+  const marketNameBytes = new MoveString(name).bcsToBytes();
+  return createObjectAddress(globalSpotEngineAddr, marketNameBytes);
+}
+
 function getSubaccountSeedBytes(ownerAddr: AccountAddress, seed: string): Uint8Array {
   // TODO is this the best way to concatenate  / serialize SubaccountSeed?
   return new Uint8Array([...ownerAddr.toUint8Array(), ...new MoveString(seed).bcsToBytes()]);
