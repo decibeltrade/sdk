@@ -7,6 +7,7 @@ export const CampaignTypeNameSchema = z.enum([
   "maker_incentive",
   "liquidation_rebate",
   "volume_milestone",
+  "first_funded_trial",
 ]);
 export type CampaignTypeName = z.infer<typeof CampaignTypeNameSchema>;
 
