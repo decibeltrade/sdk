@@ -237,6 +237,11 @@ export interface Eligibility {
   /** Parallel to `blockers`, same order. */
   blockerCodes: FftBlockerCode[];
 
+  /** On-chain `relock_disabled` flag — when true, users with prior credits cannot lock again. */
+  relockDisabled: boolean;
+  /** On-chain `has_ever_been_granted` — true if the user received credits from a prior lock. */
+  hasEverBeenGranted: boolean;
+
   softWarnings: {
     /** Burn is past SOFT_BURN_WARN_RATIO of cap. */
     dailyBurnNearCap: boolean;

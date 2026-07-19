@@ -30,6 +30,8 @@ export interface EligibilityInputs {
   campaignTitle: string | null;
   activeLock: { lockId: bigint; unlocksAtMs: number; lockSubaccount: string } | null;
   hasActiveTrial: boolean;
+  relockDisabled: boolean;
+  hasEverBeenGranted: boolean;
 }
 
 export function computeEligibility({
@@ -46,6 +48,8 @@ export function computeEligibility({
   campaignTitle,
   activeLock,
   hasActiveTrial,
+  relockDisabled,
+  hasEverBeenGranted,
 }: EligibilityInputs): Eligibility {
   // payout_math.compute gates on total active locked principal alone; no active lock → 0.
   const projectedTrialAmount = protectedAmountFor(
@@ -110,6 +114,8 @@ export function computeEligibility({
       projectedAfterTrial,
     },
     oiState: oi,
+    relockDisabled,
+    hasEverBeenGranted,
     canOpenTrial: blockers.length === 0,
     blockers,
     blockerCodes,

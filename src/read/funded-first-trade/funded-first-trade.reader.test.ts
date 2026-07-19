@@ -302,6 +302,8 @@ describe("FundedFirstTradeReader.getEligibility — active lock source", () => {
       "protected_trial::oi_state": [{ total_notional: "0", cap: "100000000" }],
       "protected_trial::active_trial_id_for": [{ vec: [] }],
       "campaign_manager::get_campaign": [{ title: "FFT" }],
+      "funded_first_trade::relock_disabled": [false],
+      "user_credits::has_ever_been_granted": [false],
       "perp_engine::is_market_open": [true],
       "campaign_lock::next_lock_id": ["1"],
       "campaign_lock::is_lock_active": [true],

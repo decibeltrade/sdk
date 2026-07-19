@@ -25,6 +25,8 @@ function baseInputs(overrides: Partial<EligibilityInputs> = {}): EligibilityInpu
     campaignTitle: "FFT",
     activeLock: { lockId: BigInt(3), unlocksAtMs: 1_700_000_000_000, lockSubaccount: "0xsub" },
     hasActiveTrial: false,
+    relockDisabled: false,
+    hasEverBeenGranted: false,
     ...overrides,
   };
 }

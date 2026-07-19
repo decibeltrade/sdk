@@ -88,6 +88,8 @@ export class FundedFirstTradeReader extends BaseReader {
       oi,
       campaignTitle,
       hasActiveTrial,
+      relockDisabled,
+      hasEverBeenGranted,
     ] = await Promise.all([
       this.viewOwnerLockTotals(campaign, account),
       this.viewCreditAccount(campaign, account),
@@ -100,6 +102,8 @@ export class FundedFirstTradeReader extends BaseReader {
       this.viewOiState(campaign),
       this.viewCampaignTitle(campaign),
       this.viewHasActiveTrial(campaign, account),
+      this.viewRelockDisabled(campaign),
+      this.viewHasEverBeenGranted(campaign, account),
     ]);
 
     const [activeLock, marketOpen] = await Promise.all([
@@ -121,6 +125,8 @@ export class FundedFirstTradeReader extends BaseReader {
       campaignTitle,
       activeLock,
       hasActiveTrial,
+      relockDisabled,
+      hasEverBeenGranted,
     });
   }
 
@@ -383,5 +389,17 @@ export class FundedFirstTradeReader extends BaseReader {
       totalNotional: BigInt(oi.total_notional as string),
       cap: BigInt(oi.cap as string),
     };
+  }
+
+  private async viewRelockDisabled(campaign: string): Promise<boolean> {
+    return this.viewBool("funded_first_trade", "relock_disabled", campaign);
+  }
+
+  private async viewHasEverBeenGranted(campaign: string, user: string): Promise<boolean> {
+    const [value] = await this.campaignView<[boolean]>("user_credits", "has_ever_been_granted", [
+      campaign,
+      user,
+    ]);
+    return value;
   }
 }
