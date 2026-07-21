@@ -1,6 +1,11 @@
-import { Account, AccountAddress, CommittedTransactionResponse } from "@aptos-labs/ts-sdk";
+import {
+  Account,
+  AccountAddress,
+  CommittedTransactionResponse,
+  InputGenerateTransactionPayloadData,
+} from "@aptos-labs/ts-sdk";
 
-import { BaseSDK, Options } from "./base";
+import { BaseSDK, Options, SendTxOpts } from "./base";
 import { DecibelConfig } from "./constants";
 import {
   buildClaimUnlockPayload,
@@ -36,6 +41,18 @@ type WithSignerAddress<T> = T & {
   signerAddress: AccountAddress;
 };
 
+/** Per-call submission concerns shared by every subaccount-scoped write method. */
+export interface WriteSubmissionOpts extends SendTxOpts {
+  /** Subaccount to act under. Defaults to the signer's primary subaccount. */
+  subaccountAddr?: string;
+  /**
+   * Submit this transaction mempool-private (encrypted). Overrides the
+   * constructor-level `defaultEncrypted` setting for this call. Silently
+   * falls back to unencrypted when the network doesn't support it.
+   */
+  encrypted?: boolean;
+}
+
 /**
  * Rounds price to the nearest tick size multiple
  * @param price The price to round
@@ -62,11 +79,13 @@ function bpsToChainUnits(bps: number): number {
 export class DecibelWriteDex extends BaseSDK {
   readonly cache: Cache;
   readonly orderStatusClient: OrderStatusClient;
+  private readonly defaultEncrypted: boolean;
 
   constructor(config: DecibelConfig, account: Account, opts?: Options) {
     super(config, account, opts);
     this.cache = {};
     this.orderStatusClient = new OrderStatusClient(config);
+    this.defaultEncrypted = opts?.defaultEncrypted ?? false;
   }
 
   /**
@@ -146,6 +165,20 @@ export class DecibelWriteDex extends BaseSDK {
       );
     }
     return await sendTx(subaccountAddr);
+  }
+
+  private async submitSubaccountTx(
+    payloadFn: (subaccountAddr: string) => InputGenerateTransactionPayloadData,
+    { subaccountAddr, encrypted, ...sendOpts }: WriteSubmissionOpts = {},
+  ) {
+    const shouldEncrypt = encrypted ?? this.defaultEncrypted;
+    return await this.sendSubaccountTx(
+      (addr) =>
+        shouldEncrypt
+          ? this.sendEncryptedTx(payloadFn(addr), sendOpts)
+          : this.sendTx(payloadFn(addr), sendOpts),
+      subaccountAddr,
+    );
   }
 
   async withSubaccount<T>(fn: (subaccountAddr: string) => Promise<T>, subaccountAddr?: string) {
@@ -244,9 +277,8 @@ export class DecibelWriteDex extends BaseSDK {
     slLimitPrice,
     builderAddr,
     builderFee,
-    subaccountAddr,
-    accountOverride,
     tickSize,
+    ...submitOpts
   }: {
     marketName: string;
     price: number;
@@ -262,17 +294,9 @@ export class DecibelWriteDex extends BaseSDK {
     slLimitPrice?: number;
     builderAddr?: string;
     builderFee?: number;
-    subaccountAddr?: string;
-    /**
-     * Optional account to use for the transaction. Primarily set as the session
-     * account.  If not provided, the default constructor account will be used
-     */
-    accountOverride?: Account;
-    /**
-     * Market tick size for price rounding. If not provided, no rounding is applied.
-     */
+    /** Market tick size for price rounding. If not provided, no rounding is applied. */
     tickSize?: number;
-  }): Promise<PlaceOrderResult> {
+  } & WriteSubmissionOpts): Promise<PlaceOrderResult> {
     try {
       const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
 
@@ -297,37 +321,33 @@ export class DecibelWriteDex extends BaseSDK {
           ? roundToTickSize(slLimitPrice, tickSize)
           : slLimitPrice;
 
-      const txResponse = await this.sendSubaccountTx(
-        (subaccountAddr) =>
-          this.sendTx(
-            {
-              function: `${this.config.deployment.package}::dex_accounts_entry::place_order_to_subaccount`,
-              typeArguments: [],
-              functionArguments: [
-                subaccountAddr,
-                marketAddr.toString(),
-                roundedPrice,
-                size,
-                isBuy,
-                timeInForce,
-                isReduceOnly,
-                clientOrderId,
-                roundedStopPrice,
-                roundedTpTriggerPrice,
-                roundedTpLimitPrice,
-                roundedSlTriggerPrice,
-                roundedSlLimitPrice,
-                builderAddr,
-                builderFee ? bpsToChainUnits(builderFee) : undefined,
-              ],
-            },
-            accountOverride,
-          ),
-        subaccountAddr,
+      const txResponse = await this.submitSubaccountTx(
+        (subaccountAddr) => ({
+          function: `${this.config.deployment.package}::dex_accounts_entry::place_order_to_subaccount`,
+          typeArguments: [],
+          functionArguments: [
+            subaccountAddr,
+            marketAddr.toString(),
+            roundedPrice,
+            size,
+            isBuy,
+            timeInForce,
+            isReduceOnly,
+            clientOrderId,
+            roundedStopPrice,
+            roundedTpTriggerPrice,
+            roundedTpLimitPrice,
+            roundedSlTriggerPrice,
+            roundedSlLimitPrice,
+            builderAddr,
+            builderFee ? bpsToChainUnits(builderFee) : undefined,
+          ],
+        }),
+        submitOpts,
       );
 
       // Extract order_id from the transaction events
-      const orderId = this.extractOrderIdFromTransaction(txResponse, subaccountAddr);
+      const orderId = this.extractOrderIdFromTransaction(txResponse, submitOpts.subaccountAddr);
 
       return {
         success: true,
@@ -365,8 +385,7 @@ export class DecibelWriteDex extends BaseSDK {
     twapDurationSeconds,
     builderAddress,
     builderFees,
-    subaccountAddr,
-    accountOverride,
+    ...submitOpts
   }: {
     marketName: string;
     size: number;
@@ -377,40 +396,30 @@ export class DecibelWriteDex extends BaseSDK {
     twapDurationSeconds: number;
     builderAddress?: string;
     builderFees?: number;
-    subaccountAddr?: string;
-    /**
-     * Optional account to use for the transaction. Primarily set as the session
-     * account.  If not provided, the default constructor account will be used
-     */
-    accountOverride?: Account;
-  }) {
+  } & WriteSubmissionOpts) {
     const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
-    const txResponse = await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            // TODO: update to place_twap_order_to_subaccount_v2 once available
-            function: `${this.config.deployment.package}::dex_accounts_entry::place_twap_order_to_subaccount_v2`,
-            typeArguments: [],
-            functionArguments: [
-              subaccountAddr,
-              marketAddr.toString(),
-              size,
-              isBuy,
-              isReduceOnly,
-              clientOrderId, // TODO: include once v2 is available
-              twapFrequencySeconds,
-              twapDurationSeconds,
-              builderAddress,
-              builderFees ? bpsToChainUnits(builderFees) : undefined,
-            ],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+    const txResponse = await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        // TODO: update to place_twap_order_to_subaccount_v2 once available
+        function: `${this.config.deployment.package}::dex_accounts_entry::place_twap_order_to_subaccount_v2`,
+        typeArguments: [],
+        functionArguments: [
+          subaccountAddr,
+          marketAddr.toString(),
+          size,
+          isBuy,
+          isReduceOnly,
+          clientOrderId, // TODO: include once v2 is available
+          twapFrequencySeconds,
+          twapDurationSeconds,
+          builderAddress,
+          builderFees ? bpsToChainUnits(builderFees) : undefined,
+        ],
+      }),
+      submitOpts,
     );
 
-    const orderId = this.extractOrderIdFromTransaction(txResponse, subaccountAddr);
+    const orderId = this.extractOrderIdFromTransaction(txResponse, submitOpts.subaccountAddr);
 
     return {
       success: true,
@@ -426,99 +435,67 @@ export class DecibelWriteDex extends BaseSDK {
    * @param subaccountAddr Optional subaccount address, will use primary if not provided
    * @returns Transaction response
    */
-  async cancelOrder({
-    orderId,
-    subaccountAddr,
-    accountOverride,
-    ...args
-  }: {
-    orderId: number | string;
-
-    subaccountAddr?: string;
-    /**
-     * Optional account to use for the transaction. Primarily set as the session
-     * account.  If not provided, the default constructor account will be used
-     */
-    accountOverride?: Account;
-  } & ({ marketName: string } | { marketAddr: string })) {
-    // Either marketName or marketAddr must be provided
+  async cancelOrder(
+    args: { orderId: number | string } & WriteSubmissionOpts &
+      ({ marketName: string } | { marketAddr: string }),
+  ) {
     const marketAddr =
       "marketName" in args
         ? getMarketAddr(args.marketName, this.config.deployment.perpEngineGlobal)
         : args.marketAddr;
 
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_order_to_subaccount`,
-            typeArguments: [],
-            functionArguments: [subaccountAddr, BigInt(orderId.toString()), marketAddr.toString()],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::cancel_order_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, BigInt(args.orderId.toString()), marketAddr.toString()],
+      }),
+      {
+        subaccountAddr: args.subaccountAddr,
+        accountOverride: args.accountOverride,
+        encrypted: args.encrypted,
+      },
     );
   }
 
   async cancelClientOrder({
     clientOrderId,
     marketName,
-    subaccountAddr,
-    accountOverride,
+    ...submitOpts
   }: {
     clientOrderId: string;
     marketName: string;
-    subaccountAddr?: string;
-    /**
-     * Optional account to use for the transaction. Primarily set as the session
-     * account.  If not provided, the default constructor account will be used
-     */
-    accountOverride?: Account;
-  }) {
+  } & WriteSubmissionOpts) {
     const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_client_order_to_subaccount`,
-            typeArguments: [],
-            functionArguments: [subaccountAddr, clientOrderId, marketAddr.toString()],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::cancel_client_order_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, clientOrderId, marketAddr.toString()],
+      }),
+      submitOpts,
     );
   }
 
-  async cancelBulkOrder({
-    subaccountAddr,
-    accountOverride,
-    ...args
-  }: {
-    subaccountAddr?: string;
-    /**
-     * Optional account to use for the transaction. Primarily set as the session
-     * account.  If not provided, the default constructor account will be used
-     */
-    accountOverride?: Account;
-  } & ({ marketName: string } | { marketAddr: string })) {
+  async cancelBulkOrder(
+    args: WriteSubmissionOpts & ({ marketName: string } | { marketAddr: string }),
+  ) {
     const marketAddr =
       "marketName" in args
         ? getMarketAddr(args.marketName, this.config.deployment.perpEngineGlobal)
         : args.marketAddr;
 
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_bulk_order_to_subaccount`,
-            typeArguments: [],
-            functionArguments: [subaccountAddr, marketAddr.toString()],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::cancel_bulk_order_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, marketAddr.toString()],
+      }),
+      {
+        subaccountAddr: args.subaccountAddr,
+        accountOverride: args.accountOverride,
+        encrypted: args.encrypted,
+      },
     );
   }
 
@@ -571,9 +548,8 @@ export class DecibelWriteDex extends BaseSDK {
     slTriggerPrice,
     slLimitPrice,
     slSize,
-    subaccountAddr,
-    accountOverride,
     tickSize,
+    ...submitOpts
   }: {
     marketAddr: string;
     tpTriggerPrice?: number;
@@ -582,10 +558,8 @@ export class DecibelWriteDex extends BaseSDK {
     slTriggerPrice?: number;
     slLimitPrice?: number;
     slSize?: number;
-    subaccountAddr?: string;
-    accountOverride?: Account;
     tickSize?: number;
-  }) {
+  } & WriteSubmissionOpts) {
     const roundedTpTriggerPrice =
       tpTriggerPrice !== undefined && tickSize
         ? roundToTickSize(tpTriggerPrice, tickSize)
@@ -603,28 +577,24 @@ export class DecibelWriteDex extends BaseSDK {
         ? roundToTickSize(slLimitPrice, tickSize)
         : slLimitPrice;
 
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::place_tp_sl_order_for_position`,
-            typeArguments: [],
-            functionArguments: [
-              subaccountAddr,
-              marketAddr,
-              roundedTpTriggerPrice,
-              roundedTpLimitPrice,
-              tpSize,
-              roundedSlTriggerPrice,
-              roundedSlLimitPrice,
-              slSize,
-              undefined, // builderAddr
-              undefined, // builderFees
-            ],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::place_tp_sl_order_for_position`,
+        typeArguments: [],
+        functionArguments: [
+          subaccountAddr,
+          marketAddr,
+          roundedTpTriggerPrice,
+          roundedTpLimitPrice,
+          tpSize,
+          roundedSlTriggerPrice,
+          roundedSlLimitPrice,
+          slSize,
+          undefined, // builderAddr
+          undefined, // builderFees
+        ],
+      }),
+      submitOpts,
     );
   }
 
@@ -637,19 +607,16 @@ export class DecibelWriteDex extends BaseSDK {
     tpTriggerPrice,
     tpLimitPrice,
     tpSize,
-    subaccountAddr,
-    accountOverride,
     tickSize,
+    ...submitOpts
   }: {
     marketAddr: string;
     prevOrderId: number | string;
     tpTriggerPrice?: number;
     tpLimitPrice?: number;
     tpSize?: number;
-    subaccountAddr?: string;
-    accountOverride?: Account;
     tickSize?: number;
-  }) {
+  } & WriteSubmissionOpts) {
     const roundedTpTriggerPrice =
       tpTriggerPrice !== undefined && tickSize
         ? roundToTickSize(tpTriggerPrice, tickSize)
@@ -659,24 +626,20 @@ export class DecibelWriteDex extends BaseSDK {
         ? roundToTickSize(tpLimitPrice, tickSize)
         : tpLimitPrice;
 
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::update_tp_order_for_position`,
-            typeArguments: [],
-            functionArguments: [
-              subaccountAddr,
-              BigInt(prevOrderId.toString()),
-              marketAddr,
-              roundedTpTriggerPrice,
-              roundedTpLimitPrice,
-              tpSize,
-            ],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::update_tp_order_for_position`,
+        typeArguments: [],
+        functionArguments: [
+          subaccountAddr,
+          BigInt(prevOrderId.toString()),
+          marketAddr,
+          roundedTpTriggerPrice,
+          roundedTpLimitPrice,
+          tpSize,
+        ],
+      }),
+      submitOpts,
     );
   }
 
@@ -689,19 +652,16 @@ export class DecibelWriteDex extends BaseSDK {
     slTriggerPrice,
     slLimitPrice,
     slSize,
-    subaccountAddr,
-    accountOverride,
     tickSize,
+    ...submitOpts
   }: {
     marketAddr: string;
     prevOrderId: number | string;
     slTriggerPrice?: number;
     slLimitPrice?: number;
     slSize?: number;
-    subaccountAddr?: string;
-    accountOverride?: Account;
     tickSize?: number;
-  }) {
+  } & WriteSubmissionOpts) {
     const roundedSlTriggerPrice =
       slTriggerPrice !== undefined && tickSize
         ? roundToTickSize(slTriggerPrice, tickSize)
@@ -711,24 +671,20 @@ export class DecibelWriteDex extends BaseSDK {
         ? roundToTickSize(slLimitPrice, tickSize)
         : slLimitPrice;
 
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::update_sl_order_for_position`,
-            typeArguments: [],
-            functionArguments: [
-              subaccountAddr,
-              BigInt(prevOrderId.toString()),
-              marketAddr,
-              roundedSlTriggerPrice,
-              roundedSlLimitPrice,
-              slSize,
-            ],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::update_sl_order_for_position`,
+        typeArguments: [],
+        functionArguments: [
+          subaccountAddr,
+          BigInt(prevOrderId.toString()),
+          marketAddr,
+          roundedSlTriggerPrice,
+          roundedSlLimitPrice,
+          slSize,
+        ],
+      }),
+      submitOpts,
     );
   }
 
@@ -738,25 +694,18 @@ export class DecibelWriteDex extends BaseSDK {
   async cancelTpSlOrderForPosition({
     marketAddr,
     orderId,
-    subaccountAddr,
-    accountOverride,
+    ...submitOpts
   }: {
     marketAddr: string;
     orderId: number | string;
-    subaccountAddr?: string;
-    accountOverride?: Account;
-  }) {
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_tp_sl_order_for_position`,
-            typeArguments: [],
-            functionArguments: [subaccountAddr, marketAddr, BigInt(orderId.toString())],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+  } & WriteSubmissionOpts) {
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::cancel_tp_sl_order_for_position`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, marketAddr, BigInt(orderId.toString())],
+      }),
+      submitOpts,
     );
   }
 
@@ -777,8 +726,7 @@ export class DecibelWriteDex extends BaseSDK {
     tpLimitPrice,
     slTriggerPrice,
     slLimitPrice,
-    subaccountAddr,
-    accountOverride,
+    ...submitOpts
   }: {
     orderId: number | string;
     marketAddr: string;
@@ -791,64 +739,47 @@ export class DecibelWriteDex extends BaseSDK {
     tpLimitPrice?: number;
     slTriggerPrice?: number;
     slLimitPrice?: number;
-    subaccountAddr?: string;
-    accountOverride?: Account;
-  }) {
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::update_order_to_subaccount`,
-            typeArguments: [],
-            functionArguments: [
-              subaccountAddr,
-              BigInt(orderId.toString()),
-              marketAddr,
-              price,
-              size,
-              isBuy,
-              timeInForce,
-              isReduceOnly,
-              tpTriggerPrice,
-              tpLimitPrice,
-              slTriggerPrice,
-              slLimitPrice,
-              undefined, // builder_address
-              undefined, // builder_fees
-            ],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+  } & WriteSubmissionOpts) {
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::update_order_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [
+          subaccountAddr,
+          BigInt(orderId.toString()),
+          marketAddr,
+          price,
+          size,
+          isBuy,
+          timeInForce,
+          isReduceOnly,
+          tpTriggerPrice,
+          tpLimitPrice,
+          slTriggerPrice,
+          slLimitPrice,
+          undefined, // builder_address
+          undefined, // builder_fees
+        ],
+      }),
+      submitOpts,
     );
   }
 
   async cancelTwapOrder({
     orderId,
     marketAddr,
-    subaccountAddr,
-    accountOverride,
+    ...submitOpts
   }: {
     orderId: string;
     marketAddr: string;
-    subaccountAddr?: string;
-    /**
-     * Optional account to use for the transaction. Primarily set as the session
-     * account.  If not provided, the default constructor account will be used
-     */
-    accountOverride?: Account;
-  }) {
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx(
-          {
-            function: `${this.config.deployment.package}::dex_accounts_entry::cancel_twap_orders_to_subaccount`,
-            typeArguments: [],
-            functionArguments: [subaccountAddr, marketAddr, orderId],
-          },
-          accountOverride,
-        ),
-      subaccountAddr,
+  } & WriteSubmissionOpts) {
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_entry::cancel_twap_orders_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, marketAddr, orderId],
+      }),
+      submitOpts,
     );
   }
 
@@ -959,7 +890,7 @@ export class DecibelWriteDex extends BaseSDK {
               args.delegateToCreator ?? false,
             ],
           },
-          args.accountOverride,
+          { accountOverride: args.accountOverride },
         ),
       args.subaccountAddr,
     );
@@ -1066,7 +997,7 @@ export class DecibelWriteDex extends BaseSDK {
             typeArguments: [],
             functionArguments: [subaccountAddr, args.vaultAddress, args.shares],
           },
-          args.accountOverride,
+          { accountOverride: args.accountOverride },
         ),
       args.subaccountAddr,
     );
