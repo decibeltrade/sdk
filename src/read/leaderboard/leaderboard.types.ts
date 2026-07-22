@@ -6,10 +6,7 @@ import { PageParams, PaginatedResponseSchema, SearchTermParams, SortParams } fro
 export type LeaderboardSortKey = "volume" | "realized_pnl" | "roi" | "account_value";
 
 export interface LeaderboardRequestArgs
-  extends BaseRequestArgs,
-    PageParams,
-    SearchTermParams,
-    SortParams<LeaderboardSortKey> {}
+  extends BaseRequestArgs, PageParams, SearchTermParams, SortParams<LeaderboardSortKey> {}
 
 export const LeaderboardItemSchema = z.object({
   rank: z.number(),

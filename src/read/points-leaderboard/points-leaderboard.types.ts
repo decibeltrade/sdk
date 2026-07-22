@@ -8,10 +8,7 @@ export type PointsLeaderboardSortKey = "total_amps" | "realized_pnl";
 export type PointsLeaderboardTierFilter = "top20" | "diamond" | "doublePlatinum" | "gold";
 
 export interface PointsLeaderboardRequestArgs
-  extends BaseRequestArgs,
-    PageParams,
-    SearchTermParams,
-    SortParams<PointsLeaderboardSortKey> {
+  extends BaseRequestArgs, PageParams, SearchTermParams, SortParams<PointsLeaderboardSortKey> {
   tier?: PointsLeaderboardTierFilter;
 }
 
