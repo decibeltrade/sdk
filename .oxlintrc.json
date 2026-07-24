@@ -1,0 +1,12 @@
+{
+  "extends": ["../../packages/eslint-config/oxlint/base.jsonc"],
+  "overrides": [
+    {
+      "files": ["src/eip55.ts"],
+      "rules": {
+        "typescript/no-non-null-assertion": "off",
+        "typescript/no-unnecessary-type-assertion": "off"
+      }
+    }
+  ]
+}
