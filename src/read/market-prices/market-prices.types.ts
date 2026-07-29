@@ -36,8 +36,20 @@ export const MarketPriceWsMessageSchema = z.object({ price: MarketPriceSchema })
 
 export const AllMarketPricesWsMessageSchema = z.object({ prices: MarketPricesSchema });
 
+export const MidSchema = z.object({
+  market_addr: z.string(),
+  asset_type: z.enum(["perp", "spot"]),
+  mid: z.number().nullable(),
+  last_trade_price: z.number().nullable(),
+  transaction_unix_ms: z.number(),
+});
+
+export const AllSpotMidsWsMessageSchema = z.object({ mids: z.array(MidSchema) });
+
 export type Prices = z.infer<typeof PricesSchema>;
 export type MarketPrices = z.infer<typeof MarketPricesSchema>;
 export type MarketPrice = z.infer<typeof MarketPriceSchema>;
 export type MarketPriceWsMessage = z.infer<typeof MarketPriceWsMessageSchema>;
 export type AllMarketPricesWsMessage = z.infer<typeof AllMarketPricesWsMessageSchema>;
+export type Mid = z.infer<typeof MidSchema>;
+export type AllSpotMidsWsMessage = z.infer<typeof AllSpotMidsWsMessageSchema>;

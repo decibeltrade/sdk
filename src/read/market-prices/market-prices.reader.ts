@@ -3,6 +3,8 @@ import { BaseReader, BaseRequestArgs } from "../base-reader";
 import {
   AllMarketPricesWsMessage,
   AllMarketPricesWsMessageSchema,
+  AllSpotMidsWsMessage,
+  AllSpotMidsWsMessageSchema,
   MarketPricesByNameRequestArgs,
   MarketPricesSchema,
   MarketPriceWsMessage,
@@ -70,5 +72,19 @@ export class MarketPricesReader extends BaseReader {
     const topic = `all_market_prices`;
 
     return this.deps.ws.subscribe(topic, AllMarketPricesWsMessageSchema, onData);
+  }
+
+  /**
+   * Subscribe to mid/last-trade price updates for all spot markets.
+   * Each update carries one row per registered spot market; `mid` is null
+   * unless both book sides have liquidity, `last_trade_price` is null until
+   * the market's first fill.
+   * @param onData Callback function for received spot mid data
+   * @returns A function to unsubscribe from the spot mid updates
+   */
+  subscribeAllSpotMids(onData: (data: AllSpotMidsWsMessage) => void) {
+    const topic = `all_spot_mids`;
+
+    return this.deps.ws.subscribe(topic, AllSpotMidsWsMessageSchema, onData);
   }
 }
