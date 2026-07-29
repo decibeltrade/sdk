@@ -16,6 +16,7 @@ export * from "./pagination.types";
 export * from "./points-leaderboard/points-leaderboard.types";
 export * from "./portfolio-chart/portfolio-chart.types";
 export * from "./referrals/referrals.types";
+export * from "./spot-asset-contexts/spot-asset-contexts.types";
 export * from "./streaks/streaks.types";
 export * from "./tier/tier.types";
 export * from "./trading-amps/trading-amps.types";

@@ -22,6 +22,7 @@ import { MarketsReader } from "./markets/markets.reader";
 import { PointsLeaderboardReader } from "./points-leaderboard/points-leaderboard.reader";
 import { PortfolioChartReader } from "./portfolio-chart/portfolio-chart.reader";
 import { ReferralsReader } from "./referrals/referrals.reader";
+import { SpotAssetContextsReader } from "./spot-asset-contexts/spot-asset-contexts.reader";
 import { StreaksReader } from "./streaks/streaks.reader";
 import { TierReader } from "./tier/tier.reader";
 import { TradingAmpsReader } from "./trading-amps/trading-amps.reader";
@@ -107,6 +108,7 @@ export class DecibelReadDex {
   readonly marketContexts: MarketContextsReader;
   readonly marketDepth: MarketDepthReader;
   readonly marketPrices: MarketPricesReader;
+  readonly spotAssetContexts: SpotAssetContextsReader;
   readonly marketTrades: MarketTradesReader;
   readonly userFundHistory: UserFundHistoryReader;
   readonly userFundingHistory: UserFundingHistoryReader;
@@ -172,6 +174,7 @@ export class DecibelReadDex {
     this.marketContexts = new MarketContextsReader(this.deps);
     this.marketDepth = new MarketDepthReader(this.deps);
     this.marketPrices = new MarketPricesReader(this.deps);
+    this.spotAssetContexts = new SpotAssetContextsReader(this.deps);
     this.marketTrades = new MarketTradesReader(this.deps);
     this.userPositions = new UserPositionsReader(this.deps);
     this.userOrderHistory = new UserOrderHistoryReader(this.deps);
