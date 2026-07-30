@@ -1,5 +1,6 @@
 import z from "zod/v4";
 
+import { AssetType, AssetTypeSchema } from "../asset-type.types";
 import { BaseRequestArgs } from "../base-reader";
 import { PaginatedResponseSchema } from "../pagination.types";
 
@@ -7,9 +8,21 @@ export interface UserOpenOrdersRequestArgs extends BaseRequestArgs {
   subAddr: string;
   limit?: number;
   offset?: number;
+  /**
+   * Server-side product filter. Omit to receive perp and spot merged
+   * (each row carries `asset_type`); pass `"perp"` or `"spot"` to scope
+   * the response (and its pagination) to one product. Only send this against
+   * a trading-api version with spot support: older servers reject requests
+   * carrying unknown parameters.
+   */
+  assetType?: AssetType;
 }
 
 export const UserOpenOrderSchema = z.object({
+  /** Absent on API versions that predate spot support (treat as "perp"). */
+  asset_type: AssetTypeSchema.optional(),
+  /** Spot orders carry the explicit time-in-force ("GTC"/"IOC"/"POST_ONLY"). */
+  time_in_force: z.string().optional(),
   parent: z.string(),
   market: z.string(),
   order_id: z.string(),

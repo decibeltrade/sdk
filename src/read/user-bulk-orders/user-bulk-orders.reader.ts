@@ -13,11 +13,15 @@ export class UserBulkOrdersReader extends BaseReader {
    * @param market Optional market address to filter by specific market
    * @returns The bulk orders for the given user
    */
-  async getByAddr({ subAddr, market, fetchOptions }: UserBulkOrdersRequestArgs) {
+  async getByAddr({ subAddr, market, assetType, fetchOptions }: UserBulkOrdersRequestArgs) {
+    const queryParams: Record<string, string> = { account: subAddr, market: market || "all" };
+    if (assetType !== undefined) {
+      queryParams.asset_type = assetType;
+    }
     const response = await this.getRequest({
       schema: UserBulkOrdersSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/bulk_orders`,
-      queryParams: { account: subAddr, market: market || "all" },
+      queryParams,
       options: fetchOptions,
     });
 

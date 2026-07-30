@@ -4,6 +4,11 @@ import { getMarketAddr } from "../../utils";
 import { BaseReader, BaseRequestArgs } from "../base-reader";
 import { PerpMarketConfig, PerpMarketConfigSchema, PerpMarketsSchema } from "./markets.types";
 
+export interface MarketsGetAllArgs extends BaseRequestArgs {
+  /** Include spot markets in the result (default false = perp only). */
+  includeSpot?: boolean;
+}
+
 export class MarketsReader extends BaseReader {
   private static readonly stringTypeTag = new TypeTagStruct(stringStructTag());
   private static readonly listMarketAddressesAbi = {
@@ -19,10 +24,16 @@ export class MarketsReader extends BaseReader {
   };
 
   /**
-   * Get all of the available markets
+   * Get all of the available markets.
+   *
+   * Once the API serves spot, `/api/v1/markets` returns perp and spot rows in
+   * one list, discriminated by `asset_type`. Spot rows are filtered out by
+   * default so existing perp consumers don't see spot markets masquerading as
+   * 0-leverage perps; pass `includeSpot: true` to get the full list and demux
+   * on `asset_type` yourself.
    * @returns The list of available markets
    */
-  async getAll({ fetchOptions }: BaseRequestArgs = {}) {
+  async getAll({ includeSpot = false, fetchOptions }: MarketsGetAllArgs = {}) {
     const response = await this.getRequest({
       schema: PerpMarketsSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/markets`,
@@ -32,6 +43,9 @@ export class MarketsReader extends BaseReader {
     // TODO: Remove once API is fixed and doesn't return duplicate markets
     const seen = new Set<string>();
     const uniqueMarkets = response.data.filter((market) => {
+      if (!includeSpot && market.asset_type === "spot") {
+        return false;
+      }
       if (seen.has(market.market_addr)) {
         return false;
       }

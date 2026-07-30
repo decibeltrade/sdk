@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 
+import { AssetTypeSchema } from "../asset-type.types";
+
 export const MarketModeConfigSchema = z.discriminatedUnion("__variant__", [
   z.object({ __variant__: z.literal("Open") }),
   z.object({ __variant__: z.literal("ReduceOnly") }),
@@ -33,6 +35,13 @@ export const MarketModeSchema = z.enum([
 ]);
 
 export const PerpMarketSchema = z.object({
+  /**
+   * Absent on API versions that predate spot support (treat as "perp").
+   * Once the API serves spot, `/markets` mixes both products in one list;
+   * spot rows carry `asset_type: "spot"` with perp-only fields zeroed
+   * (`max_leverage: 0`, `max_open_interest: 0`).
+   */
+  asset_type: AssetTypeSchema.optional(),
   market_addr: z.string(),
   market_name: z.string(),
   sz_decimals: z.number(),

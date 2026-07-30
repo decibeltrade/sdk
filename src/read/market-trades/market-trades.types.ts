@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 
+import { AssetTypeSchema } from "../asset-type.types";
 import { BaseRequestArgs } from "../base-reader";
 
 export interface MarketTradesRequestArgs extends BaseRequestArgs {
@@ -8,8 +9,11 @@ export interface MarketTradesRequestArgs extends BaseRequestArgs {
 }
 
 export const MarketTradeSchema = z.object({
+  /** Absent on API versions that predate spot support (treat as "perp"). */
+  asset_type: AssetTypeSchema.optional(),
   account: z.string(),
   market: z.string(),
+  /** Perp: position-centric (OpenLong/...). Spot: side ("Buy" / "Sell"). */
   action: z.string(),
   size: z.number(),
   price: z.number(),
@@ -18,6 +22,8 @@ export const MarketTradeSchema = z.object({
   realized_funding_amount: z.number(),
   is_rebate: z.boolean(),
   fee_amount: z.number(),
+  /** Spot only: FA address `fee_amount` is denominated in; absent on perp. */
+  fee_asset: z.string().optional(),
   transaction_unix_ms: z.number(),
   transaction_version: z.number(),
 });
