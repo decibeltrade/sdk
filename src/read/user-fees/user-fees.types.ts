@@ -60,22 +60,75 @@ export const FeeScheduleSchema = z.object({
   referral_discount: z.number(),
 });
 
-/** Response for `GET /api/v1/user_fee_rates?account=<address>`. */
+/**
+ * Per-product (perp or spot) fee state: the product's own rate ladder, the
+ * user's effective rates at the shared cross-product tier, and the product's
+ * raw (unweighted) volume history.
+ */
+export const ProductFeeStateSchema = z.object({
+  /**
+   * This product's fee tier index (0 = base). Perp's tier comes from
+   * perp-only window volume; spot's from the WEIGHTED cross-product volume.
+   * The two can differ for the same user.
+   */
+  fee_tier: z.number(),
+  /** Rate ladder for THIS product (spot bps differ from perp at every tier) */
+  fee_schedule: FeeScheduleSchema,
+  /** Effective taker rate for this product after any product-specific discount */
+  user_taker_rate: z.number(),
+  /** Effective maker rate for this product after any product-specific discount */
+  user_maker_rate: z.number(),
+  /** This product's own daily volume history for the fee window (raw USD, NOT weighted) */
+  daily_user_volume: z.array(DailyUserVolumeSchema),
+  /** Sum of `daily_user_volume` over the window (USD, whole-dollar integer string) */
+  total_window_volume_usd: z.string(),
+  /** Product-specific active referral discount (0.0 for spot, which has no referral program) */
+  active_referral_discount: z.number(),
+});
+
+/**
+ * Cross-product volume multipliers used to compute the unified fee tier.
+ * Mirrors on-chain `CrossProductVolumeWeights` (100 == 1.0x).
+ */
+export const VolumeWeightsSchema = z.object({
+  /** Perp volume multiplier (e.g. 1.0) */
+  perp: z.number(),
+  /** Spot volume multiplier (e.g. 2.0) */
+  spot: z.number(),
+});
+
+/**
+ * Response for `GET /api/v1/user_fee_rates?account=<address>`.
+ *
+ * The fee tier is CROSS-PRODUCT: computed from
+ * `perp_volume x volume_weights.perp + spot_volume x volume_weights.spot`
+ * and indexes into each product's own rate ladder. The top-level fields
+ * remain PERP-ONLY aliases of `perp.*` for backward compatibility; new
+ * consumers should read `perp` / `spot` explicitly.
+ */
 export const UserFeesSchema = z.object({
   /** The queried account address */
   account: z.string(),
-  /** Daily volume breakdown for the current on-chain fee window (ascending date order) */
+  /** Daily PERP volume breakdown for the fee window (back-compat alias of `perp.daily_user_volume`) */
   daily_user_volume: z.array(DailyUserVolumeSchema),
-  /** Fee schedule mirroring the current on-chain default tiers (all tiers) */
+  /** PERP fee schedule (back-compat alias of `perp.fee_schedule`) */
   fee_schedule: FeeScheduleSchema,
-  /** User's effective taker rate after referral discount (decimal) */
+  /** Effective PERP taker rate (back-compat alias of `perp.user_taker_rate`) */
   user_taker_rate: z.number(),
-  /** User's effective maker rate after referral discount (decimal) */
+  /** Effective PERP maker rate (back-compat alias of `perp.user_maker_rate`) */
   user_maker_rate: z.number(),
-  /** User's current fee tier index (0 = base tier) */
+  /** PERP fee tier index (0 = base tier); back-compat alias of `perp.fee_tier`. Spot's tier is `spot.fee_tier`. */
   fee_tier: z.number(),
-  /** Active referral discount fraction (0.0 if no referral or referrals disabled) */
+  /** Active PERP referral discount fraction (back-compat alias of `perp.active_referral_discount`) */
   active_referral_discount: z.number(),
+  /** Perp-side fee state (rates, ladder, raw volume history) */
+  perp: ProductFeeStateSchema.optional(), // TODO: Remove optional once back-end is deployed
+  /** Spot-side fee state (rates, ladder, raw volume history) */
+  spot: ProductFeeStateSchema.optional(), // TODO: Remove optional once back-end is deployed
+  /** Weighted cross-product volume driving `spot.fee_tier` (USD, whole-dollar integer string) */
+  weighted_volume_usd: z.string().optional(), // TODO: Remove optional once back-end is deployed
+  /** The multipliers used to compute `weighted_volume_usd` */
+  volume_weights: VolumeWeightsSchema.optional(), // TODO: Remove optional once back-end is deployed
 });
 
 export type DailyUserVolume = z.infer<typeof DailyUserVolumeSchema>;
@@ -83,4 +136,6 @@ export type VipTier = z.infer<typeof VipTierSchema>;
 export type MarketMakerTier = z.infer<typeof MarketMakerTierSchema>;
 export type FeeTiers = z.infer<typeof FeeTiersSchema>;
 export type FeeSchedule = z.infer<typeof FeeScheduleSchema>;
+export type ProductFeeState = z.infer<typeof ProductFeeStateSchema>;
+export type VolumeWeights = z.infer<typeof VolumeWeightsSchema>;
 export type UserFees = z.infer<typeof UserFeesSchema>;

@@ -35,6 +35,72 @@ export const SecondaryCollateralSchema = z.object({
 
 export type SecondaryCollateral = z.infer<typeof SecondaryCollateralSchema>;
 
+/** A non-USDC asset held in the subaccount's spot inventory (typically APT). */
+export const SpotPositionSchema = z.object({
+  /** FA metadata address for the held asset. */
+  asset_addr: z.string(),
+  /** Human-readable symbol from the spot market (e.g., "APT"); empty when the asset isn't a base of any registered market. */
+  asset_symbol: z.string(),
+  /** Balance normalized to human units (raw_balance / 10^decimals). */
+  amount: z.number(),
+  /** amount x current mark price (mid-of-orderbook, last trade as fallback). */
+  usd_value: z.number(),
+  /**
+   * Weighted-average cost basis for the currently-held amount, in USD.
+   * 0 when the asset was acquired without an on-book spot trade (e.g., FA transfer in).
+   */
+  entry_notional_usd: z.number(),
+  /** usd_value - entry_notional_usd. Negative when mark < average cost. */
+  unrealized_pnl_usd: z.number(),
+});
+
+/** An open spot order and the funds it reserves (USDC for bids, base asset for asks). */
+export const SpotInFlightOrderSchema = z.object({
+  market_addr: z.string(),
+  order_id: z.string(),
+  is_bid: z.boolean(),
+  /** FA metadata address for the reserved asset (quote for bids, base for asks). */
+  reserved_asset: z.string(),
+  /** Reserved amount in human units. */
+  reserved_amount: z.number(),
+  /** USDC-equivalent value at current mark. */
+  reserved_usd_value: z.number(),
+});
+
+/**
+ * Aggregate spot trading metrics for the subaccount, summed across assets.
+ * Fees are taker-attributed; realized PnL uses lifetime weighted-average cost basis.
+ */
+export const SpotMetricsSchema = z.object({
+  /** Cumulative spot volume traded (both taker and maker sides), USD. */
+  cumulative_volume_usd: z.number(),
+  /** Cumulative fees paid on fills where this account was the taker, USD. */
+  cumulative_taker_fees_usd: z.number(),
+  /** Cumulative fees paid on fills where this account was the maker, USD. */
+  cumulative_maker_fees_usd: z.number(),
+  /** Cumulative realized PnL from spot sells, USD. */
+  cumulative_realized_pnl_usd: z.number(),
+});
+
+/**
+ * Spot-tradable inventory for the subaccount. USDC is deliberately excluded
+ * from `positions` (it lives in CBS and is already counted in perp equity);
+ * `in_flight_orders` covers USDC locked in open spot orders.
+ */
+export const SpotOverviewSchema = z.object({
+  positions: z.array(SpotPositionSchema),
+  /** USDC-equivalent value of every position + reserved amounts in open spot orders. */
+  total_usd: z.number(),
+  in_flight_orders: z.array(SpotInFlightOrderSchema),
+  /** Absent when the subaccount has never traded spot. */
+  metrics: SpotMetricsSchema.nullable().optional(),
+});
+
+export type SpotPosition = z.infer<typeof SpotPositionSchema>;
+export type SpotInFlightOrder = z.infer<typeof SpotInFlightOrderSchema>;
+export type SpotMetrics = z.infer<typeof SpotMetricsSchema>;
+export type SpotOverview = z.infer<typeof SpotOverviewSchema>;
+
 export const AccountOverviewSchema = z.object({
   perp_equity_balance: z.number(),
   perp_equity_haircutted: z.number().optional(),
@@ -92,6 +158,11 @@ export const AccountOverviewSchema = z.object({
    * = max(0, raw_free_collateral − order_margin). Use this for "Available to Trade" display.
    */
   cross_available_to_trade: z.number().optional(), // TODO: Remove optional once back-end is deployed
+  /**
+   * Spot inventory + open-order reservations + trading metrics for this
+   * subaccount. NULL for wallet-only owners or when spot enrichment fails.
+   */
+  spot: SpotOverviewSchema.nullable().optional(), // TODO: Remove optional once back-end is deployed
 });
 
 export const AccountOverviewWsMessageSchema = z.object({
