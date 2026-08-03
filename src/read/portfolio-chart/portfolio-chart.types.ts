@@ -16,6 +16,15 @@ export const PortfolioChartPnlItemSchema = z.object({
     .nullable()
     .optional()
     .transform((v) => v ?? 0),
+  // Spot holdings value at this snapshot. NOT included in data_points (the
+  // canonical perp Portfolio Value); the "Perps + Spot" cut is
+  // data_points + spot_value. Absent for the pnl type and on pre-spot
+  // servers; 0 for history predating the spot recorder.
+  spot_value: z
+    .number()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? 0),
 });
 
 export const PortfolioChartSchema = z.array(PortfolioChartPnlItemSchema);
