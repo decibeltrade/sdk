@@ -1,6 +1,7 @@
 import { BaseReader, BaseRequestArgs } from "../base-reader";
 import {
   AccountReferralSchema,
+  AffiliateCodeAnalyticsResponseSchema,
   AffiliateCodesResponseSchema,
   AffiliateEarningsResponseSchema,
   RedeemReferralResponseSchema,
@@ -97,6 +98,21 @@ export class ReferralsReader extends BaseReader {
     const response = await this.getRequest({
       schema: AffiliateCodesResponseSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/affiliates/codes/${account}`,
+      options: fetchOptions,
+    });
+    return response.data;
+  }
+
+  /**
+   * Get per-code L1 analytics (volume + amps earned) for every affiliate code
+   * owned by an account. Split from `getAffiliateCodes` so the metadata endpoint
+   * (called on every page load via the global nav) doesn't pay the analytics
+   * JOIN cost.
+   */
+  async getAffiliateCodeAnalytics(account: string, { fetchOptions }: BaseRequestArgs = {}) {
+    const response = await this.getRequest({
+      schema: AffiliateCodeAnalyticsResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/affiliates/codes/${account}/analytics`,
       options: fetchOptions,
     });
     return response.data;

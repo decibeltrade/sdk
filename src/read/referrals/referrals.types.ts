@@ -74,6 +74,19 @@ export const AffiliateCodesResponseSchema = z.object({
   volume_threshold_met: z.boolean(),
 });
 
+// GET /api/v1/affiliates/codes/{account}/analytics
+export const AffiliateCodeAnalyticsSchema = z.object({
+  referral_code: z.string(),
+  l1_volume_usd: z.number(),
+  l1_amps_earned: z.number(),
+});
+
+// GET /api/v1/affiliates/codes/{account}/analytics
+export const AffiliateCodeAnalyticsResponseSchema = z.object({
+  owner_account: z.string(),
+  codes: z.array(AffiliateCodeAnalyticsSchema),
+});
+
 // GET /api/v1/affiliates/earnings/{account}
 export const AffiliateReferredUserSchema = z.object({
   account: z.string(),
@@ -111,6 +124,8 @@ export type UserReferral = z.infer<typeof UserReferralSchema>;
 export type UserReferralsResponse = z.infer<typeof UserReferralsResponseSchema>;
 export type AffiliateCode = z.infer<typeof AffiliateCodeSchema>;
 export type AffiliateCodesResponse = z.infer<typeof AffiliateCodesResponseSchema>;
+export type AffiliateCodeAnalytics = z.infer<typeof AffiliateCodeAnalyticsSchema>;
+export type AffiliateCodeAnalyticsResponse = z.infer<typeof AffiliateCodeAnalyticsResponseSchema>;
 export type AffiliateReferredUser = z.infer<typeof AffiliateReferredUserSchema>;
 export type AffiliateEarningsBreakdown = z.infer<typeof AffiliateEarningsBreakdownSchema>;
 export type AffiliateEarningsResponse = z.infer<typeof AffiliateEarningsResponseSchema>;
