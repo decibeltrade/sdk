@@ -1,7 +1,7 @@
 import { Account } from "@aptos-labs/ts-sdk";
 import { describe, expect, it } from "vitest";
 
-import { BaseSDK } from "./base";
+import { BaseSDK, configSupportsEncryptedSubmission } from "./base";
 import { DecibelConfig, NETNA_CONFIG } from "./constants";
 
 // Reach the private encryption gate + probe without a public seam. The probe is
@@ -42,5 +42,29 @@ describe("BaseSDK.canEncrypt", () => {
       gasStationAddress: undefined,
     });
     expect(await sdk.canEncrypt()).toBe(false);
+  });
+});
+
+describe("configSupportsEncryptedSubmission", () => {
+  it("is true when no gas station is configured (sender-paid)", () => {
+    expect(configSupportsEncryptedSubmission({ gasStationApiKey: undefined })).toBe(true);
+  });
+
+  it("is true when a gas station has a fee-payer address", () => {
+    expect(
+      configSupportsEncryptedSubmission({
+        gasStationApiKey: "test-key",
+        gasStationAddress: "0x1",
+      }),
+    ).toBe(true);
+  });
+
+  it("is false when a gas station is active but has no fee-payer address", () => {
+    expect(
+      configSupportsEncryptedSubmission({
+        gasStationApiKey: "test-key",
+        gasStationAddress: undefined,
+      }),
+    ).toBe(false);
   });
 });

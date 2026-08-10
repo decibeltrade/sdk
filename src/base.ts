@@ -89,6 +89,21 @@ function errorToMessage(error: unknown): string {
   return "Unknown error";
 }
 
+/**
+ * Whether a config permits encrypted submission at all, independent of the
+ * fullnode's capability. An encrypted txn bakes the literal fee-payer address
+ * into its AEAD associated data at build time, so a gas station without a known
+ * address can't sponsor one — see `gasStationAddress` in constants.ts.
+ *
+ * Exported so a host app can show the user the same answer the submit path will
+ * reach, instead of re-deriving the rule. `canEncrypt` is the SDK-side consumer.
+ */
+export function configSupportsEncryptedSubmission(
+  config: Pick<DecibelConfig, "gasStationApiKey" | "gasStationAddress">,
+): boolean {
+  return !config.gasStationApiKey || !!config.gasStationAddress;
+}
+
 const chainIdToAbi: Record<number, ABIData> = {};
 if (NETNA_CONFIG.chainId) chainIdToAbi[NETNA_CONFIG.chainId] = netnaAbis as ABIData;
 if (TESTNET_CONFIG.chainId) chainIdToAbi[TESTNET_CONFIG.chainId] = testnetAbis as ABIData;
@@ -197,16 +212,13 @@ export class BaseSDK {
   }
 
   // Single source of truth for "may we encrypt the next transaction?". Two gates:
-  //   1. the fullnode must expose an encryption key, and
-  //   2. a gas station, if active, must have a known fee-payer address.
-  // Unlike `buildTx` (which uses AccountAddress.ZERO as a fee-payer placeholder
-  // and lets the gas-station plugin fill it in at submit), an encrypted txn must
-  // bake the literal fee-payer address into its AEAD associated data at build
-  // time. So when a gas station is active but `gasStationAddress` is unset, we
-  // can't build a properly-sponsored encrypted txn — return false and let the
-  // caller fall back to the plaintext path, which the plugin handles correctly.
+  //   1. a gas station, if active, must have a known fee-payer address
+  //      (`configSupportsEncryptedSubmission`), and
+  //   2. the fullnode must expose an encryption key.
+  // When the config gate fails we return false and let the caller fall back to
+  // the plaintext path, which the gas-station plugin handles correctly.
   private async canEncrypt(): Promise<boolean> {
-    if (this.useGasStation && !this.config.gasStationAddress) return false;
+    if (!configSupportsEncryptedSubmission(this.config)) return false;
     return this.nodeSupportsEncryption();
   }
 

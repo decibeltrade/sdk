@@ -79,7 +79,13 @@ function bpsToChainUnits(bps: number): number {
 export class DecibelWriteDex extends BaseSDK {
   readonly cache: Cache;
   readonly orderStatusClient: OrderStatusClient;
-  private readonly defaultEncrypted: boolean;
+  /**
+   * Whether front-run-sensitive writes from this instance are submitted
+   * encrypted by default. Public so a host app can tell the user what the next
+   * write will actually do instead of maintaining its own copy of the decision.
+   * Still subject to the network-capability fallback in `sendEncryptedTx`.
+   */
+  readonly defaultEncrypted: boolean;
 
   constructor(config: DecibelConfig, account: Account, opts?: Options) {
     super(config, account, opts);

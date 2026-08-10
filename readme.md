@@ -157,6 +157,7 @@ const customConfig: DecibelConfig = {
   tradingWsUrl: "wss://api.testnet.aptoslabs.com/decibel/ws",
   gasStationUrl: "https://api.testnet.aptoslabs.com/gs/v1", // optional: enables gas sponsorship
   gasStationApiKey: "your-gas-station-api-key", // optional: enables gas sponsorship
+  gasStationAddress: "0x...", // optional: fee-payer address, required for encrypted submission
   deployment: {
     package: "0x...",
     usdc: "0x...",
@@ -506,8 +507,15 @@ const writeDex = new DecibelWriteDex(config, account, {
   skipSimulate: false,
   gasPriceManager,
   timeDeltaMs: 0,
+  defaultEncrypted: false,
 });
 ```
+
+`defaultEncrypted` decides whether front-run-sensitive writes are submitted as encrypted pending
+transactions; it is readable back off the instance as `writeDex.defaultEncrypted`. Encrypted
+submission requires a fullnode that exposes an encryption key, and — when a Gas Station is
+configured — a `gasStationAddress` in the config, because the fee payer is baked into the encrypted
+payload at build time. Check that ahead of time with `configSupportsEncryptedSubmission(config)`.
 
 ### Public write methods
 
