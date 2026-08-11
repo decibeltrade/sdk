@@ -1,7 +1,12 @@
+import { toAssetTypeParam } from "../asset-type.types";
 import { BaseReader } from "../base-reader";
 import {
+  UserBulkOrderFillsRequestArgs,
+  UserBulkOrderFillsSchema,
   UserBulkOrdersRequestArgs,
   UserBulkOrdersSchema,
+  UserBulkOrderStatusRequestArgs,
+  UserBulkOrderStatusSchema,
   UserBulkOrdersWsMessage,
   UserBulkOrdersWsMessageSchema,
 } from "./user-bulk-orders.types";
@@ -13,14 +18,88 @@ export class UserBulkOrdersReader extends BaseReader {
    * @param market Optional market address to filter by specific market
    * @returns The bulk orders for the given user
    */
-  async getByAddr({ subAddr, market, assetType, fetchOptions }: UserBulkOrdersRequestArgs) {
+  async getByAddr({
+    subAddr,
+    market,
+    assetType = "perp",
+    fetchOptions,
+  }: UserBulkOrdersRequestArgs) {
     const queryParams: Record<string, string> = { account: subAddr, market: market || "all" };
-    if (assetType !== undefined) {
-      queryParams.asset_type = assetType;
+    const assetTypeParam = toAssetTypeParam(assetType);
+    if (assetTypeParam !== undefined) {
+      queryParams.asset_type = assetTypeParam;
     }
     const response = await this.getRequest({
       schema: UserBulkOrdersSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/bulk_orders`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get the status of a single bulk order by (account, market, sequence number).
+   * @returns The bulk order with its placement status ("Placed" or "Rejected")
+   */
+  async getStatus({
+    subAddr,
+    market,
+    sequenceNumber,
+    assetType = "perp",
+    fetchOptions,
+  }: UserBulkOrderStatusRequestArgs) {
+    const response = await this.getRequest({
+      schema: UserBulkOrderStatusSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/bulk_order_status`,
+      queryParams: {
+        account: subAddr,
+        market,
+        sequence_number: sequenceNumber.toString(),
+        asset_type: assetType,
+      },
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get the fills of a user's bulk orders, optionally scoped to a market and
+   * a sequence number (or sequence number range).
+   * @returns Paginated bulk order fills
+   */
+  async getFills({
+    subAddr,
+    market,
+    sequenceNumber,
+    startSequenceNumber,
+    endSequenceNumber,
+    limit,
+    offset,
+    assetType = "perp",
+    fetchOptions,
+  }: UserBulkOrderFillsRequestArgs) {
+    const queryParams: Record<string, string> = { account: subAddr };
+    if (market !== undefined) queryParams.market = market;
+    if (sequenceNumber !== undefined) queryParams.sequence_number = sequenceNumber.toString();
+    if (startSequenceNumber !== undefined) {
+      queryParams.start_sequence_number = startSequenceNumber.toString();
+    }
+    if (endSequenceNumber !== undefined) {
+      queryParams.end_sequence_number = endSequenceNumber.toString();
+    }
+    if (limit !== undefined) queryParams.limit = limit.toString();
+    if (offset !== undefined) queryParams.offset = offset.toString();
+    const assetTypeParam = toAssetTypeParam(assetType);
+    if (assetTypeParam !== undefined) {
+      queryParams.asset_type = assetTypeParam;
+    }
+
+    const response = await this.getRequest({
+      schema: UserBulkOrderFillsSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/bulk_order_fills`,
       queryParams,
       options: fetchOptions,
     });

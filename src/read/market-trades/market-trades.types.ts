@@ -1,10 +1,20 @@
 import { z } from "zod/v4";
 
-import { AssetTypeSchema } from "../asset-type.types";
+import { AssetType, AssetTypeSchema } from "../asset-type.types";
 import { BaseRequestArgs } from "../base-reader";
 
 export interface MarketTradesRequestArgs extends BaseRequestArgs {
   marketName: string;
+  /**
+   * Product the market name belongs to (default "perp"). Perp and spot
+   * derive different addresses for the same name.
+   */
+  assetType?: AssetType;
+  limit?: number;
+}
+
+export interface MarketTradesByAddrRequestArgs extends BaseRequestArgs {
+  marketAddr: string;
   limit?: number;
 }
 

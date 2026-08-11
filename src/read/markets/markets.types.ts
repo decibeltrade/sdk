@@ -59,5 +59,34 @@ export const PerpMarketsSchema = z.array(PerpMarketSchema);
 export type MarketModeConfig = z.infer<typeof MarketModeConfigSchema>;
 export type PerpMarketConfig = z.infer<typeof PerpMarketConfigSchema>;
 export type MarketMode = z.infer<typeof MarketModeSchema>;
-export type PerpMarket = z.infer<typeof PerpMarketSchema>;
+
+/**
+ * A `/markets` row of either product. Use {@link isSpotMarket} /
+ * {@link isPerpMarket} (or `asset_type` directly) to narrow.
+ */
+export type Market = z.infer<typeof PerpMarketSchema>;
+
+/**
+ * A perp `/markets` row: `asset_type` is `"perp"`, or absent on API versions
+ * that predate spot support.
+ */
+export type PerpMarket = Market & { asset_type?: "perp" };
+
+/**
+ * A spot `/markets` row. Field semantics differ from perp:
+ * `sz_decimals` is the base-asset decimals and `px_decimals` the quote-asset
+ * decimals, while the perp-only fields are zeroed (`max_leverage: 0`,
+ * `max_open_interest: 0`) and `mode` is always `"Open"`.
+ */
+export type SpotMarket = Market & { asset_type: "spot" };
+
 export type PerpMarkets = z.infer<typeof PerpMarketsSchema>;
+
+export function isSpotMarket(market: Market): market is SpotMarket {
+  return market.asset_type === "spot";
+}
+
+/** Rows without `asset_type` (pre-spot API versions) are perp. */
+export function isPerpMarket(market: Market): market is PerpMarket {
+  return market.asset_type !== "spot";
+}

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { PerpMarketSchema } from "./markets/markets.types";
+import {
+  AccountOverviewSchema,
+  SpotOverviewSchema,
+} from "./account-overview/account-overview.types";
+import { MarketsGetAllArgs, MarketsReader } from "./markets/markets.reader";
+import { Market, PerpMarket, PerpMarketSchema } from "./markets/markets.types";
 import { UserOpenOrderSchema } from "./user-open-orders/user-open-orders.types";
 import { UserTradeSchema } from "./user-trade-history/user-trade-history.types";
 
@@ -100,5 +105,74 @@ describe("spot compatibility", () => {
     });
     expect(parsed.asset_type).toBe("spot");
     expect(parsed.time_in_force).toBe("GTC");
+  });
+
+  // Compile-time pin: every call shape that compiled on the pre-spot SDK must
+  // still compile. The overload set on markets.getAll must accept an argument
+  // typed MarketsGetAllArgs (includeSpot?: boolean, possibly undefined) — a
+  // dynamic-flag pattern real consumers use. This block never runs; it exists
+  // so ts:check fails if the overloads regress.
+  it("keeps pre-spot markets.getAll call shapes compiling", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const neverRuns = async (reader: MarketsReader, flag: boolean | undefined) => {
+      const perpOnly: PerpMarket[] = await reader.getAll();
+      const alsoPerp: PerpMarket[] = await reader.getAll({ includeSpot: false });
+      const union: Market[] = await reader.getAll({ includeSpot: true });
+      const args: MarketsGetAllArgs = { includeSpot: flag };
+      const dynamic: Market[] = await reader.getAll(args);
+      const inline: Market[] = await reader.getAll({ includeSpot: flag });
+      return { perpOnly, alsoPerp, union, dynamic, inline };
+    };
+    expect(typeof neverRuns).toBe("function");
+  });
+});
+
+describe("account overview spot holdings", () => {
+  const spotOverview = {
+    positions: [
+      {
+        asset_addr: "0xa",
+        asset_symbol: "APT",
+        amount: 10,
+        usd_value: 87.15,
+        entry_notional_usd: 82.4,
+        unrealized_pnl_usd: 4.75,
+      },
+    ],
+    total_usd: 872.3,
+    in_flight_orders: [
+      {
+        market_addr: "0xspot",
+        order_id: "1234",
+        is_bid: true,
+        reserved_asset: "0xusdc",
+        reserved_amount: 500,
+        reserved_usd_value: 500,
+      },
+    ],
+    metrics: {
+      cumulative_volume_usd: 24_580.1,
+      cumulative_taker_fees_usd: 12.29,
+      cumulative_maker_fees_usd: 4.1,
+      cumulative_realized_pnl_usd: 142.55,
+    },
+  };
+
+  it("parses the spot column when present", () => {
+    const parsed = SpotOverviewSchema.parse(spotOverview);
+    expect(parsed.positions[0]?.unrealized_pnl_usd).toBe(4.75);
+    expect(parsed.in_flight_orders[0]?.reserved_asset).toBe("0xusdc");
+    expect(parsed.metrics?.cumulative_volume_usd).toBe(24_580.1);
+  });
+
+  it("tolerates a missing metrics block (never traded)", () => {
+    const { metrics: _dropped, ...withoutMetrics } = spotOverview;
+    expect(SpotOverviewSchema.parse(withoutMetrics).metrics).toBeUndefined();
+  });
+
+  it("account overview accepts spot as present, null, or absent", () => {
+    expect(AccountOverviewSchema.shape.spot.parse(spotOverview)).toBeTruthy();
+    expect(AccountOverviewSchema.shape.spot.parse(null)).toBeNull();
+    expect(AccountOverviewSchema.shape.spot.parse(undefined)).toBeUndefined();
   });
 });

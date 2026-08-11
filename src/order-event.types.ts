@@ -54,10 +54,47 @@ export interface TwapEvent {
   client_order_id: OrderEventClientOrderId;
 }
 
+/**
+ * Emitted by `spot_pending_cbs_queue` when a spot order's funding requires a
+ * rate-limited CBS withdrawal: the transaction succeeds but the order is
+ * queued, not resting. It is placed once `process_pending_withdrawals`
+ * drains the request — poll `/orders?asset_type=spot` for the real
+ * acknowledgment.
+ */
+export interface SpotOrderPendingCbsEvent {
+  order_id: string;
+  withdraw_request_id: string;
+  subaccount_addr: string;
+  market: string | { inner: string };
+  price: string;
+  orig_size: string;
+  is_bid: boolean;
+  metadata: string | { inner: string };
+  pfs_balance: string;
+  created_at: string;
+}
+
 export type PlaceOrderResult =
   | {
       success: true;
       orderId: string | undefined;
+      transactionHash: string;
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
+export type PlaceSpotOrderResult =
+  | {
+      success: true;
+      orderId: string | undefined;
+      /**
+       * True when the order was queued behind a rate-limited CBS withdrawal
+       * ({@link SpotOrderPendingCbsEvent}) instead of reaching the book in
+       * this transaction. Poll the order endpoints for the real acknowledgment.
+       */
+      pendingCbs: boolean;
       transactionHash: string;
     }
   | {

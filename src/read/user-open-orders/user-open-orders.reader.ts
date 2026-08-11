@@ -1,3 +1,4 @@
+import { toAssetTypeParam } from "../asset-type.types";
 import { BaseReader } from "../base-reader";
 import {
   UserOpenOrdersRequestArgs,
@@ -12,7 +13,13 @@ export class UserOpenOrdersReader extends BaseReader {
    * @param subAddr The subaccount address of the user to get open orders for
    * @returns The open orders for the given user
    */
-  async getByAddr({ subAddr, limit, offset, assetType, fetchOptions }: UserOpenOrdersRequestArgs) {
+  async getByAddr({
+    subAddr,
+    limit,
+    offset,
+    assetType = "perp",
+    fetchOptions,
+  }: UserOpenOrdersRequestArgs) {
     const queryParams: Record<string, string> = {
       account: subAddr,
     };
@@ -22,8 +29,9 @@ export class UserOpenOrdersReader extends BaseReader {
     if (offset !== undefined) {
       queryParams.offset = offset.toString();
     }
-    if (assetType !== undefined) {
-      queryParams.asset_type = assetType;
+    const assetTypeParam = toAssetTypeParam(assetType);
+    if (assetTypeParam !== undefined) {
+      queryParams.asset_type = assetTypeParam;
     }
 
     const response = await this.getRequest({

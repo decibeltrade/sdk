@@ -83,9 +83,10 @@ export const SpotMetricsSchema = z.object({
 });
 
 /**
- * Spot-tradable inventory for the subaccount. USDC is deliberately excluded
- * from `positions` (it lives in CBS and is already counted in perp equity);
- * `in_flight_orders` covers USDC locked in open spot orders.
+ * Spot-tradable inventory for the subaccount: assets held in the PFS,
+ * including USDC as a PnL-less position (see the Rust
+ * `spot_overview_includes_pfs_usdc_as_pnlless_position` test);
+ * `in_flight_orders` covers amounts locked in open spot orders.
  */
 export const SpotOverviewSchema = z.object({
   positions: z.array(SpotPositionSchema),

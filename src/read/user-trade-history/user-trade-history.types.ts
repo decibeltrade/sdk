@@ -1,6 +1,6 @@
 import z from "zod/v4";
 
-import { AssetType, AssetTypeSchema } from "../asset-type.types";
+import { AssetTypeFilter, AssetTypeSchema } from "../asset-type.types";
 import { BaseRequestArgs } from "../base-reader";
 import { HistoryFilterParams, PaginatedResponseSchema } from "../pagination.types";
 
@@ -9,12 +9,12 @@ export interface UserTradeHistoryRequestArgs extends BaseRequestArgs, HistoryFil
   limit?: number;
   offset?: number;
   /**
-   * Server-side product filter. Omitted = the server unions perp and spot
-   * (each row carries `asset_type`); pass `"perp"` or `"spot"` to scope
-   * pagination to one product. Only send against servers that support spot
-   * on /trade_history; older servers reject unknown params with a 400.
+   * Server-side product filter (default `"perp"`). Pass `"spot"` to scope
+   * the response (and its pagination) to spot, or `"all"` to omit the param
+   * and receive perp and spot merged — each row then carries `asset_type`
+   * for client-side demux.
    */
-  assetType?: AssetType;
+  assetType?: AssetTypeFilter;
 }
 
 export const UserTradeSchema = z.object({

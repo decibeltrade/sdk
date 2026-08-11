@@ -29,6 +29,7 @@ export * from "./user-funding-history/user-funding-history.types";
 export * from "./user-notifications/user-notifications.types";
 export * from "./user-open-orders/user-open-orders.types";
 export * from "./user-order-history/user-order-history.types";
+export * from "./user-orders/user-orders.types";
 export * from "./user-positions/user-positions.types";
 export * from "./user-subaccounts/user-subaccounts.types";
 export * from "./user-trade-history/user-trade-history.types";

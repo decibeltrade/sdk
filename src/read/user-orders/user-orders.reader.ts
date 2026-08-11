@@ -1,0 +1,32 @@
+import { BaseReader } from "../base-reader";
+import { UserOrderRequestArgs, UserOrderUpdateSchema } from "./user-orders.types";
+
+export class UserOrdersReader extends BaseReader {
+  /**
+   * Get a single order by `orderId` (perp + spot) or `clientOrderId`
+   * (perp only).
+   * @returns The order with its latest status and details
+   */
+  async getOrder({
+    subAddr,
+    market,
+    orderId,
+    clientOrderId,
+    assetType,
+    fetchOptions,
+  }: UserOrderRequestArgs) {
+    const queryParams: Record<string, string> = { account: subAddr, market };
+    if (orderId !== undefined) queryParams.order_id = orderId;
+    if (clientOrderId !== undefined) queryParams.client_order_id = clientOrderId;
+    if (assetType !== undefined) queryParams.asset_type = assetType;
+
+    const response = await this.getRequest({
+      schema: UserOrderUpdateSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/orders`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+}

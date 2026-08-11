@@ -1,4 +1,5 @@
-import { getMarketAddr } from "../../utils";
+import { getMarketAddrForProduct } from "../../utils";
+import { AssetType } from "../asset-type.types";
 import { BaseReader } from "../base-reader";
 import { MarketDepth, MarketDepthAggregationSize, MarketDepthSchema } from "./market-depth.types";
 
@@ -22,24 +23,50 @@ export class MarketDepthReader extends BaseReader {
   // }
 
   /**
-   * Subscribe to market depth updates for a given market ID
+   * Subscribe to market depth updates for a given market
    * @param marketName The name of the market to subscribe to
    * @param onData Callback function for received market depth data
+   * @param assetType Product the name belongs to (default perp) — perp and
+   * spot derive different addresses for the same name
    * @returns A function to unsubscribe from the market depth updates
    */
   subscribeByName(
     marketName: string,
     aggregationSize: MarketDepthAggregationSize,
     onData: (data: MarketDepth) => void,
+    assetType: AssetType = "perp",
   ) {
-    const marketAddr = getMarketAddr(marketName, this.deps.config.deployment.perpEngineGlobal);
+    const marketAddr = getMarketAddrForProduct(marketName, assetType, this.deps.config.deployment);
+    return this.subscribeByAddr(marketAddr.toString(), aggregationSize, onData);
+  }
+
+  /**
+   * Subscribe to market depth updates for a given market address (skips
+   * name→address derivation; the address already encodes the product)
+   * @param marketAddr The address of the market to subscribe to
+   * @param onData Callback function for received market depth data
+   * @returns A function to unsubscribe from the market depth updates
+   */
+  subscribeByAddr(
+    marketAddr: string,
+    aggregationSize: MarketDepthAggregationSize,
+    onData: (data: MarketDepth) => void,
+  ) {
     const topic = `depth:${marketAddr}:${aggregationSize}`;
 
     return this.deps.ws.subscribe(topic, MarketDepthSchema, onData);
   }
 
-  resetSubscriptionByName(marketName: string, aggregationSize: MarketDepthAggregationSize = 1) {
-    const marketAddr = getMarketAddr(marketName, this.deps.config.deployment.perpEngineGlobal);
+  resetSubscriptionByName(
+    marketName: string,
+    aggregationSize: MarketDepthAggregationSize = 1,
+    assetType: AssetType = "perp",
+  ) {
+    const marketAddr = getMarketAddrForProduct(marketName, assetType, this.deps.config.deployment);
+    this.resetSubscriptionByAddr(marketAddr.toString(), aggregationSize);
+  }
+
+  resetSubscriptionByAddr(marketAddr: string, aggregationSize: MarketDepthAggregationSize = 1) {
     const topic = `depth:${marketAddr}:${aggregationSize}`;
 
     this.deps.ws.reset(topic);

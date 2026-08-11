@@ -31,6 +31,7 @@ const SDK_MODULES = [
   "vault_api",
   "dex_accounts_vault_extension",
   "dex_accounts_entry",
+  "dex_accounts_spot_entry",
 ];
 
 // Funded First Trade modules, fetched from `config.deployment.campaignPackage` when set.

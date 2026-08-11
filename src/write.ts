@@ -15,7 +15,13 @@ import {
   buildSettleTrialPayload,
   BuildSettleTrialPayloadArgs,
 } from "./funded-first-trade/payloads";
-import { OrderEvent, PlaceOrderResult, TwapEvent } from "./order-event.types";
+import {
+  OrderEvent,
+  PlaceOrderResult,
+  PlaceSpotOrderResult,
+  SpotOrderPendingCbsEvent,
+  TwapEvent,
+} from "./order-event.types";
 import { OrderStatusClient } from "./order-status";
 import {
   ActivateVaultArgs,
@@ -24,7 +30,7 @@ import {
   WithdrawFromVaultArgs,
 } from "./read";
 import { RenameSubaccountArgs, RenameSubaccountSchema } from "./subaccount-types";
-import { getMarketAddr, getPrimarySubaccountAddr, postRequest } from "./utils";
+import { getMarketAddr, getPrimarySubaccountAddr, getSpotMarketAddr, postRequest } from "./utils";
 
 export const TimeInForce = {
   GoodTillCanceled: 0,
@@ -40,6 +46,26 @@ interface Cache {
 type WithSignerAddress<T> = T & {
   signerAddress: AccountAddress;
 };
+
+/** Spot markets are addressed by name (derived) or by object address directly. */
+export type SpotMarketRef = { marketName: string } | { marketAddr: string };
+
+/**
+ * Compare two account addresses regardless of representation (short vs
+ * zero-padded long form, case). Event payloads and caller-supplied addresses
+ * don't always agree on format. Falls back to exact string equality if
+ * either side isn't parseable as an address.
+ */
+function addressesEqual(a: string, b: string): boolean {
+  try {
+    // maxMissingChars: 63 accepts any short-form address (the SDK default of
+    // 4 rejects addresses with more than 4 leading zeros stripped).
+    const opts = { maxMissingChars: 63 };
+    return AccountAddress.from(a, opts).equals(AccountAddress.from(b, opts));
+  } catch {
+    return a === b;
+  }
+}
 
 /** Per-call submission concerns shared by every subaccount-scoped write method. */
 export interface WriteSubmissionOpts extends SendTxOpts {
@@ -62,6 +88,20 @@ export interface WriteSubmissionOpts extends SendTxOpts {
 function roundToTickSize(price: number, tickSize: number): number {
   if (price === 0 || tickSize === 0) return 0;
   return Math.round(price / tickSize) * tickSize;
+}
+
+/**
+ * Round a price to the tick in the SIDE-SAFE direction for a limit/IOC
+ * bound: buys round down (never pay above the caller's cap), sells round up
+ * (never accept below the caller's floor). Nearest-tick rounding would let a
+ * non-aligned cap cross the user's configured limit/slippage. The epsilon
+ * absorbs IEEE-754 division noise so an already-aligned price stays put.
+ */
+function roundToTickSizeForSide(price: number, tickSize: number, isBuy: boolean): number {
+  if (price === 0 || tickSize === 0) return 0;
+  const ticks = price / tickSize;
+  const rounded = isBuy ? Math.floor(ticks + 1e-9) : Math.ceil(ticks - 1e-9);
+  return rounded * tickSize;
 }
 
 /**
@@ -503,6 +543,281 @@ export class DecibelWriteDex extends BaseSDK {
         encrypted: args.encrypted,
       },
     );
+  }
+
+  // ======= SPOT TRADING =======
+  //
+  // All spot methods are subaccount-scoped (defaulting to the signer's primary
+  // subaccount), mirroring the perp write surface. The wallet-direct entry
+  // functions (`place_spot_order`, `place_spot_bulk_order`, ...) are not
+  // exposed here.
+
+  private resolveSpotMarketAddr(ref: SpotMarketRef): string {
+    return "marketName" in ref
+      ? getSpotMarketAddr(ref.marketName, this.config.deployment.package).toString()
+      : ref.marketAddr;
+  }
+
+  /**
+   * Spot placement is CBS-backed and async: when funding needs a rate-limited
+   * CBS withdrawal the transaction succeeds but the order is only queued
+   * (SpotOrderPendingCbsEvent) rather than resting (OrderEvent).
+   */
+  private extractSpotOrderPlacement(
+    txResponse: CommittedTransactionResponse,
+    subaccountAddr?: string,
+  ): { orderId: string | undefined; pendingCbs: boolean } {
+    const expectedSubaccount =
+      subaccountAddr ?? this.getPrimarySubaccountAddress(this.account.accountAddress);
+    if ("events" in txResponse && Array.isArray(txResponse.events)) {
+      for (const event of txResponse.events) {
+        if (event.type.includes("market_types::OrderEvent")) {
+          const data = event.data as OrderEvent;
+          if (addressesEqual(data.user, expectedSubaccount)) {
+            return { orderId: data.order_id, pendingCbs: false };
+          }
+        }
+        if (event.type.includes("spot_pending_cbs_queue::SpotOrderPendingCbsEvent")) {
+          const data = event.data as SpotOrderPendingCbsEvent;
+          if (addressesEqual(data.subaccount_addr, expectedSubaccount)) {
+            return { orderId: data.order_id, pendingCbs: true };
+          }
+        }
+      }
+    }
+    return { orderId: undefined, pendingCbs: false };
+  }
+
+  async placeSpotOrder(
+    args: {
+      price: number;
+      size: number;
+      isBuy: boolean;
+      timeInForce: TimeInForce;
+      builderAddr?: string;
+      builderFee?: number;
+      /** Market tick size for price rounding. If not provided, no rounding is applied. */
+      tickSize?: number;
+    } & SpotMarketRef &
+      WriteSubmissionOpts,
+  ): Promise<PlaceSpotOrderResult> {
+    try {
+      const marketAddr = this.resolveSpotMarketAddr(args);
+      // Side-safe, not nearest: spot prices are limit/IOC bounds, so rounding
+      // must never cross the caller's cap (buy) or floor (sell).
+      const price = args.tickSize
+        ? roundToTickSizeForSide(args.price, args.tickSize, args.isBuy)
+        : args.price;
+
+      const txResponse = await this.submitSubaccountTx(
+        (subaccountAddr) => ({
+          function: `${this.config.deployment.package}::dex_accounts_spot_entry::place_spot_order_to_subaccount`,
+          typeArguments: [],
+          functionArguments: [
+            subaccountAddr,
+            marketAddr,
+            price,
+            args.size,
+            args.isBuy,
+            args.timeInForce,
+            args.builderAddr,
+            args.builderFee !== undefined ? bpsToChainUnits(args.builderFee) : undefined,
+          ],
+        }),
+        {
+          subaccountAddr: args.subaccountAddr,
+          accountOverride: args.accountOverride,
+          encrypted: args.encrypted,
+        },
+      );
+
+      const { orderId, pendingCbs } = this.extractSpotOrderPlacement(
+        txResponse,
+        args.subaccountAddr,
+      );
+      return { success: true, orderId, pendingCbs, transactionHash: txResponse.hash };
+    } catch (error) {
+      console.error("Error placing spot order:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
+  async cancelSpotOrder(args: { orderId: number | string } & SpotMarketRef & WriteSubmissionOpts) {
+    const marketAddr = this.resolveSpotMarketAddr(args);
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_spot_entry::cancel_spot_order_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, marketAddr, BigInt(args.orderId.toString())],
+      }),
+      {
+        subaccountAddr: args.subaccountAddr,
+        accountOverride: args.accountOverride,
+        encrypted: args.encrypted,
+      },
+    );
+  }
+
+  /**
+   * Place (or replace) a spot bulk order. Funds are sourced from the
+   * subaccount's PFS only — the transaction aborts if the PFS is short on
+   * either side. `sequenceNumber` must be strictly increasing per market.
+   */
+  async placeSpotBulkOrder(
+    args: {
+      sequenceNumber: number;
+      bidPrices: number[];
+      bidSizes: number[];
+      askPrices: number[];
+      askSizes: number[];
+      builderAddr?: string;
+      builderFee?: number;
+    } & SpotMarketRef &
+      WriteSubmissionOpts,
+  ) {
+    const marketAddr = this.resolveSpotMarketAddr(args);
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_spot_entry::place_spot_bulk_order_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [
+          subaccountAddr,
+          marketAddr,
+          args.sequenceNumber,
+          args.bidPrices,
+          args.bidSizes,
+          args.askPrices,
+          args.askSizes,
+          args.builderAddr,
+          args.builderFee !== undefined ? bpsToChainUnits(args.builderFee) : undefined,
+        ],
+      }),
+      {
+        subaccountAddr: args.subaccountAddr,
+        accountOverride: args.accountOverride,
+        encrypted: args.encrypted,
+      },
+    );
+  }
+
+  async cancelSpotBulkOrder(args: SpotMarketRef & WriteSubmissionOpts) {
+    const marketAddr = this.resolveSpotMarketAddr(args);
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_spot_entry::cancel_spot_bulk_order_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, marketAddr],
+      }),
+      {
+        subaccountAddr: args.subaccountAddr,
+        accountOverride: args.accountOverride,
+        encrypted: args.encrypted,
+      },
+    );
+  }
+
+  async cancelSpotBulkOrderAtPriceLevel(
+    args: { price: number; isBuy: boolean } & SpotMarketRef & WriteSubmissionOpts,
+  ) {
+    const marketAddr = this.resolveSpotMarketAddr(args);
+    return await this.submitSubaccountTx(
+      (subaccountAddr) => ({
+        function: `${this.config.deployment.package}::dex_accounts_spot_entry::cancel_spot_bulk_order_at_price_level_to_subaccount`,
+        typeArguments: [],
+        functionArguments: [subaccountAddr, marketAddr, args.price, args.isBuy],
+      }),
+      {
+        subaccountAddr: args.subaccountAddr,
+        accountOverride: args.accountOverride,
+        encrypted: args.encrypted,
+      },
+    );
+  }
+
+  /**
+   * Approve a per-builder max fee for spot orders from this subaccount.
+   * Unlike perp, the builder address may be a subaccount or a primary wallet.
+   * @param maxFee The maximum fee in basis points (e.g. 10 = 0.1%)
+   */
+  async approveMaxSpotBuilderFee({
+    builderAddr,
+    maxFee,
+    subaccountAddr,
+  }: {
+    builderAddr: string;
+    maxFee: number;
+    subaccountAddr?: string;
+  }) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::dex_accounts_spot_entry::approve_max_spot_builder_fee_for_subaccount`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, builderAddr, bpsToChainUnits(maxFee)],
+        }),
+      subaccountAddr,
+    );
+  }
+
+  /** Revoke a prior spot builder-fee approval made by the subaccount. */
+  async revokeMaxSpotBuilderFee({
+    builderAddr,
+    subaccountAddr,
+  }: {
+    builderAddr: string;
+    subaccountAddr?: string;
+  }) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::dex_accounts_spot_entry::revoke_max_spot_builder_fee_for_subaccount`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, builderAddr],
+        }),
+      subaccountAddr,
+    );
+  }
+
+  /**
+   * Set HOLD_AS_NON_COLLATERAL for an asset on the subaccount. When enabled,
+   * future deposits of the asset stay in the PFS (non-collateral) instead of
+   * routing into CBS collateral. Flag-only: existing balances are not moved.
+   */
+  async setHoldAsNonCollateral({
+    assetAddr,
+    hold,
+    subaccountAddr,
+  }: {
+    assetAddr: string;
+    hold: boolean;
+    subaccountAddr?: string;
+  }) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::dex_accounts_spot_entry::set_hold_as_non_collateral_for_subaccount`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, assetAddr, hold],
+        }),
+      subaccountAddr,
+    );
+  }
+
+  /** Crank pending async spot matching requests — permissionless, no subaccount. */
+  async processSpotPendingRequests(args: { maxFills: number } & SpotMarketRef) {
+    const marketAddr = this.resolveSpotMarketAddr(args);
+    const txResponse = await this.sendTx({
+      function: `${this.config.deployment.package}::dex_accounts_spot_entry::process_spot_pending_requests`,
+      typeArguments: [],
+      functionArguments: [marketAddr, args.maxFills],
+    });
+    return {
+      success: true,
+      transactionHash: txResponse.hash,
+    };
   }
 
   async delegateTradingToForSubaccount({

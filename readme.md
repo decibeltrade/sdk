@@ -206,6 +206,13 @@ await readDex.usdcBalance("0x123...");
 // Get account balance
 await readDex.accountBalance("0x123...");
 
+// Read on-chain fungible-asset metadata (symbol, decimals, name) for any
+// asset address — e.g. entries in account_overview.secondary_collateral
+await readDex.fungibleAssetMetadata("0x...asset_metadata");
+
+// Resolve a spot market's base/quote asset addresses (not exposed by /markets)
+await readDex.spotMarketAssets("0x...spot_market");
+
 // Get position size
 await readDex.positionSize("0x123...", "metadata_address");
 
@@ -218,8 +225,13 @@ await readDex.getCrossedPosition("0x123...");
 Access market information and configuration.
 
 ```typescript
-// Get all available markets
+// Get all available perp markets
 const markets = await readDex.markets.getAll();
+
+// Include spot markets too (rows are discriminated by asset_type), or get
+// spot markets alone. Narrow union rows with isSpotMarket / isPerpMarket.
+const allMarkets = await readDex.markets.getAll({ includeSpot: true });
+const spotMarkets = await readDex.markets.getAllSpot();
 
 // Get specific market by name
 const market = await readDex.markets.getByName("BTC-USD");
@@ -291,13 +303,26 @@ const unsubscribe = readDex.userPositions.subscribeByAddr("subaccount_address", 
 
 ### User Orders
 
-Query open orders and order history.
+Query open orders and order history. The order endpoints serve perp and spot
+on shared routes with a per-row `asset_type` discriminator; the list readers
+default to `assetType: "perp"`. Pass `"spot"` to scope to spot, or `"all"` to
+receive both products merged.
 
 #### Open Orders
 
 ```typescript
-// Get open orders
-const openOrders = await readDex.userOpenOrders.getByAddr("subaccount_address");
+// Get open orders (perp by default)
+const openOrders = await readDex.userOpenOrders.getByAddr({ subAddr: "subaccount_address" });
+
+// Spot only, or both products merged
+const spotOrders = await readDex.userOpenOrders.getByAddr({
+  subAddr: "subaccount_address",
+  assetType: "spot",
+});
+const allOrders = await readDex.userOpenOrders.getByAddr({
+  subAddr: "subaccount_address",
+  assetType: "all",
+});
 
 // Subscribe to open orders updates
 const unsubscribe = readDex.userOpenOrders.subscribeByAddr("subaccount_address", (data) =>
@@ -308,10 +333,9 @@ const unsubscribe = readDex.userOpenOrders.subscribeByAddr("subaccount_address",
 #### Order History
 
 ```typescript
-// Get order history
+// Get order history (perp by default; assetType works as above)
 const orderHistory = await readDex.userOrderHistory.getByAddr({
   subAddr: "subaccount_address",
-  marketAddr: "market_address", // optional
   limit: 50,
 });
 
@@ -321,22 +345,59 @@ const unsubscribe = readDex.userOrderHistory.subscribeByAddr("subaccount_address
 );
 ```
 
+#### Single Order Lookup
+
+```typescript
+// Look up one order by orderId (perp + spot) or clientOrderId (perp only).
+// assetType defaults to unset: the API checks perp first, then spot.
+const order = await readDex.userOrders.getOrder({
+  subAddr: "subaccount_address",
+  market: "market_address",
+  orderId: "42",
+});
+```
+
+#### Bulk Orders
+
+```typescript
+// Get bulk orders (perp by default; assetType works as above)
+const bulkOrders = await readDex.userBulkOrders.getByAddr({ subAddr: "subaccount_address" });
+
+// Placement status of one bulk order by sequence number
+const status = await readDex.userBulkOrders.getStatus({
+  subAddr: "subaccount_address",
+  market: "market_address",
+  sequenceNumber: 7,
+});
+
+// Bulk order fills (optionally by market and sequence number range)
+const fills = await readDex.userBulkOrders.getFills({
+  subAddr: "subaccount_address",
+  startSequenceNumber: 5,
+  endSequenceNumber: 9,
+});
+```
+
 ### Market Data
 
 #### Market Depth (Order Book)
 
 ```typescript
-// Get market depth
-const depth = await readDex.marketDepth.getByName("BTC-USD", 100); // limit = 100
-const depth = await readDex.marketDepth.getBySymbol("BTC-PERP", { depth: 100 });
-
-// Subscribe to depth updates
-const unsubscribe = readDex.marketDepth.subscribeByName("BTC-USD", (data) =>
+// Subscribe to depth updates (aggregationSize buckets price levels)
+const unsubscribe = readDex.marketDepth.subscribeByName("BTC-USD", 1, (data) =>
   console.log("Depth update:", data),
 );
 
+// Spot markets derive a different address than perp markets with the same
+// name, so pass the asset type (defaults to "perp")
+const unsubSpot = readDex.marketDepth.subscribeByName("APT/USDC", 1, onDepth, "spot");
+
+// Or skip name→address derivation when you already hold the market address
+const unsubByAddr = readDex.marketDepth.subscribeByAddr(market.market_addr, 1, onDepth);
+
 // Reset subscription (clear cached data)
-readDex.marketDepth.resetSubscriptionByName("BTC-USD");
+readDex.marketDepth.resetSubscriptionByName("BTC-USD", 1);
+readDex.marketDepth.resetSubscriptionByAddr(market.market_addr, 1);
 ```
 
 #### Market Prices
@@ -356,12 +417,23 @@ const unsubscribe = readDex.marketPrices.subscribeByName("BTC-USD", (data) =>
 
 ```typescript
 // Get recent trades
-const trades = await readDex.marketTrades.getByName("BTC-USD", 50); // limit = 50
+const trades = await readDex.marketTrades.getByName({ marketName: "BTC-USD", limit: 50 });
+
+// Spot markets: pass assetType (defaults to "perp")
+const spotTrades = await readDex.marketTrades.getByName({
+  marketName: "APT/USDC",
+  assetType: "spot",
+});
+
+// Or skip name→address derivation when you already hold the market address
+const tradesByAddr = await readDex.marketTrades.getByAddr({ marketAddr: market.market_addr });
 
 // Subscribe to trade updates
 const unsubscribe = readDex.marketTrades.subscribeByName("BTC-USD", (data) =>
   console.log("Trade update:", data),
 );
+const unsubSpot = readDex.marketTrades.subscribeByName("APT/USDC", onTrades, "spot");
+const unsubByAddr = readDex.marketTrades.subscribeByAddr(market.market_addr, onTrades);
 ```
 
 #### Candlesticks
@@ -369,18 +441,32 @@ const unsubscribe = readDex.marketTrades.subscribeByName("BTC-USD", (data) =>
 ```typescript
 import { CandlestickInterval } from "@decibeltrade/sdk";
 
-// Get historical candlestick data
-const candlesticks = await readDex.candlesticks.getByName(
-  "BTC-USD",
-  CandlestickInterval.MINUTE_1,
-  startTimestamp,
-  endTimestamp,
-);
+// Get historical candlestick data (assetType defaults to "perp"; pass "spot"
+// for spot markets — perp and spot derive different addresses for the same name)
+const candlesticks = await readDex.candlesticks.getByName({
+  marketName: "BTC-USD",
+  interval: CandlestickInterval.OneMinute,
+  startTime: startTimestamp,
+  endTime: endTimestamp,
+});
+
+// Or skip name→address derivation when you already hold the market address
+const byAddr = await readDex.candlesticks.getByAddr({
+  marketAddr: market.market_addr,
+  interval: CandlestickInterval.OneMinute,
+  startTime: startTimestamp,
+  endTime: endTimestamp,
+});
 
 // Subscribe to candlestick updates
 const unsubscribe = readDex.candlesticks.subscribeByName(
   "BTC-USD",
-  CandlestickInterval.MINUTE_1,
+  CandlestickInterval.OneMinute,
+  (data) => console.log("Candlestick update:", data),
+);
+const unsubByAddr = readDex.candlesticks.subscribeByAddr(
+  market.market_addr,
+  CandlestickInterval.OneMinute,
   (data) => console.log("Candlestick update:", data),
 );
 ```
@@ -539,6 +625,16 @@ payload at build time. Check that ahead of time with `configSupportsEncryptedSub
   `cancelBulkOrder`,
   `updateOrder`,
   `cancelTwapOrder`
+- Spot trading:
+  `placeSpotOrder`,
+  `cancelSpotOrder`,
+  `placeSpotBulkOrder`,
+  `cancelSpotBulkOrder`,
+  `cancelSpotBulkOrderAtPriceLevel`,
+  `approveMaxSpotBuilderFee`,
+  `revokeMaxSpotBuilderFee`,
+  `setHoldAsNonCollateral`,
+  `processSpotPendingRequests`
 - Position TP/SL:
   `placeTpSlOrderForPosition`,
   `updateTpOrderForPosition`,
@@ -745,6 +841,72 @@ await writeDex.updateOrder({
   tpTriggerPrice: amountToChainUnits(47_000, market.px_decimals),
   tpLimitPrice: amountToChainUnits(46_900, market.px_decimals),
 });
+```
+
+### Spot Trading
+
+All spot methods are subaccount-scoped (defaulting to the primary Trading Account) and accept `marketName` or `marketAddr`, like `cancelOrder`.
+
+```typescript
+import { TimeInForce } from "@decibeltrade/sdk";
+
+const spotMarkets = await readDex.markets.getAllSpot();
+const spotMarket = spotMarkets.find((m) => m.market_name === "APT/USDC");
+if (!spotMarket) throw new Error("Market not found");
+
+// Place a spot limit order. On spot markets sz_decimals is the base-asset
+// decimals and px_decimals the quote-asset decimals.
+const spotResult = await writeDex.placeSpotOrder({
+  marketName: "APT/USDC",
+  price: amountToChainUnits(4.25, spotMarket.px_decimals),
+  size: amountToChainUnits(100, spotMarket.sz_decimals),
+  isBuy: true,
+  timeInForce: TimeInForce.GoodTillCanceled,
+  tickSize: spotMarket.tick_size, // optional price snapping
+});
+
+// Spot placement is CBS-backed and async: when funding needs a rate-limited
+// CBS withdrawal the transaction succeeds but the order is queued, not
+// resting. `pendingCbs: true` signals this — poll the order endpoints
+// (e.g. readDex.userOrders.getOrder) for the real acknowledgment.
+if (spotResult.success && spotResult.pendingCbs) {
+  console.log("Order queued behind a CBS withdrawal", spotResult.orderId);
+}
+
+// Cancel a spot order
+if (spotResult.success && spotResult.orderId) {
+  await writeDex.cancelSpotOrder({
+    orderId: spotResult.orderId,
+    marketName: "APT/USDC",
+  });
+}
+
+// Spot bulk orders (funded from the subaccount PFS only)
+await writeDex.placeSpotBulkOrder({
+  marketName: "APT/USDC",
+  sequenceNumber: 1, // strictly increasing per market
+  bidPrices: [amountToChainUnits(4.2, spotMarket.px_decimals)],
+  bidSizes: [amountToChainUnits(50, spotMarket.sz_decimals)],
+  askPrices: [amountToChainUnits(4.3, spotMarket.px_decimals)],
+  askSizes: [amountToChainUnits(50, spotMarket.sz_decimals)],
+});
+
+await writeDex.cancelSpotBulkOrderAtPriceLevel({
+  marketName: "APT/USDC",
+  price: amountToChainUnits(4.2, spotMarket.px_decimals),
+  isBuy: true,
+});
+
+await writeDex.cancelSpotBulkOrder({ marketName: "APT/USDC" });
+
+// Spot builder fees (basis points). Unlike perp, the builder address may be
+// a subaccount or a primary wallet.
+await writeDex.approveMaxSpotBuilderFee({ builderAddr: "0x...builder", maxFee: 10 });
+await writeDex.revokeMaxSpotBuilderFee({ builderAddr: "0x...builder" });
+
+// Keep future deposits of an asset in the PFS (non-collateral) instead of
+// routing them into CBS collateral. Flag-only: existing balances don't move.
+await writeDex.setHoldAsNonCollateral({ assetAddr: "0x...asset_metadata", hold: true });
 ```
 
 ### Position Management
@@ -967,7 +1129,7 @@ All read operations that support real-time updates return an unsubscribe functio
 
 ```typescript
 // Subscribe to multiple streams
-const unsubscribeDepth = readDex.marketDepth.subscribeByName("BTC-USD", handleDepth);
+const unsubscribeDepth = readDex.marketDepth.subscribeByName("BTC-USD", 1, handleDepth);
 const unsubscribePrices = readDex.marketPrices.subscribeByName("BTC-USD", handlePrices);
 const unsubscribeOrders = readDex.userOpenOrders.subscribeByAddr("subaccount", handleOrders);
 
@@ -1055,7 +1217,7 @@ class TradingBot {
   async start() {
     // Subscribe to market data
     this.readDex.marketPrices.subscribeByName("BTC-USD", this.handlePriceUpdate.bind(this));
-    this.readDex.marketDepth.subscribeByName("BTC-USD", this.handleDepthUpdate.bind(this));
+    this.readDex.marketDepth.subscribeByName("BTC-USD", 1, this.handleDepthUpdate.bind(this));
 
     // Subscribe to account updates
     this.readDex.userPositions.subscribeByAddr(

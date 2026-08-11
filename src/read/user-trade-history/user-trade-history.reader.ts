@@ -1,3 +1,4 @@
+import { toAssetTypeParam } from "../asset-type.types";
 import { BaseReader } from "../base-reader";
 import {
   UserTradeHistoryRequestArgs,
@@ -21,7 +22,7 @@ export class UserTradeHistoryReader extends BaseReader {
     startTimestamp,
     endTimestamp,
     sortDir,
-    assetType,
+    assetType = "perp",
     fetchOptions,
   }: UserTradeHistoryRequestArgs) {
     const queryParams: Record<string, string> = {
@@ -32,7 +33,8 @@ export class UserTradeHistoryReader extends BaseReader {
     if (startTimestamp !== undefined) queryParams.start_timestamp = startTimestamp.toString();
     if (endTimestamp !== undefined) queryParams.end_timestamp = endTimestamp.toString();
     if (sortDir !== undefined) queryParams.sort_dir = sortDir;
-    if (assetType !== undefined) queryParams.asset_type = assetType;
+    const assetTypeParam = toAssetTypeParam(assetType);
+    if (assetTypeParam !== undefined) queryParams.asset_type = assetTypeParam;
 
     const response = await this.getRequest({
       schema: UserTradesSchema,

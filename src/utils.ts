@@ -28,6 +28,22 @@ export function getSpotMarketAddr(name: string, deploymentPackage: string) {
   return createObjectAddress(globalSpotEngineAddr, marketNameBytes);
 }
 
+/**
+ * Derive a market's object address from its name for the given product.
+ * Perp and spot markets live under different parent objects, so the same
+ * name derives DIFFERENT addresses per product — deriving with the wrong
+ * product yields an address that doesn't exist on chain.
+ */
+export function getMarketAddrForProduct(
+  marketName: string,
+  assetType: "perp" | "spot",
+  deployment: { perpEngineGlobal: string; package: string },
+) {
+  return assetType === "spot"
+    ? getSpotMarketAddr(marketName, deployment.package)
+    : getMarketAddr(marketName, deployment.perpEngineGlobal);
+}
+
 function getSubaccountSeedBytes(ownerAddr: AccountAddress, seed: string): Uint8Array {
   // TODO is this the best way to concatenate  / serialize SubaccountSeed?
   return new Uint8Array([...ownerAddr.toUint8Array(), ...new MoveString(seed).bcsToBytes()]);

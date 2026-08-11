@@ -36,6 +36,7 @@ import { UserFundingHistoryReader } from "./user-funding-history/user-funding-hi
 import { UserNotificationsReader } from "./user-notifications/user-notifications.reader";
 import { UserOpenOrdersReader } from "./user-open-orders/user-open-orders.reader";
 import { UserOrderHistoryReader } from "./user-order-history/user-order-history.reader";
+import { UserOrdersReader } from "./user-orders/user-orders.reader";
 import { UserPositionsReader } from "./user-positions/user-positions.reader";
 import { UserSubaccountsReader } from "./user-subaccounts/user-subaccounts.reader";
 import { UserTradeHistoryReader } from "./user-trade-history/user-trade-history.reader";
@@ -99,6 +100,19 @@ interface Cache {
   usdcDecimals?: number;
 }
 
+/** On-chain fungible-asset metadata, via the `0x1::fungible_asset` view functions. */
+export interface FungibleAssetMetadata {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+/** Base/quote fungible-asset addresses of a spot market (escrow views). */
+export interface SpotMarketAssets {
+  baseAssetAddr: string;
+  quoteAssetAddr: string;
+}
+
 export class DecibelReadDex {
   readonly cache: Cache;
   readonly deps: DecibelReaderDeps;
@@ -117,6 +131,7 @@ export class DecibelReadDex {
   readonly userSubaccounts: UserSubaccountsReader;
   readonly userPositions: UserPositionsReader;
   readonly userOrderHistory: UserOrderHistoryReader;
+  readonly userOrders: UserOrdersReader;
   readonly userOpenOrders: UserOpenOrdersReader;
   readonly userBulkOrders: UserBulkOrdersReader;
   readonly userActiveTwaps: UserActiveTwapsReader;
@@ -178,6 +193,7 @@ export class DecibelReadDex {
     this.marketTrades = new MarketTradesReader(this.deps);
     this.userPositions = new UserPositionsReader(this.deps);
     this.userOrderHistory = new UserOrderHistoryReader(this.deps);
+    this.userOrders = new UserOrdersReader(this.deps);
     this.userSubaccounts = new UserSubaccountsReader(this.deps);
     this.userOpenOrders = new UserOpenOrdersReader(this.deps);
     this.userBulkOrders = new UserBulkOrdersReader(this.deps);
@@ -343,6 +359,49 @@ export class DecibelReadDex {
       },
     });
     return Number(balance[0]) / 10 ** tokenDecimals;
+  }
+
+  /**
+   * Resolve a spot market's base and quote fungible-asset addresses from the
+   * on-chain escrow views. The `/markets` endpoint doesn't expose these, and
+   * they're needed to query wallet (PFS) balances for spot order sizing.
+   */
+  async spotMarketAssets(marketAddr: string | AccountAddress): Promise<SpotMarketAssets> {
+    const view = (fn: "base_asset_metadata" | "quote_asset_metadata") =>
+      this.deps.aptos.view<[{ inner: string }]>({
+        payload: {
+          function: `${this.config.deployment.package}::spot_market_escrow::${fn}`,
+          typeArguments: [],
+          functionArguments: [marketAddr],
+        },
+      });
+    const [[base], [quote]] = await Promise.all([
+      view("base_asset_metadata"),
+      view("quote_asset_metadata"),
+    ]);
+    return { baseAssetAddr: base.inner, quoteAssetAddr: quote.inner };
+  }
+
+  /**
+   * Read on-chain fungible-asset metadata — name, symbol, and decimals for
+   * any fungible-asset address (e.g. entries in
+   * `account_overview.secondary_collateral`).
+   */
+  async fungibleAssetMetadata(assetAddr: string | AccountAddress): Promise<FungibleAssetMetadata> {
+    const view = <T>(fn: "name" | "symbol" | "decimals") =>
+      this.deps.aptos.view<[T]>({
+        payload: {
+          function: `0x1::fungible_asset::${fn}`,
+          typeArguments: ["0x1::fungible_asset::Metadata"],
+          functionArguments: [assetAddr],
+        },
+      });
+    const [[name], [symbol], [decimals]] = await Promise.all([
+      view<string>("name"),
+      view<string>("symbol"),
+      view<number>("decimals"),
+    ]);
+    return { name, symbol, decimals: Number(decimals) };
   }
 
   /**

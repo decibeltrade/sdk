@@ -1,9 +1,15 @@
 import z from "zod/v4";
 
+import { AssetType } from "../asset-type.types";
 import { BaseRequestArgs } from "../base-reader";
 
 export interface CandlesticksRequestArgs extends BaseRequestArgs {
   marketName: string;
+  /**
+   * Product the market name belongs to (default "perp"). Perp and spot
+   * derive different addresses for the same name.
+   */
+  assetType?: AssetType;
   interval: CandlestickInterval;
   startTime: number;
   endTime: number;

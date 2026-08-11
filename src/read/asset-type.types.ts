@@ -10,6 +10,22 @@ export const AssetTypeSchema = z.enum(["perp", "spot"]);
 
 export type AssetType = z.infer<typeof AssetTypeSchema>;
 
+/**
+ * SDK-side product filter for the dual-use endpoints. `"perp"` and `"spot"`
+ * are sent to the API as the `asset_type` query param; `"all"` omits the
+ * param, which the API treats as "union both products" (rows are then
+ * demuxed client-side via each row's `asset_type` field).
+ *
+ * Readers default to `"perp"` so existing perp consumers keep their exact
+ * pre-spot responses (and pagination) — spot is strictly opt-in.
+ */
+export type AssetTypeFilter = AssetType | "all";
+
+/** Resolve an {@link AssetTypeFilter} to the `asset_type` wire param (`"all"` → omit). */
+export function toAssetTypeParam(filter: AssetTypeFilter): AssetType | undefined {
+  return filter === "all" ? undefined : filter;
+}
+
 export function isSpot(assetType: AssetType | undefined): boolean {
   return assetType === "spot";
 }
