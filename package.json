@@ -5,7 +5,7 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@decibeltrade/eslint-config": "1.0.0",
+    "@decibeltrade/lint-config": "2.0.0",
     "@decibeltrade/tsconfig": "1.0.1",
     "@types/estree": "^1.0.6",
     "@typescript/native": "npm:typescript@^7.0.2",

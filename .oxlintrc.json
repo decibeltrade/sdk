@@ -1,5 +1,5 @@
 {
-  "extends": ["../../packages/eslint-config/oxlint/base.jsonc"],
+  "extends": ["../../packages/lint-config/oxlint/base.jsonc"],
   "overrides": [
     {
       "files": ["src/eip55.ts"],
