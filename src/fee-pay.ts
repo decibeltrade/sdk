@@ -29,7 +29,7 @@ export async function submitFeePaidTransaction(
   const gasStationClient = new GasStationClient({
     network: config.network,
     apiKey: config.gasStationApiKey,
-    // Use gasStationUrl as base URL for custom networks like netna
+    // Use gasStationUrl as base URL for custom networks like localnet
     ...(config.gasStationUrl && { baseUrl: config.gasStationUrl }),
   });
 

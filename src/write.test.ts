@@ -1,7 +1,7 @@
 import { Account } from "@aptos-labs/ts-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import { NETNA_CONFIG } from "./constants";
+import { TESTNET_CONFIG } from "./constants";
 import { DecibelWriteDex } from "./write";
 
 // sendTx / sendEncryptedTx are protected on BaseSDK. Stub them on the instance so
@@ -13,7 +13,7 @@ interface SendSpies {
 }
 
 function makeWriteDex(defaultEncrypted: boolean): { dex: DecibelWriteDex } & SendSpies {
-  const dex = new DecibelWriteDex(NETNA_CONFIG, Account.generate(), { defaultEncrypted });
+  const dex = new DecibelWriteDex(TESTNET_CONFIG, Account.generate(), { defaultEncrypted });
   const sendTx = vi.fn().mockResolvedValue({ hash: "0xplaintext" });
   const sendEncryptedTx = vi.fn().mockResolvedValue({ hash: "0xencrypted" });
   const internals = dex as unknown as SendSpies;

@@ -36,9 +36,9 @@ npm install -D @types/ws
 ### Read: Market and Account Data
 
 ```typescript
-import { DecibelReadDex, NETNA_CONFIG } from "@decibeltrade/sdk";
+import { DecibelReadDex, TESTNET_CONFIG } from "@decibeltrade/sdk";
 
-const read = new DecibelReadDex(NETNA_CONFIG, {
+const read = new DecibelReadDex(TESTNET_CONFIG, {
   nodeApiKey: process.env.APTOS_NODE_API_KEY, // required
   onWsError: (error) => console.error("WebSocket error:", error), // optional
 });
@@ -59,18 +59,18 @@ const depth = await read.marketDepth.getBySymbol("BTC-PERP", { depth: 10 });
 ### Write: Submit Transactions
 
 ```typescript
-import { DecibelReadDex, DecibelWriteDex, NETNA_CONFIG } from "@decibeltrade/sdk";
+import { DecibelReadDex, DecibelWriteDex, TESTNET_CONFIG } from "@decibeltrade/sdk";
 import { Ed25519Account, Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
 
 const account = new Ed25519Account({
   privateKey: new Ed25519PrivateKey(process.env.PRIVATE_KEY!),
 });
 
-const read = new DecibelReadDex(NETNA_CONFIG, {
+const read = new DecibelReadDex(TESTNET_CONFIG, {
   nodeApiKey: process.env.APTOS_NODE_API_KEY,
 });
 
-const write = new DecibelWriteDex(NETNA_CONFIG, account, {
+const write = new DecibelWriteDex(TESTNET_CONFIG, account, {
   nodeApiKey: process.env.APTOS_NODE_API_KEY, // optional
 });
 
@@ -129,10 +129,10 @@ const order = await write.placeOrder({
 The SDK supports multiple network configurations:
 
 ```typescript
-import { NETNA_CONFIG, TESTNET_CONFIG, LOCAL_CONFIG, DOCKER_CONFIG } from "@decibeltrade/sdk";
+import { MAINNET_CONFIG, TESTNET_CONFIG, LOCAL_CONFIG, DOCKER_CONFIG } from "@decibeltrade/sdk";
 
-// Netna (devnet)
-const read = new DecibelReadDex(NETNA_CONFIG);
+// Mainnet
+const read = new DecibelReadDex(MAINNET_CONFIG);
 
 // Testnet
 const read = new DecibelReadDex(TESTNET_CONFIG);
@@ -648,7 +648,6 @@ payload at build time. Check that ahead of time with `configSupportsEncryptedSub
   `buildActivateVaultTx`,
   `buildDepositToVaultTx`,
   `depositToVault`,
-  `buildWithdrawFromVaultTx`,
   `withdrawFromVault`,
   `buildDelegateDexActionsToTx`,
   `approveMaxBuilderFee`,
@@ -1010,12 +1009,6 @@ await writeDex.buildDepositToVaultTx({
   signerAddress: account.accountAddress,
 });
 
-await writeDex.buildWithdrawFromVaultTx({
-  vaultAddress: "0x...vault",
-  shares: 1000000,
-  signerAddress: account.accountAddress,
-});
-
 await writeDex.buildDelegateDexActionsToTx({
   vaultAddress: "0x...vault",
   accountToDelegateTo: "0x...delegate",
@@ -1141,7 +1134,7 @@ function cleanup() {
 }
 
 // Handle errors
-const readDex = new DecibelReadDex(NETNA_CONFIG, {
+const readDex = new DecibelReadDex(TESTNET_CONFIG, {
   onWsError: (error) => {
     console.error("WebSocket error:", error);
   },
@@ -1192,7 +1185,7 @@ import type {
 ## Complete Trading Bot Example
 
 ```typescript
-import { DecibelReadDex, DecibelWriteDex, NETNA_CONFIG, TimeInForce } from "@decibeltrade/sdk";
+import { DecibelReadDex, DecibelWriteDex, TESTNET_CONFIG, TimeInForce } from "@decibeltrade/sdk";
 import { Ed25519Account, Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
 
 class TradingBot {
@@ -1201,14 +1194,14 @@ class TradingBot {
   private subaccountAddr: string;
 
   constructor(privateKey: string, subaccountAddr: string) {
-    this.readDex = new DecibelReadDex(NETNA_CONFIG, {
+    this.readDex = new DecibelReadDex(TESTNET_CONFIG, {
       nodeApiKey: process.env.APTOS_NODE_API_KEY,
     });
 
     const account = new Ed25519Account({
       privateKey: new Ed25519PrivateKey(privateKey),
     });
-    this.writeDex = new DecibelWriteDex(NETNA_CONFIG, account, {
+    this.writeDex = new DecibelWriteDex(TESTNET_CONFIG, account, {
       nodeApiKey: process.env.APTOS_NODE_API_KEY,
     });
     this.subaccountAddr = subaccountAddr;
@@ -1761,14 +1754,14 @@ import { Account } from "@aptos-labs/ts-sdk";
 async function basicTradingExample() {
   const privateKey = "your-private-key-here";
   const account = Account.fromPrivateKey({ privateKey });
-  const transactionManager = new DecibelTransactionManager(NETNA_CONFIG, account, {
+  const transactionManager = new DecibelTransactionManager(TESTNET_CONFIG, account, {
     skipSimulate: false,
   });
 
   try {
     // Create a subaccount
     console.log("Creating subaccount...");
-    const createTx = await createSubaccount(transactionManager, NETNA_CONFIG);
+    const createTx = await createSubaccount(transactionManager, TESTNET_CONFIG);
     console.log("Subaccount created:", createTx.hash);
 
     // Get the primary subaccount address
@@ -1779,18 +1772,18 @@ async function basicTradingExample() {
     console.log("Depositing collateral...");
     const depositTx = await depositCollateral(
       transactionManager,
-      NETNA_CONFIG,
+      TESTNET_CONFIG,
       1000000000,
       subaccountAddr,
     );
     console.log("Deposit successful:", depositTx.hash);
 
     // Configure market settings for BTC-USD
-    const btcMarketAddr = getMarketAddress("BTC-USD", NETNA_CONFIG.deployment.perpEngineGlobal);
+    const btcMarketAddr = getMarketAddress("BTC-USD", TESTNET_CONFIG.deployment.perpEngineGlobal);
     console.log("Configuring market settings...");
     const configTx = await configureMarketSettings(
       transactionManager,
-      NETNA_CONFIG,
+      TESTNET_CONFIG,
       btcMarketAddr.toString(),
       subaccountAddr,
       true, // Use cross-margin
@@ -1800,7 +1793,7 @@ async function basicTradingExample() {
 
     // Place a limit buy order for 0.1 BTC at $45,000
     console.log("Placing buy order...");
-    const orderResult = await placeOrder(transactionManager, NETNA_CONFIG, {
+    const orderResult = await placeOrder(transactionManager, TESTNET_CONFIG, {
       marketName: "BTC-USD",
       price: 45000,
       size: 0.1,
@@ -1818,7 +1811,7 @@ async function basicTradingExample() {
       // Cancel the order
       if (orderResult.orderId) {
         console.log("Canceling order...");
-        const cancelTx = await cancelOrder(transactionManager, NETNA_CONFIG, {
+        const cancelTx = await cancelOrder(transactionManager, TESTNET_CONFIG, {
           orderId: parseInt(orderResult.orderId),
           marketName: "BTC-USD",
           subaccountAddr,

@@ -1282,24 +1282,6 @@ export class DecibelWriteDex extends BaseSDK {
     return txResponse;
   }
 
-  /**
-   * Redeem shares from a vault for underlying assets
-   */
-  async buildWithdrawFromVaultTx({
-    vaultAddress,
-    shares,
-    signerAddress,
-  }: WithSignerAddress<WithdrawFromVaultArgs>) {
-    return await this.buildTx(
-      {
-        function: `${this.config.deployment.package}::vault_api::redeem`,
-        typeArguments: [],
-        functionArguments: [vaultAddress, shares],
-      },
-      signerAddress,
-    );
-  }
-
   async withdrawFromVault(
     args: WithdrawFromVaultArgs & {
       /**

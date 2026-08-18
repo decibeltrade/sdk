@@ -8,7 +8,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
-import { DecibelConfig, MAINNET_CONFIG, NETNA_CONFIG, TESTNET_CONFIG } from "../constants";
+import { DecibelConfig, MAINNET_CONFIG, TESTNET_CONFIG } from "../constants";
 import { ABIData, ABIs } from "./types";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,8 +16,7 @@ const __dirname = path.dirname(__filename);
 
 // @Todo: There should be a global config that takes care of config across all the packages and apps
 // @Todo: Generate ABIs for all the networks as well, or as per global config depending upon how that will work
-// Remove NETNA_CONFIG and use getSdkConfig() instead once we implement it as a global config
-const CONFIGS = [NETNA_CONFIG, TESTNET_CONFIG, MAINNET_CONFIG];
+const CONFIGS = [TESTNET_CONFIG, MAINNET_CONFIG];
 
 // All modules used in the SDK (extracted from source code analysis).
 // These are pulled from `config.deployment.package`.
@@ -26,17 +25,29 @@ const SDK_MODULES = [
   "public_apis",
   "dex_accounts",
   "perp_engine",
+  "async_withdraw_queue",
+  "chainlink_state",
   "usdc",
   "vault",
   "vault_api",
+  "vault_admin_api",
   "dex_accounts_vault_extension",
   "dex_accounts_entry",
   "dex_accounts_spot_entry",
+  "spot_engine",
+  "spot_admin_apis",
+  "spot_market_escrow",
 ];
 
-// Funded First Trade modules, fetched from `config.deployment.campaignPackage` when set.
-// On networks where the FFT modules aren't deployed yet, the fetches land in `errors[]`.
-const CAMPAIGN_MODULES = ["campaign_manager", "protected_trial", "onboarding_lock"];
+// Campaign / Funded First Trade modules, fetched from `config.deployment.campaignPackage` when set.
+// On networks where these aren't deployed yet, the fetches land in `errors[]`.
+const CAMPAIGN_MODULES = [
+  "campaign_lock",
+  "campaign_manager",
+  "funded_first_trade",
+  "protected_trial",
+  "user_credits",
+];
 
 /**
  * Generates a safe filename based on the network configuration
@@ -44,10 +55,6 @@ const CAMPAIGN_MODULES = ["campaign_manager", "protected_trial", "onboarding_loc
 function getAbiFilename(config: DecibelConfig): string {
   // For CUSTOM networks, use a more descriptive name based on the config
   if (config.network === Network.CUSTOM) {
-    // Check if it's NETNA by comparing package address or other unique identifier
-    if (config.deployment.package === NETNA_CONFIG.deployment.package) {
-      return "json/netna.json";
-    }
     return "json/custom.json";
   }
   // For standard networks, use the network name
@@ -138,14 +145,9 @@ async function fetchAllAbis(config: DecibelConfig): Promise<void> {
     modules: [...SDK_MODULES, ...(config.deployment.campaignPackage ? CAMPAIGN_MODULES : [])],
   };
 
-  // Write to JSON file with network-specific filename
-  const filename = getAbiFilename(config);
-  const outputPath = path.join(__dirname, filename);
-  fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
-
   console.log();
   console.log("📊 Summary:");
-  console.log("Total modules fetched:", SDK_MODULES.length);
+  console.log("Modules fetched:", result.summary.totalModules - result.summary.failed);
   console.log("Total functions found:", result.summary.successful);
   console.log("Failed modules:", result.summary.failed);
 
@@ -157,6 +159,21 @@ async function fetchAllAbis(config: DecibelConfig): Promise<void> {
       console.log();
     });
   }
+
+  // Never overwrite a good checked-in artifact with an empty one. A dead
+  // fullnode fails every module the same way, which would otherwise silently
+  // replace working ABIs with `{}` and push every transaction onto the slow
+  // per-call ABI-fetch path.
+  if (totalFunctions === 0) {
+    throw new Error(
+      `Every module fetch failed for ${config.network} — refusing to overwrite the existing ABI file`,
+    );
+  }
+
+  // Write to JSON file with network-specific filename
+  const filename = getAbiFilename(config);
+  const outputPath = path.join(__dirname, filename);
+  fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
 
   console.log();
   console.log("📁 ABIs saved to:", outputPath);
@@ -170,6 +187,9 @@ void (async () => {
   for (const config of CONFIGS) {
     await fetchAllAbis(config).catch((error: unknown) => {
       console.error(`❌ Failed to fetch ABIs for ${config.network}:`, error);
+      // Surface the failure to CI/callers instead of exiting 0 with a stale
+      // or partially-written set of ABI files.
+      process.exitCode = 1;
     });
   }
 })();

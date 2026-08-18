@@ -57,7 +57,6 @@ export function getDlpShareAddress(publisherAddr: string) {
 }
 
 export function getCampaignPackage(publisherAddr: string): string {
-  if (publisherAddr === PACKAGE.NETNA) return PACKAGE.CAMPAIGN_NETNA;
   if (publisherAddr === PACKAGE.TESTNET) return PACKAGE.CAMPAIGN_TESTNET;
   if (publisherAddr === PACKAGE.MAINNET) return PACKAGE.CAMPAIGN_MAINNET;
   return "";
@@ -143,17 +142,6 @@ const getDeployment = (pkg: string): Deployment => {
   };
 };
 
-export const NETNA_CONFIG: DecibelConfig = {
-  network: Network.CUSTOM,
-  fullnodeUrl: "https://api.netna.aptoslabs.com/v1",
-  tradingHttpUrl: "https://api.netna.aptoslabs.com/decibel",
-  tradingWsUrl: "wss://api.netna.aptoslabs.com/decibel/ws",
-  gasStationUrl: "https://api.netna.aptoslabs.com/gs/v1",
-  deployment: getDeployment(PACKAGE.NETNA),
-  chainId: 208,
-  ...RELEASE_CONFIGS.NETNA,
-};
-
 export const TESTNET_DEPLOYMENT: Deployment = getDeployment(PACKAGE.TESTNET);
 
 export const TESTNET_CONFIG: DecibelConfig = {
@@ -190,7 +178,7 @@ export const LOCAL_CONFIG: DecibelConfig = {
   fullnodeUrl: "http://localhost:8080/v1",
   tradingHttpUrl: "http://localhost:8084",
   tradingWsUrl: "ws://localhost:8083",
-  deployment: getDeployment(PACKAGE.NETNA),
+  deployment: getDeployment(PACKAGE.LOCAL),
   ...RELEASE_CONFIGS.LOCAL,
 };
 
@@ -200,12 +188,11 @@ export const DOCKER_CONFIG: DecibelConfig = {
   tradingHttpUrl: "http://trading-api-http:8080",
   // nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket
   tradingWsUrl: "ws://trading-api-ws:8080",
-  deployment: getDeployment(PACKAGE.NETNA),
+  deployment: getDeployment(PACKAGE.LOCAL),
   ...RELEASE_CONFIGS.DOCKER,
 };
 
 export const NAMED_CONFIGS: Record<string, DecibelConfig | undefined> = {
-  netna: NETNA_CONFIG,
   local: LOCAL_CONFIG,
   docker: DOCKER_CONFIG,
   testnet: TESTNET_CONFIG,

@@ -18,14 +18,12 @@ import {
 } from "@aptos-labs/ts-sdk";
 
 import mainnetAbis from "./abi/json/mainnet.json";
-import netnaAbis from "./abi/json/netna.json";
 import testnetAbis from "./abi/json/testnet.json";
 import { ABIData } from "./abi/types";
 import {
   DecibelConfig,
   GAS_STATION_MAX_GAS_AMOUNT,
   MAINNET_CONFIG,
-  NETNA_CONFIG,
   TESTNET_CONFIG,
 } from "./constants";
 import { GasPriceManager } from "./gas/gas-price-manager";
@@ -105,7 +103,6 @@ export function configSupportsEncryptedSubmission(
 }
 
 const chainIdToAbi: Record<number, ABIData> = {};
-if (NETNA_CONFIG.chainId) chainIdToAbi[NETNA_CONFIG.chainId] = netnaAbis as ABIData;
 if (TESTNET_CONFIG.chainId) chainIdToAbi[TESTNET_CONFIG.chainId] = testnetAbis as ABIData;
 if (MAINNET_CONFIG.chainId) chainIdToAbi[MAINNET_CONFIG.chainId] = mainnetAbis as ABIData;
 
@@ -114,7 +111,11 @@ export class BaseSDK {
   readonly skipSimulate: boolean;
   private readonly useGasStation: boolean;
   private readonly chainId: number | undefined;
-  private readonly abi = netnaAbis as ABIData;
+  // Bundled ABIs for the network we're pointed at, when one ships with the SDK.
+  // ABI keys are fully address-qualified (`0xpkg::module::fn`), so a different
+  // network's ABIs can never match — networks without a bundled set (localnet,
+  // docker) leave this undefined and fall back to fetching per transaction.
+  private readonly abi: ABIData | undefined;
   private readonly gasPriceManager: GasPriceManager | undefined;
   private readonly onTransactionSettled: Options["onTransactionSettled"];
   // Memoized probe result. We cache the Promise (not the boolean) so concurrent
@@ -135,15 +136,7 @@ export class BaseSDK {
     readonly account: Account,
     opts?: Options,
   ) {
-    const abi = config.chainId ? chainIdToAbi[config.chainId] : null;
-    if (abi) {
-      this.abi = abi;
-    } else {
-      this.abi = netnaAbis as ABIData;
-      console.warn(
-        "Using NETNA ABI for unsupported chain id, this might cause issues with the transaction builder",
-      );
-    }
+    this.abi = config.chainId ? chainIdToAbi[config.chainId] : undefined;
 
     this.useGasStation = !!config.gasStationApiKey;
 
@@ -154,7 +147,7 @@ export class BaseSDK {
               new GasStationClient({
                 network: config.network,
                 apiKey: config.gasStationApiKey,
-                // Use gasStationUrl as base URL for custom networks like netna
+                // Use gasStationUrl as base URL for custom networks like localnet
                 ...(config.gasStationUrl && { baseUrl: config.gasStationUrl }),
               }),
             ),
@@ -185,7 +178,7 @@ export class BaseSDK {
   }
 
   private getABI(functionId: MoveFunctionId): MoveFunction | null {
-    return this.abi.abis[functionId] ?? null;
+    return this.abi?.abis[functionId] ?? null;
   }
 
   // Returns whether the connected fullnode exposes an `encryption_key` (i.e.

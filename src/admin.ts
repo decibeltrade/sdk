@@ -411,23 +411,6 @@ export class DecibelAdminDex extends BaseSDK {
   }
 
   /**
-   * Get the max open interest for a market (unit-based)
-   * @param marketName The market name (e.g., "BTC/USD")
-   * @returns The max open interest in szDecimals units as a string to preserve precision
-   */
-  async getMaxOpenInterest(marketName: string): Promise<string> {
-    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
-    const result = await this.aptos.view<[string]>({
-      payload: {
-        function: `${this.config.deployment.package}::perp_engine::get_max_open_interest`,
-        typeArguments: [],
-        functionArguments: [marketAddr.toString()],
-      },
-    });
-    return result[0];
-  }
-
-  /**
    * Decrease the max open interest for a market (unit-based)
    * @param marketName The market name (e.g., "BTC/USD")
    * @param newOpenInterest The new max open interest in szDecimals units (must be lower than current)
