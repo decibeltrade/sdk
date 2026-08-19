@@ -46,6 +46,15 @@ export const RWA_TICKERS = [
   // International ADRs on US exchanges
   "ASML",
   "BABA",
+  // Enterprise software and data
+  "ORCL",
+  "PLTR",
+  // Hardware
+  "DELL",
+  // Pharma
+  "LLY",
+  // Ride-sharing
+  "UBER",
 ] as const;
 
 export type RwaTicker = (typeof RWA_TICKERS)[number];
