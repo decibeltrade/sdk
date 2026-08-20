@@ -74,14 +74,23 @@ export const AffiliateCodesResponseSchema = z.object({
   volume_threshold_met: z.boolean(),
 });
 
-// GET /api/v1/affiliates/codes/{account}/analytics
+/**
+ * @deprecated Superseded by `CodePerformanceSchema`, which reports per-code commission and
+ * two-sided volume rather than L1 Amps. Kept because `/api/v1/affiliates/codes/{account}/analytics`
+ * is still registered and served, so removing the reader would break any consumer on it for a
+ * change that only adds a second endpoint.
+ */
 export const AffiliateCodeAnalyticsSchema = z.object({
   referral_code: z.string(),
   l1_volume_usd: z.number(),
   l1_amps_earned: z.number(),
 });
 
-// GET /api/v1/affiliates/codes/{account}/analytics
+/**
+ * GET /api/v1/affiliates/codes/{account}/analytics
+ *
+ * @deprecated See `AffiliateCodeAnalyticsSchema`.
+ */
 export const AffiliateCodeAnalyticsResponseSchema = z.object({
   owner_account: z.string(),
   codes: z.array(AffiliateCodeAnalyticsSchema),
@@ -124,8 +133,445 @@ export type UserReferral = z.infer<typeof UserReferralSchema>;
 export type UserReferralsResponse = z.infer<typeof UserReferralsResponseSchema>;
 export type AffiliateCode = z.infer<typeof AffiliateCodeSchema>;
 export type AffiliateCodesResponse = z.infer<typeof AffiliateCodesResponseSchema>;
+/** @deprecated See `AffiliateCodeAnalyticsSchema`. */
 export type AffiliateCodeAnalytics = z.infer<typeof AffiliateCodeAnalyticsSchema>;
+/** @deprecated See `AffiliateCodeAnalyticsSchema`. */
 export type AffiliateCodeAnalyticsResponse = z.infer<typeof AffiliateCodeAnalyticsResponseSchema>;
 export type AffiliateReferredUser = z.infer<typeof AffiliateReferredUserSchema>;
 export type AffiliateEarningsBreakdown = z.infer<typeof AffiliateEarningsBreakdownSchema>;
 export type AffiliateEarningsResponse = z.infer<typeof AffiliateEarningsResponseSchema>;
+
+export interface ReferralFunnelRequestArgs extends BaseRequestArgs {
+  /** The referrer's wallet address (not a subaccount address) */
+  referrerAccount: string;
+  /** Most recent UTC days to return. Server defaults to 14 and clamps to 90. */
+  days?: number;
+}
+
+// GET /api/v1/referrals/funnel
+export const ReferralFunnelDaySchema = z.object({
+  day_start_unix_ms: z.number(),
+  sign_ups: z.number(),
+  first_deposits: z.number(),
+});
+
+export const ReferralFunnelResponseSchema = z.array(ReferralFunnelDaySchema);
+
+export type ReferralFunnelDay = z.infer<typeof ReferralFunnelDaySchema>;
+export type ReferralFunnelResponse = z.infer<typeof ReferralFunnelResponseSchema>;
+
+export interface ReferredVolumeRequestArgs extends BaseRequestArgs {
+  /** The referrer's wallet address (not a subaccount address) */
+  referrerAccount: string;
+  /** Most recent UTC days to return. Server defaults to 14 and clamps to 90. */
+  days?: number;
+}
+
+// GET /api/v1/referrals/volume/daily
+export const ReferredVolumeDaySchema = z.object({
+  day_start_unix_ms: z.number(),
+  /** Both-sides USD notional — never taker-only for a per-entity total. */
+  volume_usd: z.number(),
+  taker_volume_usd: z.number(),
+  maker_volume_usd: z.number(),
+  active_referrals: z.number(),
+});
+
+export const ReferredVolumeResponseSchema = z.array(ReferredVolumeDaySchema);
+
+export type ReferredVolumeDay = z.infer<typeof ReferredVolumeDaySchema>;
+export type ReferredVolumeResponse = z.infer<typeof ReferredVolumeResponseSchema>;
+
+export interface ReferralActivityRequestArgs extends BaseRequestArgs {
+  /** The referrer's wallet address (not a subaccount address) */
+  referrerAccount: string;
+  /** Trailing UTC days to cover. Server defaults to 14 and clamps to 90. */
+  days?: number;
+  /** Clients per page. Server defaults to 25 and clamps to 200. */
+  limit?: number;
+  /** Clients to skip. Server clamps to 10000. */
+  offset?: number;
+}
+
+// GET /api/v1/referrals/activity
+export const ReferralActivityLevelSchema = z.object({
+  /** 1 = direct referral, 2 = sub-affiliate's referral */
+  level: z.number(),
+  clients: z.number(),
+  trades: z.number(),
+  /** Both-sides notional is taker + maker; neither column alone is the total. */
+  taker_volume_usd: z.number(),
+  maker_volume_usd: z.number(),
+  /**
+   * Commission this level generated, at each day's own stamped rate and penalty.
+   *
+   * Defaulted: zero means either "the accrual ledger has no rows for this affiliate" or "a
+   * server that predates the figure". Both render the same way, and neither is a claim that
+   * the level earned nothing.
+   */
+  commission_usd: z.number().default(0),
+});
+
+/** One L2 client, nested under the L1 that referred it. */
+export const ReferralActivitySubClientSchema = z.object({
+  client: z.string(),
+  trades: z.number(),
+  taker_volume_usd: z.number(),
+  maker_volume_usd: z.number(),
+  top_market: z.string(),
+  /** Commission this client generated, at the L2 override rate of each day. */
+  commission_usd: z.number().default(0),
+});
+
+export const ReferralActivityClientSchema = z.object({
+  client: z.string(),
+  /** Always 1: this list holds direct referrals, and their L2s hang off `sub_clients`. */
+  level: z.number(),
+  trades: z.number(),
+  taker_volume_usd: z.number(),
+  maker_volume_usd: z.number(),
+  top_market: z.string(),
+  /**
+   * Commission this client generated on its own trading, at the L1 rate of each day.
+   * Excludes what its L2s generated — those carry their own figures in `sub_clients`.
+   */
+  commission_usd: z.number().default(0),
+  /**
+   * False when this L1 did not trade in the window and is listed only as the parent of L2s
+   * that did. Its own figures are then zero, which is a different claim from "traded zero
+   * volume" and should not be rendered as an amount.
+   *
+   * Defaults to true for a backend that predates nesting: its query only ever returned
+   * clients that traded.
+   */
+  traded: z.boolean().default(true),
+  /**
+   * This L1's own referred clients that traded, busiest first, capped at 25 rows.
+   *
+   * The three nested fields default rather than being required on purpose. This client
+   * ships ahead of the server, and a hard requirement turns every deployment that has not
+   * picked up the nested handler into a validation failure on the whole screen. Against
+   * such a backend `clients` is still the old flat L1+L2 list, which `level` distinguishes.
+   */
+  sub_clients: z.array(ReferralActivitySubClientSchema).default([]),
+  /** L2 clients that traded in the window, counted before the 25-row cap. */
+  sub_client_count: z.number().default(0),
+});
+
+export const ReferralActivityResponseSchema = z.object({
+  referrer_account: z.string(),
+  summary: z.array(ReferralActivityLevelSchema),
+  /** A page of L1 clients, each carrying its own L2s */
+  clients: z.array(ReferralActivityClientSchema),
+  /** L1 rows the window holds, for pagination — parents, not clients */
+  total_count: z.number(),
+});
+
+export type ReferralActivityLevel = z.infer<typeof ReferralActivityLevelSchema>;
+export type ReferralActivitySubClient = z.infer<typeof ReferralActivitySubClientSchema>;
+export type ReferralActivityClient = z.infer<typeof ReferralActivityClientSchema>;
+export type ReferralActivityResponse = z.infer<typeof ReferralActivityResponseSchema>;
+
+export interface ReferralClientsRequestArgs extends BaseRequestArgs {
+  /** The referrer's wallet address (not a subaccount address) */
+  referrerAccount: string;
+  /** Trailing UTC days the volume columns cover. Server defaults to 30, clamps to 90. */
+  days?: number;
+  /** Clients per page. Server defaults to 25, clamps to 200. */
+  limit?: number;
+  /** Clients to skip. Server clamps to 10000. */
+  offset?: number;
+  /** Keep only one lifecycle bucket. */
+  segment?: ClientSegment;
+  /** Case-insensitive substring match on the client address. */
+  search?: string;
+}
+
+// GET /api/v1/referrals/clients
+export const ClientSegmentSchema = z.enum(["active", "at_risk", "dormant", "never_traded"]);
+
+export const ClientSegmentsSchema = z.object({
+  active: z.number(),
+  at_risk: z.number(),
+  dormant: z.number(),
+  never_traded: z.number(),
+});
+
+export const ReferralClientSchema = z.object({
+  client: z.string(),
+  source_code: z.string(),
+  joined_unix_ms: z.number(),
+  /** 0 when the client has never traded. */
+  last_trade_unix_ms: z.number(),
+  trades: z.number(),
+  taker_volume_usd: z.number(),
+  maker_volume_usd: z.number(),
+  /** All-time Amps from the canonical audit table: every bucket, post-clawback. */
+  amps_all_time: z.number(),
+  segment: ClientSegmentSchema,
+  /**
+   * Commission this client generated for the affiliate inside the window, at each day's own
+   * stamped rate and penalty. Excludes what this client's own referrals generated — that is the
+   * L2 override and belongs to the sub-affiliates screen.
+   */
+  commission_usd: z.number().default(0),
+});
+
+export const ReferralClientsResponseSchema = z.object({
+  referrer_account: z.string(),
+  segments: ClientSegmentsSchema,
+  clients: z.array(ReferralClientSchema),
+  total_count: z.number(),
+});
+
+export type ClientSegment = z.infer<typeof ClientSegmentSchema>;
+export type ClientSegments = z.infer<typeof ClientSegmentsSchema>;
+export type ReferralClient = z.infer<typeof ReferralClientSchema>;
+export type ReferralClientsResponse = z.infer<typeof ReferralClientsResponseSchema>;
+
+export interface SubAffiliatesRequestArgs extends BaseRequestArgs {
+  /** The referrer's wallet address (not a subaccount address) */
+  referrerAccount: string;
+  /** Trailing UTC days the network-volume column covers. Server defaults to 30, clamps to 90. */
+  days?: number;
+  limit?: number;
+  offset?: number;
+}
+
+// GET /api/v1/referrals/sub-affiliates
+export const SubAffiliateSchema = z.object({
+  sub_affiliate: z.string(),
+  joined_unix_ms: z.number(),
+  l2_clients: z.number(),
+  /** Both-sides notional the downline traded inside the window. */
+  network_volume_usd: z.number(),
+  /**
+   * The L2 override this sub-affiliate's downline generated, at each day's own rate and
+   * penalty. Defaulted: zero means either the accrual ledger has no rows for this affiliate
+   * or the server predates the figure — neither is a claim the downline earned nothing.
+   */
+  override_usd: z.number().default(0),
+});
+
+export const SubAffiliatesSummarySchema = z.object({
+  sub_affiliates: z.number(),
+  l2_clients: z.number(),
+  network_volume_usd: z.number(),
+  /** Override across every sub-affiliate, not just the current page. */
+  override_usd: z.number().default(0),
+});
+
+export const SubAffiliatesResponseSchema = z.object({
+  referrer_account: z.string(),
+  summary: SubAffiliatesSummarySchema,
+  sub_affiliates: z.array(SubAffiliateSchema),
+  total_count: z.number(),
+});
+
+export type SubAffiliate = z.infer<typeof SubAffiliateSchema>;
+export type SubAffiliatesSummary = z.infer<typeof SubAffiliatesSummarySchema>;
+export type SubAffiliatesResponse = z.infer<typeof SubAffiliatesResponseSchema>;
+
+export interface CodePerformanceRequestArgs extends BaseRequestArgs {
+  /** The referrer's wallet address (not a subaccount address) */
+  referrerAccount: string;
+  /** Trailing UTC days the volume columns cover. Server defaults to 30, clamps to 90. */
+  days?: number;
+}
+
+// GET /api/v1/referrals/code-performance
+export const CodePerformanceSchema = z.object({
+  referral_code: z.string(),
+  /** Distinct wallets that redeemed this code, all-time. */
+  unique_users: z.number(),
+  /** How many of those traded inside the window. */
+  users_who_traded: z.number(),
+  taker_volume_usd: z.number(),
+  maker_volume_usd: z.number(),
+  /**
+   * Everything this code brought in: the L1 commission of the people who used it, plus the L2
+   * override their own referrals generated, credited to the code the sub-affiliate arrived
+   * through. The codes therefore sum to the affiliate's whole commission.
+   */
+  earnings_usd: z.number().default(0),
+});
+
+export const CodePerformanceResponseSchema = z.array(CodePerformanceSchema);
+
+export type CodePerformance = z.infer<typeof CodePerformanceSchema>;
+export type CodePerformanceResponse = z.infer<typeof CodePerformanceResponseSchema>;
+
+export interface ReferralFeesRequestArgs extends BaseRequestArgs {
+  /** The referrer's wallet address (not a subaccount address) */
+  referrerAccount: string;
+  /** Trailing UTC days to cover. Server defaults to 30, clamps to 90. */
+  days?: number;
+}
+
+// GET /api/v1/referrals/fees
+export const ReferralFeesSchema = z.object({
+  /** Fees the network paid minus rebates it received. Negative on a net-rebated network. */
+  net_fees_usd: z.number(),
+  /** Builder kickbacks owed on those same fills, deducted before any commission. */
+  builder_payouts_usd: z.number(),
+  /** `net_fees_usd - builder_payouts_usd` — what a commission would be computed on. */
+  commission_basis_usd: z.number(),
+  /** The window the server actually used, after clamping. */
+  days: z.number(),
+});
+
+export type ReferralFees = z.infer<typeof ReferralFeesSchema>;
+
+export interface AffiliateCommissionsRequestArgs extends BaseRequestArgs {
+  /** The affiliate's wallet address (not a subaccount address) */
+  affiliateAccount: string;
+  /** Trailing UTC days of daily breakdown. Server defaults to 30, clamps to 180. */
+  days?: number;
+}
+
+/**
+ * One UTC day of accrual, carrying the rules that were in force that day.
+ *
+ * `tier` and `penalty_multiplier` are stamped values read off the ledger row, not
+ * recomputed — a tier promotion or a new sybil flag must not restate what a past day paid.
+ */
+export const AffiliateCommissionDaySchema = z.object({
+  /** UTC date, `YYYY-MM-DD` */
+  date: z.string(),
+  /** Commission accrued that day, after any anti-farming penalty. */
+  accrued_usd: z.number(),
+  /** Fee basis from direct referrals. */
+  basis_l1_usd: z.number().default(0),
+  /** Fee basis from second-level referrals. */
+  basis_l2_usd: z.number().default(0),
+  /** `bronze` | `silver` | `gold`, as stamped that day. */
+  tier: z.string().default("bronze"),
+  /**
+   * The L1 share that applied that day, as a fraction — 0.25 for bronze.
+   *
+   * Sent by the server rather than derived from `tier` here: deriving it would put a second
+   * copy of the rate table in this package, and splitting commission by level needs the
+   * day's own rate because the tier moves inside a 30-day window.
+   */
+  rate_l1: z.number().default(0),
+  /** The L2 override share that applied that day, as a fraction — 0.10 for bronze. */
+  rate_l2: z.number().default(0),
+  /** 1.0 when unpenalised; below that an anti-farming override was in force. */
+  penalty_multiplier: z.number().default(1),
+  /** Why the penalty applied. Empty when unpenalised. */
+});
+
+export type AffiliateCommissionDay = z.infer<typeof AffiliateCommissionDaySchema>;
+
+/**
+ * One week of accrual and what the sweep decided about it.
+ *
+ * A row exists as soon as the week has accruals, swept or not. An unswept week is money
+ * still coming, so filtering to swept weeks only would make the running one disappear.
+ */
+export const AffiliateCommissionWeekSchema = z.object({
+  /** Monday of the week, `YYYY-MM-DD` */
+  week_start_date: z.string(),
+  /** What the seven days accrued, from the ledger. */
+  accrued_usd: z.number(),
+  /** `paid` | `forfeited` | `withheld`, or empty when the sweep has not run yet. */
+  status: z.string().default(""),
+  /** `below_minimum` | `flagged`, or empty. The answer to "why was I not paid?". */
+  reason: z.string().default(""),
+  /** What the sweep allocated. Zero on a forfeited or unswept week. */
+  allocated_usd: z.number().default(0),
+  /** On-chain campaign, or 0 when the allocation is not on chain yet. */
+  campaign_id: z.number().default(0),
+  /** The payout floor in force that week — program config, so it is per-week. */
+  minimum_usd: z.number().default(0),
+});
+
+export type AffiliateCommissionWeek = z.infer<typeof AffiliateCommissionWeekSchema>;
+
+/**
+ * One rung of the commission ladder.
+ *
+ * Published by the server rather than restated here: a second copy of the rate table would let
+ * a screen quote a rate the ledger never paid.
+ */
+export const CommissionTierSchema = z.object({
+  /** `bronze` | `silver` | `gold` */
+  tier: z.string(),
+  /** Trailing-window NUV, in USD, at or above which this rung applies. Inclusive. */
+  nuv_threshold_usd: z.number(),
+  /** Share of the direct-referral fee basis, as a fraction — 0.25 for bronze. */
+  rate_l1: z.number(),
+  /** Share of the second-level fee basis, as a fraction — 0.10 for bronze. */
+  rate_l2: z.number(),
+});
+
+export type CommissionTier = z.infer<typeof CommissionTierSchema>;
+
+/**
+ * GET /api/v1/referrals/commissions
+ *
+ * What the affiliate has EARNED. What they can CLAIM is an on-chain campaign allocation and
+ * comes from the campaigns endpoints — the two are deliberately separate, so that "accrued
+ * but not yet swept" and "accrued but forfeited" are answerable without trusting either
+ * side alone.
+ *
+ * Every field past the two headline totals is defaulted rather than required. Web deploys
+ * ahead of trading-api, so a required field here would fail Zod against an older API and
+ * take the whole affiliates portal down instead of degrading one number.
+ */
+export const AffiliateCommissionsSchema = z.object({
+  /** Accrued so far today. Provisional until the week is swept. */
+  accrued_today_usd: z.number(),
+  /** Accrued since Monday — what the weekly sweep will pay, or forfeit. */
+  accrued_this_week_usd: z.number(),
+  /** Accrued over all time, including weeks already paid. */
+  lifetime_accrued_usd: z.number().default(0),
+  /** Monday of the running week, `YYYY-MM-DD` */
+  week_start_date: z.string().default(""),
+  /**
+   * Accrued over the week before this one. Non-zero during the two or three days between a
+   * week closing and its sweep paying out — the window where the running week reads near
+   * zero while real money is still owed.
+   */
+  previous_week_usd: z.number().default(0),
+  /**
+   * `paid` | `forfeited` | `withheld`, or empty when the week has not been swept yet.
+   * Empty is the common case early in a week and must not be read as settled.
+   */
+  previous_week_status: z.string().default(""),
+  /** On-chain campaign carrying the previous week, or 0 when it is not on chain yet. */
+  previous_week_campaign_id: z.number().default(0),
+  /** The floor a week must clear to be paid at all. */
+  minimum_payout_usd: z.number().default(1),
+  /** Whether the running week currently clears the floor. */
+  meets_minimum: z.boolean().default(false),
+  /** 0.0–1.0 progress toward the floor. */
+  progress_to_minimum: z.number().default(0),
+  /**
+   * `points` | `usd`. Defaults to `points`, which is what every affiliate is on today —
+   * defaulting to `usd` would offer a dollar claim to someone who never elected one.
+   */
+  mode: z.string().default("points"),
+  /** An election recorded but not yet in force; empty when there is none. */
+  pending_mode: z.string().default(""),
+  /** The Monday `pending_mode` starts, or empty. */
+  pending_effective_from: z.string().default(""),
+  /** Daily breakdown, oldest first. Days with no activity are absent, not zero-filled. */
+  days: z.array(AffiliateCommissionDaySchema).default([]),
+  /** Weekly history, newest first: what each week accrued and what the sweep decided. */
+  weeks: z.array(AffiliateCommissionWeekSchema).default([]),
+  /**
+   * The rung in force, from the most recent accrual — not recomputed, so it always matches what
+   * the ledger paid. `bronze` when there is no history: an affiliate whose network brings nobody
+   * new still earns, at the lowest rate.
+   */
+  current_tier: z.string().default("bronze"),
+  /** The trailing-window NUV that rung was derived from. */
+  current_nuv_usd: z.number().default(0),
+  /** Days in the NUV window, so a caller can label it without hardcoding 30. */
+  nuv_window_days: z.number().default(30),
+  /** The whole ladder, highest rung first. */
+  tiers: z.array(CommissionTierSchema).default([]),
+});
+
+export type AffiliateCommissions = z.infer<typeof AffiliateCommissionsSchema>;

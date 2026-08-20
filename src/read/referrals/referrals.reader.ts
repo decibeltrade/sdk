@@ -3,10 +3,26 @@ import {
   AccountReferralSchema,
   AffiliateCodeAnalyticsResponseSchema,
   AffiliateCodesResponseSchema,
+  AffiliateCommissionsRequestArgs,
+  AffiliateCommissionsSchema,
   AffiliateEarningsResponseSchema,
+  CodePerformanceRequestArgs,
+  CodePerformanceResponseSchema,
   RedeemReferralResponseSchema,
+  ReferralActivityRequestArgs,
+  ReferralActivityResponseSchema,
+  ReferralClientsRequestArgs,
+  ReferralClientsResponseSchema,
   ReferralCodeValidationSchema,
+  ReferralFeesRequestArgs,
+  ReferralFeesSchema,
+  ReferralFunnelRequestArgs,
+  ReferralFunnelResponseSchema,
+  ReferredVolumeRequestArgs,
+  ReferredVolumeResponseSchema,
   ReferrerStatsSchema,
+  SubAffiliatesRequestArgs,
+  SubAffiliatesResponseSchema,
   UserReferralsRequestArgs,
   UserReferralsResponseSchema,
 } from "./referrals.types";
@@ -104,10 +120,225 @@ export class ReferralsReader extends BaseReader {
   }
 
   /**
-   * Get per-code L1 analytics (volume + amps earned) for every affiliate code
-   * owned by an account. Split from `getAffiliateCodes` so the metadata endpoint
-   * (called on every page load via the global nav) doesn't pay the analytics
-   * JOIN cost.
+   * Get sign-ups and first-time deposits per UTC day for a referrer, newest first.
+   *
+   * Days with no activity are omitted rather than returned as zeros — callers that
+   * plot this must fill the gaps, or a multi-day lull renders as a single step.
+   */
+  async getReferralFunnel({ referrerAccount, days, fetchOptions }: ReferralFunnelRequestArgs) {
+    const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
+    if (days) queryParams.set("days", days.toString());
+
+    const response = await this.getRequest({
+      schema: ReferralFunnelResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/funnel`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get per-UTC-day volume traded by a referrer's network, newest first.
+   *
+   * `volume_usd` sums both taker and maker sides, which is what a per-entity total
+   * requires; `taker_volume_usd` is exposed for breakdowns only and must not be used
+   * as the total. Days with no trading are omitted, so callers plotting this must fill
+   * the gaps.
+   */
+  async getReferredVolume({ referrerAccount, days, fetchOptions }: ReferredVolumeRequestArgs) {
+    const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
+    if (days) queryParams.set("days", days.toString());
+
+    const response = await this.getRequest({
+      schema: ReferredVolumeResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/volume/daily`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get the trading activity of a referrer's referred clients.
+   *
+   * Per-level window totals plus a page of direct (L1) clients, each carrying the L2
+   * clients it referred in `sub_clients`. `limit`/`offset` page over L1 rows, so
+   * `total_count` counts parents rather than clients, and an L1 that never traded still
+   * holds a row when its L2s did — that row reports `traded: false` and zeroed figures.
+   *
+   * Rows are ranked by network volume (an L1 plus its L2s) while the figures on the row
+   * are that client's own. `sub_clients` is capped at 25 rows per L1; `sub_client_count`
+   * carries the uncapped total.
+   *
+   * Carries no commission amounts: the accrual ledger those come from does not exist yet,
+   * so a figure here would be invented rather than merely stale.
+   *
+   * Volume arrives split taker/maker for display. The per-client total is their sum —
+   * a taker-only figure near-zeros a maker-heavy client.
+   */
+  async getReferralActivity({
+    referrerAccount,
+    days,
+    limit,
+    offset,
+    fetchOptions,
+  }: ReferralActivityRequestArgs) {
+    const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
+    if (days) queryParams.set("days", days.toString());
+    if (limit !== undefined) queryParams.set("limit", limit.toString());
+    if (offset !== undefined) queryParams.set("offset", offset.toString());
+
+    const response = await this.getRequest({
+      schema: ReferralActivityResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/activity`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get a referrer's referred clients with lifecycle segments.
+   *
+   * The four segment counts always cover the whole referral set, never the filtered
+   * page, so they sum to the referral total. `last_trade_unix_ms` is 0 for a client that
+   * has never traded — that is the `never_traded` bucket, which on real data is the
+   * large majority.
+   */
+  async getReferralClients({
+    referrerAccount,
+    days,
+    limit,
+    offset,
+    segment,
+    search,
+    fetchOptions,
+  }: ReferralClientsRequestArgs) {
+    const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
+    if (days) queryParams.set("days", days.toString());
+    if (limit !== undefined) queryParams.set("limit", limit.toString());
+    if (offset !== undefined) queryParams.set("offset", offset.toString());
+    if (segment) queryParams.set("segment", segment);
+    if (search) queryParams.set("search", search);
+
+    const response = await this.getRequest({
+      schema: ReferralClientsResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/clients`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get a referrer's sub-affiliates: direct referrals who went on to refer others.
+   *
+   * Only referees with at least one referral of their own appear — a direct referral who
+   * never recruited is a client, not a sub-affiliate. Carries no override amounts: the
+   * accrual ledger they would come from does not exist yet.
+   */
+  async getSubAffiliates({
+    referrerAccount,
+    days,
+    limit,
+    offset,
+    fetchOptions,
+  }: SubAffiliatesRequestArgs) {
+    const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
+    if (days) queryParams.set("days", days.toString());
+    if (limit !== undefined) queryParams.set("limit", limit.toString());
+    if (offset !== undefined) queryParams.set("offset", offset.toString());
+
+    const response = await this.getRequest({
+      schema: SubAffiliatesResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/sub-affiliates`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get per-code redemption and volume stats for a referrer.
+   *
+   * `unique_users` is all-time reach — a code's reach does not shrink because the window
+   * moved — while `users_who_traded` and the volume columns are windowed. Not paginated:
+   * an affiliate holds a handful of codes.
+   */
+  async getCodePerformance({ referrerAccount, days, fetchOptions }: CodePerformanceRequestArgs) {
+    const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
+    if (days) queryParams.set("days", days.toString());
+
+    const response = await this.getRequest({
+      schema: CodePerformanceResponseSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/code-performance`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get the fee revenue a referrer's network generated over a trailing window.
+   *
+   * Returns no commission amount — no rate is signed off and no accrual ledger exists.
+   * `commission_basis_usd` is the figure such a commission would be computed on: net
+   * fees less the builder kickbacks owed on the same fills.
+   */
+  async getReferralFees({ referrerAccount, days, fetchOptions }: ReferralFeesRequestArgs) {
+    const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
+    if (days) queryParams.set("days", days.toString());
+
+    const response = await this.getRequest({
+      schema: ReferralFeesSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/fees`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get an affiliate's accrued commission: today, the running week, lifetime, and a daily
+   * breakdown.
+   *
+   * This is what the affiliate has EARNED, from the off-chain accrual ledger. What they can
+   * CLAIM is an on-chain campaign allocation — see the campaigns reader. A week only becomes
+   * claimable once the weekly sweep writes allocations for it, and only if it cleared
+   * `minimum_payout_usd`.
+   */
+  async getAffiliateCommissions({
+    affiliateAccount,
+    days,
+    fetchOptions,
+  }: AffiliateCommissionsRequestArgs) {
+    const queryParams = new URLSearchParams({ affiliate_account: affiliateAccount });
+    if (days) queryParams.set("days", days.toString());
+
+    const response = await this.getRequest({
+      schema: AffiliateCommissionsSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/referrals/commissions`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Per-code L1 volume and Amps for the codes owned by an account.
+   *
+   * @deprecated Use `getCodePerformance`, which reports commission and two-sided volume per code.
+   * Kept because the endpoint behind this is still registered and served: dropping the method would
+   * break consumers on it for a change that only adds a second endpoint beside it.
    */
   async getAffiliateCodeAnalytics(account: string, { fetchOptions }: BaseRequestArgs = {}) {
     const response = await this.getRequest({

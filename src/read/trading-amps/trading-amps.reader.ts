@@ -1,5 +1,10 @@
 import { BaseReader } from "../base-reader";
-import { OwnerTradingAmpsRequestArgs, OwnerTradingAmpsSchema } from "./trading-amps.types";
+import {
+  OwnerAmpsDailyRequestArgs,
+  OwnerAmpsDailySchema,
+  OwnerTradingAmpsRequestArgs,
+  OwnerTradingAmpsSchema,
+} from "./trading-amps.types";
 
 export class TradingAmpsReader extends BaseReader {
   /**
@@ -15,6 +20,28 @@ export class TradingAmpsReader extends BaseReader {
     const response = await this.getRequest({
       schema: OwnerTradingAmpsSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/points/trading/amps`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
+  }
+
+  /**
+   * Get per-day Amps for an owner, newest day first.
+   *
+   * Day totals exclude `bonus_amps`: there is no `bonus_amps_daily` table, so no
+   * per-day source exists for it. For an owner who received a bonus this series will
+   * not sum to the `total_amps` on the points leaderboard.
+   */
+  async getDailyByOwner({ ownerAddr, days, season, fetchOptions }: OwnerAmpsDailyRequestArgs) {
+    const queryParams = new URLSearchParams({ owner: ownerAddr });
+    if (days) queryParams.set("days", days.toString());
+    if (season) queryParams.set("season", season);
+
+    const response = await this.getRequest({
+      schema: OwnerAmpsDailySchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/points/amps/daily`,
       queryParams,
       options: fetchOptions,
     });

@@ -24,3 +24,31 @@ export const OwnerTradingAmpsSchema = z.object({
 
 export type SubaccountAmps = z.infer<typeof SubaccountAmpsSchema>;
 export type OwnerTradingAmps = z.infer<typeof OwnerTradingAmpsSchema>;
+
+export interface OwnerAmpsDailyRequestArgs extends BaseRequestArgs {
+  /** The owner address to get per-day Amps for */
+  ownerAddr: string;
+  /** Most recent season days to return. Server defaults to 14 and clamps to 90. */
+  days?: number;
+  /** Season name (e.g. "season1"). Defaults server-side to the season containing today. */
+  season?: string;
+}
+
+export const DailyAmpsSchema = z.object({
+  day_index: z.number(),
+  day_start_unix_ms: z.number(),
+  total_amps: z.number(),
+  trading_amps: z.number(),
+  streak_amps: z.number(),
+  referral_amps: z.number(),
+  vault_amps: z.number(),
+});
+
+export const OwnerAmpsDailySchema = z.object({
+  owner: z.string(),
+  season: z.string(),
+  days: z.array(DailyAmpsSchema),
+});
+
+export type DailyAmps = z.infer<typeof DailyAmpsSchema>;
+export type OwnerAmpsDaily = z.infer<typeof OwnerAmpsDailySchema>;
