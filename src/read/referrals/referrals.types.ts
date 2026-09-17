@@ -65,6 +65,8 @@ export const AffiliateCodeSchema = z.object({
   is_affiliate: z.boolean(),
   source: ReferralCodeSourceSchema,
   created_at_ms: z.number(),
+  /** `affiliate` | `builder` as stamped by ops; empty for auto/reusable codes. Defaulted: the web ships ahead of the API. */
+  code_type: z.string().default(""),
 });
 
 // GET /api/v1/affiliates/codes/{account}
@@ -72,6 +74,8 @@ export const AffiliateCodesResponseSchema = z.object({
   owner_account: z.string(),
   codes: z.array(AffiliateCodeSchema),
   volume_threshold_met: z.boolean(),
+  /** The owner routes fills under their own builder code. Builders get a reduced landing, not the portal. */
+  is_builder: z.boolean().default(false),
 });
 
 /**
@@ -435,6 +439,27 @@ export const ReferralFeesSchema = z.object({
   /** The window the server actually used, after clamping. */
   days: z.number(),
 });
+
+// GET /api/v1/referrals/builder-fees
+export const BuilderFeesDaySchema = z.object({
+  day_start_unix_ms: z.number(),
+  fees_usd: z.number(),
+  fills: z.number(),
+});
+
+/** Builder fees the owner collected on fills routed under their builder code. Informational: they settle on-chain at fill time. */
+export const BuilderFeesSchema = z.object({
+  total_fees_usd: z.number(),
+  total_fills: z.number(),
+  window_fees_usd: z.number(),
+  window_fills: z.number(),
+  days: z.number(),
+  /** Oldest day first; days without fills are omitted. */
+  daily: z.array(BuilderFeesDaySchema),
+});
+
+export type BuilderFeesDay = z.infer<typeof BuilderFeesDaySchema>;
+export type BuilderFees = z.infer<typeof BuilderFeesSchema>;
 
 export type ReferralFees = z.infer<typeof ReferralFeesSchema>;
 
