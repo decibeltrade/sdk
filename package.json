@@ -45,7 +45,7 @@
     "url": "https://github.com/decibeltrade/sdk.git"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/fix-esm-dist.mjs",
     "dev": "tsc --watch",
     "generate:abis": "tsx src/abi/generate-abis.ts",
     "lint": "oxlint --type-aware --fix --max-warnings 0 src",
@@ -54,5 +54,5 @@
   },
   "type": "module",
   "types": "dist/index.d.ts",
-  "version": "0.8.1"
+  "version": "0.8.2"
 }
