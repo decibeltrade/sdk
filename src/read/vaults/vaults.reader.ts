@@ -1,3 +1,4 @@
+import { getVaultShareAddress } from "../../utils";
 import { BaseReader } from "../base-reader";
 import {
   MaxSynchronousRedemptionRequestArgs,
@@ -6,6 +7,7 @@ import {
   UserOwnedVaultsResponseSchema,
   UserPerformancesOnVaultsRequestArgs,
   UserPerformancesOnVaultsResponseSchema,
+  UserUnlockedSharesRequestArgs,
   VaultNetAssetValueRequestArgs,
   VaultNumSharesRequestArgs,
   VaultSharePriceRequestArgs,
@@ -164,6 +166,34 @@ export class VaultsReader extends BaseReader {
         function: `${this.deps.config.deployment.package}::vault_api::get_max_synchronous_redemption`,
         typeArguments: [],
         functionArguments: [vaultAddress],
+      },
+    });
+
+    return Number(BigInt(result)) / 1e6;
+  }
+
+  /**
+   * Get the vault shares a holder can actually redeem right now.
+   *
+   * This is NOT the share token balance. Redemption reserves shares out of the
+   * holder's primary fungible store via `vault_share_asset::lock_for_redemption`,
+   * which measures against `get_unlocked_balance` — the store balance minus any
+   * unexpired contribution lockup and minus shares already reserved by a pending
+   * redemption. A balance lookup overstates it for the whole lockup window, and
+   * shares pledged as cross-margin collateral are not in the store at all.
+   *
+   * Aborts when the holder has no primary store for the share asset (i.e. never
+   * held any), so callers should treat a failure as "unknown", not as zero.
+   *
+   * @param args The vault address and the address holding the shares
+   * @returns Redeemable shares in human units (chain units / 10 ** USDC_DECIMALS)
+   */
+  async getUserUnlockedShares({ vaultAddress, userAddress }: UserUnlockedSharesRequestArgs) {
+    const [result] = await this.deps.aptos.view<[string]>({
+      payload: {
+        function: `${this.deps.config.deployment.package}::vault_share_asset::get_user_unlocked_balance`,
+        typeArguments: [],
+        functionArguments: [getVaultShareAddress(vaultAddress), userAddress],
       },
     });
 

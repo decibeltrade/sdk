@@ -216,6 +216,7 @@ export class ReferralsReader extends BaseReader {
     offset,
     segment,
     search,
+    includeIdentities,
     fetchOptions,
   }: ReferralClientsRequestArgs) {
     const queryParams = new URLSearchParams({ referrer_account: referrerAccount });
@@ -224,6 +225,8 @@ export class ReferralsReader extends BaseReader {
     if (offset !== undefined) queryParams.set("offset", offset.toString());
     if (segment) queryParams.set("segment", segment);
     if (search) queryParams.set("search", search);
+    // Only sent when opting out; the server defaults to true.
+    if (includeIdentities === false) queryParams.set("include_identities", "false");
 
     const response = await this.getRequest({
       schema: ReferralClientsResponseSchema,

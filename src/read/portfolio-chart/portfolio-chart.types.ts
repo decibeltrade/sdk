@@ -25,6 +25,15 @@ export const PortfolioChartPnlItemSchema = z.object({
     .nullable()
     .optional()
     .transform((v) => v ?? 0),
+  // Spot PnL (unrealized + realized) at this snapshot. Sidecar for the same
+  // reason as spot_value: the combined cut is data_points + spot_pnl. Absent
+  // for the account_value type and on pre-spot-PnL servers; 0 for history
+  // predating the spot PnL columns.
+  spot_pnl: z
+    .number()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? 0),
 });
 
 export const PortfolioChartSchema = z.array(PortfolioChartPnlItemSchema);

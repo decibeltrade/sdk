@@ -10,5 +10,8 @@ export const MarketContextSchema = z.object({
 
 export const MarketContextsSchema = z.array(MarketContextSchema);
 
+export const AllMarketContextsWsMessageSchema = z.object({ contexts: MarketContextsSchema });
+
 export type MarketContext = z.infer<typeof MarketContextSchema>;
 export type MarketContexts = z.infer<typeof MarketContextsSchema>;
+export type AllMarketContextsWsMessage = z.infer<typeof AllMarketContextsWsMessageSchema>;

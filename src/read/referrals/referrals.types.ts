@@ -285,6 +285,11 @@ export interface ReferralClientsRequestArgs extends BaseRequestArgs {
   segment?: ClientSegment;
   /** Case-insensitive substring match on the client address. */
   search?: string;
+  /**
+   * Look up each client's external wallet address. Server defaults to true. Pass false when not
+   * rendering them: the lookup scans the analytics stream, and a full export walks many pages.
+   */
+  includeIdentities?: boolean;
 }
 
 // GET /api/v1/referrals/clients
@@ -299,6 +304,17 @@ export const ClientSegmentsSchema = z.object({
 
 export const ReferralClientSchema = z.object({
   client: z.string(),
+  /**
+   * The address the client actually holds in their wallet. Empty when we have no analytics row for
+   * them, which is most clients — `client` is the derived Aptos address and is the fallback.
+   */
+  external_address: z.string().default(""),
+  /** Wallet the client signed in with, as the stream spells it: `metamask (ethereum)`. */
+  wallet_name: z.string().default(""),
+  /** The subaccount the app shows the client as "Primary address". Empty when none yet. */
+  primary_subaccount: z.string().default(""),
+  /** Every subaccount the owner holds, primary included. `search` matches any of them. */
+  subaccounts: z.array(z.string()).default([]),
   source_code: z.string(),
   joined_unix_ms: z.number(),
   /** 0 when the client has never traded. */

@@ -143,6 +143,44 @@ describe("asset_type request param defaults (perp unless opted out)", () => {
     await new UserBulkOrdersReader(createMockDeps()).getByAddr({ subAddr: "0x1" });
     expect(requestedUrl(fetchSpy).searchParams.get("asset_type")).toBe("perp");
   });
+
+  it('userBulkOrders.getByAddr omits the param for assetType "all" and returns the union', async () => {
+    const perpBulkOrderRow = {
+      asset_type: "perp",
+      market: "0xperp",
+      sequence_number: 3,
+      previous_seq_num: 2,
+      bid_prices: [10],
+      bid_sizes: [1],
+      ask_prices: [11],
+      ask_sizes: [1],
+      cancelled_bid_prices: [],
+      cancelled_bid_sizes: [],
+      cancelled_ask_prices: [],
+      cancelled_ask_sizes: [],
+    };
+    const spotBulkOrderRow = {
+      asset_type: "spot",
+      market: "0xspot",
+      sequence_number: 7,
+      previous_seq_num: 6,
+      bid_prices: [4.9],
+      bid_sizes: [10],
+      ask_prices: [5.1],
+      ask_sizes: [12],
+      cancelled_bid_prices: [],
+      cancelled_bid_sizes: [],
+      cancelled_ask_prices: [],
+      cancelled_ask_sizes: [],
+    };
+    const fetchSpy = mockFetch([perpBulkOrderRow, spotBulkOrderRow]);
+    const orders = await new UserBulkOrdersReader(createMockDeps()).getByAddr({
+      subAddr: "0x1",
+      assetType: "all",
+    });
+    expect(requestedUrl(fetchSpy).searchParams.has("asset_type")).toBe(false);
+    expect(orders.map((o) => o.asset_type)).toEqual(["perp", "spot"]);
+  });
 });
 
 describe("markets typed spot views", () => {

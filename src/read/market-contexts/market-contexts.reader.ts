@@ -1,5 +1,9 @@
 import { BaseReader, BaseRequestArgs } from "../base-reader";
-import { MarketContextsSchema } from "./market-contexts.types";
+import {
+  AllMarketContextsWsMessage,
+  AllMarketContextsWsMessageSchema,
+  MarketContextsSchema,
+} from "./market-contexts.types";
 
 export class MarketContextsReader extends BaseReader {
   /**
@@ -22,5 +26,17 @@ export class MarketContextsReader extends BaseReader {
     });
 
     return response.data;
+  }
+
+  /**
+   * Subscribe to the same payload as `getAll()` for every market. A server with the
+   * topic disabled rejects the subscribe and never delivers, so keep polling `getAll()`.
+   * @param onData Callback function for received contexts
+   * @returns A function to unsubscribe
+   */
+  subscribeAll(onData: (data: AllMarketContextsWsMessage) => void) {
+    const topic = `all_market_contexts`;
+
+    return this.deps.ws.subscribe(topic, AllMarketContextsWsMessageSchema, onData);
   }
 }

@@ -82,6 +82,12 @@ export interface MaxSynchronousRedemptionRequestArgs {
   vaultAddress: string;
 }
 
+export interface UserUnlockedSharesRequestArgs {
+  vaultAddress: string;
+  /** Address holding the shares — the subaccount for a normal deposit. */
+  userAddress: string;
+}
+
 /**
  * Schema for a vault in the protocol
  * Represents both protocol-wide vaults and user-managed vaults

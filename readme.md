@@ -109,6 +109,7 @@ const order = await write.placeOrder({
   - Order history and open orders
   - Subaccounts and delegations
   - Vault information
+  - Campaign rewards, including affiliate commissions
 
 ### Write SDK
 
@@ -245,6 +246,23 @@ const addresses = await readDex.markets.listMarketAddresses();
 // Get market name by address
 const name = await readDex.markets.marketNameByAddress("0x123...");
 ```
+
+### Campaign Rewards
+
+```typescript
+const campaigns = await readDex.campaigns.getActive();
+const summary = await readDex.campaigns.getSummary({
+  accountAddress: "0x...",
+  limit: 20,
+  offset: 0,
+});
+```
+
+Campaign metadata, `summary.claims`, and `summary.breakdownByType` use `campaignType`:
+`"fee_rebate"`, `"maker_incentive"`, `"liquidation_rebate"`, `"volume_milestone"`,
+`"first_funded_trial"`, or `"affiliate"`. Unknown campaign types fail response validation.
+Reward amounts are raw token units (divide USDC amounts by `10 ** 6`). Each claim exposes
+`hasAllocation`, `readyToClaim`, `claimedAmount`, `claimedAtTsSec`, and `claimTxHash`.
 
 ### Account Overview
 
@@ -847,7 +865,7 @@ await writeDex.updateOrder({
 All spot methods are subaccount-scoped (defaulting to the primary Trading Account) and accept `marketName` or `marketAddr`, like `cancelOrder`.
 
 ```typescript
-import { TimeInForce } from "@decibeltrade/sdk";
+import { roundToTickSizeForSide, TimeInForce } from "@decibeltrade/sdk";
 
 const spotMarkets = await readDex.markets.getAllSpot();
 const spotMarket = spotMarkets.find((m) => m.market_name === "APT/USDC");
@@ -866,11 +884,42 @@ const spotResult = await writeDex.placeSpotOrder({
 
 // Spot placement is CBS-backed and async: when funding needs a rate-limited
 // CBS withdrawal the transaction succeeds but the order is queued, not
-// resting. `pendingCbs: true` signals this — poll the order endpoints
-// (e.g. readDex.userOrders.getOrder) for the real acknowledgment.
+// resting. `pendingCbs: true` signals this — resolve the outcome via
+// readDex.userOrders.getOrder / userOrderHistory, which cover every terminal
+// state. userOpenOrders only sees orders that rest, so an IOC order never
+// shows up there whether it filled, cancelled, or is still queued.
 if (spotResult.success && spotResult.pendingCbs) {
   console.log("Order queued behind a CBS withdrawal", spotResult.orderId);
 }
+
+// There is no market order on chain for spot: submit an IOC limit at the
+// slippage cap. `roundToTickSizeForSide` is the same side-safe rounding
+// `tickSize` applies internally (buys down, sells up, so the cap is never
+// crossed) — pre-round with it to know the exact price the order is
+// submitted and escrowed at. It is idempotent.
+//
+// Spot has no perp-style price feed, so the reference price comes from the
+// spot asset contexts (mid of the book, or the last trade).
+const spotContexts = await readDex.spotAssetContexts.getAll();
+const spotContext = spotContexts.find((c) => c.market_addr === spotMarket.market_addr);
+const mid = spotContext?.mid ?? spotContext?.last_price;
+if (mid == null) throw new Error("No spot reference price");
+
+// Scale WITHOUT rounding first: amountToChainUnits rounds to the nearest
+// integer, which can carry the value across a tick boundary and put the
+// submitted price on the wrong side of the cap. Let the side-safe rounding
+// consume the exact fractional value instead.
+const cap = mid * 1.01 * 10 ** spotMarket.px_decimals;
+const submittedPrice = roundToTickSizeForSide(cap, spotMarket.tick_size, true);
+
+const spotMarketOrder = await writeDex.placeSpotOrder({
+  marketName: "APT/USDC",
+  price: submittedPrice,
+  size: amountToChainUnits(100, spotMarket.sz_decimals),
+  isBuy: true,
+  timeInForce: TimeInForce.ImmediateOrCancel,
+  tickSize: spotMarket.tick_size,
+});
 
 // Cancel a spot order
 if (spotResult.success && spotResult.orderId) {

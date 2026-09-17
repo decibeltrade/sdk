@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { TESTNET_CONFIG } from "./constants";
 import { getSpotMarketAddr } from "./utils";
-import { DecibelWriteDex, TimeInForce } from "./write";
+import { DecibelWriteDex, roundToTickSizeForSide, TimeInForce } from "./write";
 
 const PKG = TESTNET_CONFIG.deployment.package;
 const SUB = `0x${"ab".repeat(32)}`;
@@ -42,6 +42,82 @@ function makeWriteDex(opts?: { defaultEncrypted?: boolean; txResponse?: object }
 function sentPayload(spy: ReturnType<typeof vi.fn>): EntryPayload {
   return spy.mock.calls[0][0] as EntryPayload;
 }
+
+describe("roundToTickSizeForSide", () => {
+  // The epsilon exists to absorb IEEE-754 drift so a price the caller intended
+  // to be tick-aligned does not silently drop a whole tick. Dropping it would
+  // trade a negligible boundary overshoot for a routine full-tick error.
+  it("holds an aligned price that float drift left just below the tick", () => {
+    const drifted = 42_500 * 100 * (1 - Number.EPSILON); // ~4_249_999.9999999995
+    expect(roundToTickSizeForSide(drifted, 100, true)).toBe(4_250_000);
+  });
+
+  it("holds an aligned price that float drift left just above the tick", () => {
+    const drifted = 42_500 * 100 * (1 + Number.EPSILON);
+    expect(roundToTickSizeForSide(drifted, 100, false)).toBe(4_250_000);
+  });
+
+  // The absorption window must scale with magnitude: a fixed absolute epsilon
+  // is too wide for small tick counts and too narrow for very large ones.
+  it("never rounds a buy above a price that is a meaningful distance below the tick", () => {
+    // 1e-6 of a tick below the boundary is far outside any float drift.
+    expect(roundToTickSizeForSide(4_249_999.9999, 100, true)).toBe(4_249_900);
+  });
+
+  it("never rounds a sell below a price meaningfully above the tick", () => {
+    expect(roundToTickSizeForSide(4_250_000.0001, 100, false)).toBe(4_250_100);
+  });
+
+  // The reason drift absorption exists at all, and the regression guard
+  // against "just drop the epsilon": scaling an ordinary decimal price to
+  // chain units lands off-integer surprisingly often (~1.2% of 2-decimal
+  // prices at 6 quote decimals). `2.01 * 1e6` is 2_009_999.9999999998, so a
+  // bare Math.floor quotes a user who typed 2.01 at 2.0099 — one tick worse
+  // than they asked for.
+  it("keeps an ordinary decimal price on the tick the user typed", () => {
+    expect(2.01 * 1e6).not.toBe(2_010_000); // the drift this absorbs
+    expect(roundToTickSizeForSide(2.01 * 1e6, 100, true)).toBe(2_010_000);
+    expect(roundToTickSizeForSide(2.01 * 1e6, 100, false)).toBe(2_010_000);
+  });
+
+  // A fixed absolute epsilon is too small once the tick count is large. A
+  // BTC-like spot price ($100k at 6 quote decimals = 1e11 chain units) with a
+  // 100-unit tick is 1e9 ticks, where float drift exceeds 1e-9 — so an aligned
+  // price silently lost a whole tick.
+  it("absorbs drift at a BTC-scale tick count", () => {
+    const exact = 1e9 * 100;
+    expect(roundToTickSizeForSide(exact * (1 - Number.EPSILON), 100, true)).toBe(exact);
+    expect(roundToTickSizeForSide(exact * (1 + Number.EPSILON), 100, false)).toBe(exact);
+  });
+
+  // ...and the same fixed epsilon was too WIDE for ordinary magnitudes,
+  // rounding a buy up past a price genuinely below the tick.
+  it("does not round a buy up from 1e-9 of a tick below the boundary", () => {
+    expect(roundToTickSizeForSide((42_500 - 1e-9) * 100, 100, true)).toBe(4_249_900);
+  });
+
+  it("does not round a sell down from 1e-9 of a tick above the boundary", () => {
+    expect(roundToTickSizeForSide((42_500 + 1e-9) * 100, 100, false)).toBe(4_250_100);
+  });
+
+  it("stays side-safe across a sweep of magnitudes", () => {
+    for (const ticks of [1, 12.5, 999, 42_500, 1e9, 1e12]) {
+      for (const tickSize of [1, 100, 10_000]) {
+        const price = ticks * tickSize;
+        const buy = roundToTickSizeForSide(price, tickSize, true);
+        const sell = roundToTickSizeForSide(price, tickSize, false);
+        // An exactly representable aligned price must not move at all.
+        if (Number.isInteger(ticks)) {
+          expect(buy).toBe(price);
+          expect(sell).toBe(price);
+        } else {
+          expect(buy).toBeLessThanOrEqual(price);
+          expect(sell).toBeGreaterThanOrEqual(price);
+        }
+      }
+    }
+  });
+});
 
 describe("placeSpotOrder", () => {
   it("sends place_spot_order_to_subaccount with the market addr derived from the name", async () => {

@@ -94,13 +94,25 @@ function roundToTickSize(price: number, tickSize: number): number {
  * Round a price to the tick in the SIDE-SAFE direction for a limit/IOC
  * bound: buys round down (never pay above the caller's cap), sells round up
  * (never accept below the caller's floor). Nearest-tick rounding would let a
- * non-aligned cap cross the user's configured limit/slippage. The epsilon
- * absorbs IEEE-754 division noise so an already-aligned price stays put.
+ * non-aligned cap cross the user's configured limit/slippage.
+ *
+ * The epsilon absorbs IEEE-754 division noise so an already-aligned price
+ * stays put instead of dropping a whole tick. It is RELATIVE to the tick
+ * count, because float error is: a fixed absolute epsilon is simultaneously
+ * too wide at ordinary magnitudes (rounding a buy up past a price genuinely
+ * below the tick) and too narrow at large ones — a BTC-scale spot price
+ * ($100k at 6 quote decimals, 100-unit tick) is 1e9 ticks, where drift
+ * already exceeds 1e-9.
+ *
+ * {@link DecibelWriteDex.placeSpotOrder} applies this internally when given a
+ * `tickSize`, and it is idempotent, so pre-rounding does not change the
+ * submitted value.
  */
-function roundToTickSizeForSide(price: number, tickSize: number, isBuy: boolean): number {
+export function roundToTickSizeForSide(price: number, tickSize: number, isBuy: boolean): number {
   if (price === 0 || tickSize === 0) return 0;
   const ticks = price / tickSize;
-  const rounded = isBuy ? Math.floor(ticks + 1e-9) : Math.ceil(ticks - 1e-9);
+  const epsilon = Math.abs(ticks) * Number.EPSILON * 8;
+  const rounded = isBuy ? Math.floor(ticks + epsilon) : Math.ceil(ticks - epsilon);
   return rounded * tickSize;
 }
 
@@ -662,9 +674,9 @@ export class DecibelWriteDex extends BaseSDK {
   }
 
   /**
-   * Place (or replace) a spot bulk order. Funds are sourced from the
-   * subaccount's PFS only — the transaction aborts if the PFS is short on
-   * either side. `sequenceNumber` must be strictly increasing per market.
+   * Place (or replace) a spot bulk order. Funds are sourced from PFS
+   * first, then CBS (sync only — a rate-limited CBS withdrawal aborts).
+   * `sequenceNumber` must be strictly increasing per market.
    */
   async placeSpotBulkOrder(
     args: {

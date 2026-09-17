@@ -46,11 +46,20 @@ export const SpotPositionSchema = z.object({
   /** amount x current mark price (mid-of-orderbook, last trade as fallback). */
   usd_value: z.number(),
   /**
-   * Weighted-average cost basis for the currently-held amount, in USD.
-   * 0 when the asset was acquired without an on-book spot trade (e.g., FA transfer in).
+   * Weighted-average cost of the units in this position that were actually BOUGHT, in USD.
+   * 0 when the asset carries no on-book fills (e.g., FA transfer in).
+   *
+   * Covers `amount` only while the account holds no more than it bought; beyond that the
+   * excess arrived at an unrecorded price, and the costed pool is shared with base escrowed
+   * behind resting asks, so this is the PFS share of it.
    */
   entry_notional_usd: z.number(),
-  /** usd_value - entry_notional_usd. Negative when mark < average cost. */
+  /**
+   * Unrealized PnL on the costed units only. Negative when mark < average cost.
+   *
+   * NOT `usd_value - entry_notional_usd`: `usd_value` marks every held unit while this
+   * covers only the ones with a known cost. The two agree only for a fully-costed position.
+   */
   unrealized_pnl_usd: z.number(),
 });
 
@@ -78,7 +87,11 @@ export const SpotMetricsSchema = z.object({
   cumulative_taker_fees_usd: z.number(),
   /** Cumulative fees paid on fills where this account was the maker, USD. */
   cumulative_maker_fees_usd: z.number(),
-  /** Cumulative realized PnL from spot sells, USD. */
+  /**
+   * Cumulative realized PnL from spot sells, USD, GROSS of fees (the two cumulative fee
+   * fields above are its counterpart). Weighted-average basis, prorated to the share of
+   * units sold that had a known cost.
+   */
   cumulative_realized_pnl_usd: z.number(),
 });
 
@@ -93,6 +106,12 @@ export const SpotOverviewSchema = z.object({
   /** USDC-equivalent value of every position + reserved amounts in open spot orders. */
   total_usd: z.number(),
   in_flight_orders: z.array(SpotInFlightOrderSchema),
+  /**
+   * Unrealized PnL across PFS holdings AND base escrowed behind resting orders.
+   * NOT the sum of `positions[].unrealized_pnl_usd`, which is PFS-only.
+   * Absent against servers predating spot PnL support.
+   */
+  total_unrealized_pnl_usd: z.number().optional(), // TODO: Remove optional once back-end is deployed
   /** Absent when the subaccount has never traded spot. */
   metrics: SpotMetricsSchema.nullable().optional(),
 });
@@ -124,6 +143,14 @@ export const AccountOverviewSchema = z.object({
   total_margin: z.number(),
   usdc_cross_withdrawable_balance: z.number(),
   usdc_isolated_withdrawable_balance: z.number(),
+  /**
+   * USDC held in the CROSS margin pool, before any withdrawable cap. Negative when underwater.
+   *
+   * Not derivable from `total_margin`: that is `cross + isolated + secondary`, so netting off
+   * `secondary_collateral` still leaves isolated margin folded in, and isolated margin is locked
+   * behind isolated positions. Anything sizing a cross-collateral move needs this field.
+   */
+  usdc_cross_balance: z.number().optional(), // TODO: Remove optional once back-end is deployed
   /**
    * Cross-margin deficit: 0 when healthy, negative when the account has a margin hole.
    * When negative, new deposits partially fill this deficit before becoming available to trade.

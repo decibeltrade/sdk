@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveAptosFromEth, deriveAptosFromSolana } from "./derivable-account";
+import { deriveAptosFromEth, deriveAptosFromSolana, deriveAptosFromSui } from "./derivable-account";
 
 describe("deriveAptosFromEth", () => {
   it("produces a 66-char lowercase 0x-prefixed address", () => {
@@ -28,6 +28,28 @@ describe("deriveAptosFromEth", () => {
 
   it("throws on invalid ETH address", () => {
     expect(() => deriveAptosFromEth("not-an-address")).toThrow();
+  });
+
+  it("derives per SIWA domain, defaulting to mainnet", () => {
+    // Real pairs: the same Arbitrum wallet is one account on mainnet and another on testnet.
+    const wallet = "0x55BcEcf60eED4e66CF6515C92B386A993140339f";
+    expect(deriveAptosFromEth(wallet, "testnet-app.decibel.trade")).toBe(
+      "0xbb42ddec781413ce1bb7334be5df2061f232ad821da96d41706ab7d0934127d8",
+    );
+    expect(deriveAptosFromEth(wallet)).toBe(deriveAptosFromEth(wallet, "app.decibel.trade"));
+    expect(deriveAptosFromEth(wallet)).not.toBe(
+      deriveAptosFromEth(wallet, "testnet-app.decibel.trade"),
+    );
+  });
+});
+
+describe("deriveAptosFromSui", () => {
+  it("derives the account a real Sui login got on mainnet", () => {
+    // Real pair from analytics (slush wallet). The identity is the address as reported: lower
+    // case with the 0x prefix; either change yields a different account.
+    expect(
+      deriveAptosFromSui("0x7cf81ab1c5752b8f430a2839a4b9034f8133c489cfbfe3f5f541d4d787f87915"),
+    ).toBe("0x686d2ddf7e7c531ce525856816cdc5e6783e3f5830a708f49126cd48413cb1ae");
   });
 });
 
