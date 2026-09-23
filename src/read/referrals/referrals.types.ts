@@ -458,6 +458,25 @@ export const BuilderFeesSchema = z.object({
   daily: z.array(BuilderFeesDaySchema),
 });
 
+/** One transaction that paid the builder a fee. Grouped by transaction: a tx settles several fills, all on one market. */
+export const BuilderFeeTxSchema = z.object({
+  transaction_version: z.number(),
+  transaction_unix_ms: z.number(),
+  market: z.string(),
+  fees_usd: z.number(),
+  notional_usd: z.number(),
+  fills: z.number(),
+});
+
+/** A page of builder fee transactions. `total_count` is omitted, as on every history endpoint. */
+export const BuilderFeeHistorySchema = z.object({
+  items: z.array(BuilderFeeTxSchema),
+  total_count: z.number().optional(),
+});
+
+export type BuilderFeeTx = z.infer<typeof BuilderFeeTxSchema>;
+export type BuilderFeeHistory = z.infer<typeof BuilderFeeHistorySchema>;
+
 export type BuilderFeesDay = z.infer<typeof BuilderFeesDaySchema>;
 export type BuilderFees = z.infer<typeof BuilderFeesSchema>;
 
