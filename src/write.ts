@@ -30,7 +30,13 @@ import {
   WithdrawFromVaultArgs,
 } from "./read";
 import { RenameSubaccountArgs, RenameSubaccountSchema } from "./subaccount-types";
-import { getMarketAddr, getPrimarySubaccountAddr, getSpotMarketAddr, postRequest } from "./utils";
+import {
+  addressesEqual,
+  getMarketAddr,
+  getPrimarySubaccountAddr,
+  getSpotMarketAddr,
+  postRequest,
+} from "./utils";
 
 export const TimeInForce = {
   GoodTillCanceled: 0,
@@ -49,23 +55,6 @@ type WithSignerAddress<T> = T & {
 
 /** Spot markets are addressed by name (derived) or by object address directly. */
 export type SpotMarketRef = { marketName: string } | { marketAddr: string };
-
-/**
- * Compare two account addresses regardless of representation (short vs
- * zero-padded long form, case). Event payloads and caller-supplied addresses
- * don't always agree on format. Falls back to exact string equality if
- * either side isn't parseable as an address.
- */
-function addressesEqual(a: string, b: string): boolean {
-  try {
-    // maxMissingChars: 63 accepts any short-form address (the SDK default of
-    // 4 rejects addresses with more than 4 leading zeros stripped).
-    const opts = { maxMissingChars: 63 };
-    return AccountAddress.from(a, opts).equals(AccountAddress.from(b, opts));
-  } catch {
-    return a === b;
-  }
-}
 
 /** Per-call submission concerns shared by every subaccount-scoped write method. */
 export interface WriteSubmissionOpts extends SendTxOpts {
@@ -154,6 +143,9 @@ export class DecibelWriteDex extends BaseSDK {
     subaccountAddr?: string,
   ): string | null {
     const orderEvents = ["market_types::OrderEvent", "async_matching_engine::TwapEvent"];
+    // With no subaccount the order goes to the primary one, not the owner.
+    const placedBy =
+      subaccountAddr || this.getPrimarySubaccountAddress(this.account.accountAddress);
     try {
       // Check if the response is a UserTransactionResponse with events
       if ("events" in txResponse && Array.isArray(txResponse.events)) {
@@ -162,11 +154,13 @@ export class DecibelWriteDex extends BaseSDK {
           for (const orderEvent of orderEvents) {
             if (event.type.includes(orderEvent)) {
               const orderEvent = event.data as OrderEvent | TwapEvent;
-              // Verify the event's user field matches the subaccount placing the order
-              const userAddress = subaccountAddr ?? this.account.accountAddress;
-              const orderUserAddress = (orderEvent as OrderEvent).user;
-              const twapUserAddress = (orderEvent as TwapEvent).account;
-              if (orderUserAddress === userAddress || twapUserAddress === userAddress) {
+              // Only one of these exists per event type.
+              const { user } = orderEvent as OrderEvent;
+              const { account } = orderEvent as TwapEvent;
+              if (
+                (user && addressesEqual(user, placedBy)) ||
+                (account && addressesEqual(account, placedBy))
+              ) {
                 return typeof orderEvent.order_id === "string"
                   ? orderEvent.order_id
                   : orderEvent.order_id.order_id;

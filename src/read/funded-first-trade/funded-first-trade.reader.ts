@@ -1,4 +1,5 @@
 import { PayoutAnchors, TierSlateTier } from "../../protected-amount";
+import { addressesEqual } from "../../utils";
 import { BaseReader } from "../base-reader";
 import {
   ChainFallbackDeps,
@@ -139,7 +140,9 @@ export class FundedFirstTradeReader extends BaseReader {
         options: fetchOptions,
       });
       if (response.data.active_trial) return response.data.active_trial;
-      const recent = response.data.history.find((t) => t.campaign_addr === this.campaignAddr);
+      const recent = response.data.history.find((t) =>
+        addressesEqual(t.campaign_addr, this.campaignAddr),
+      );
       if (
         recent != null &&
         recent.status !== "Active" &&

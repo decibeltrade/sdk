@@ -2,7 +2,7 @@ import { Account } from "@aptos-labs/ts-sdk";
 import { describe, expect, it, vi } from "vitest";
 
 import { TESTNET_CONFIG } from "./constants";
-import { DecibelWriteDex } from "./write";
+import { DecibelWriteDex, TimeInForce } from "./write";
 
 // sendTx / sendEncryptedTx are protected on BaseSDK. Stub them on the instance so
 // the only thing under test is submitSubaccountTx's encrypted-vs-plaintext
@@ -53,5 +53,68 @@ describe("DecibelWriteDex encryption routing", () => {
     await dex.cancelOrder({ ...CANCEL_ARGS, encrypted: false });
     expect(sendTx).toHaveBeenCalledTimes(1);
     expect(sendEncryptedTx).not.toHaveBeenCalled();
+  });
+});
+
+describe("DecibelWriteDex.placeOrder order id extraction", () => {
+  const PKG = TESTNET_CONFIG.deployment.package;
+
+  // `eventsFor` receives the signer's primary subaccount so a fixture can name it.
+  function dexWithEvents(eventsFor: (primarySubaccount: string) => object[]) {
+    const account = Account.generate();
+    const dex = new DecibelWriteDex(TESTNET_CONFIG, account);
+    const tx = {
+      hash: "0xhash",
+      events: eventsFor(dex.getPrimarySubaccountAddress(account.accountAddress)),
+    };
+    const internals = dex as unknown as SendSpies;
+    internals.sendTx = vi.fn().mockResolvedValue(tx);
+    internals.sendEncryptedTx = vi.fn().mockResolvedValue(tx);
+    return dex;
+  }
+
+  const ORDER = {
+    marketName: "BTC/USD",
+    price: 100,
+    size: 1,
+    isBuy: true,
+    timeInForce: TimeInForce.GoodTillCanceled,
+    isReduceOnly: false,
+  };
+
+  // The order lands on the primary subaccount, so that is who the event names — not the owner.
+  it("matches the primary subaccount when no subaccountAddr is passed", async () => {
+    const dex = dexWithEvents((primary) => [
+      { type: `${PKG}::market_types::OrderEvent`, data: { order_id: "42", user: primary } },
+    ]);
+    expect(await dex.placeOrder(ORDER)).toMatchObject({ success: true, orderId: "42" });
+  });
+
+  it("matches across zero-padding when subaccountAddr is passed", async () => {
+    const dex = dexWithEvents(() => [
+      { type: `${PKG}::market_types::OrderEvent`, data: { order_id: "42", user: "0xab" } },
+    ]);
+    const longForm = `0x${"0".repeat(62)}ab`;
+    expect(await dex.placeOrder({ ...ORDER, subaccountAddr: longForm })).toMatchObject({
+      success: true,
+      orderId: "42",
+    });
+  });
+
+  it("matches a TWAP event by its account field", async () => {
+    const sub = `0x${"cd".repeat(32)}`;
+    const dex = dexWithEvents(() => [
+      { type: `${PKG}::async_matching_engine::TwapEvent`, data: { order_id: "9", account: sub } },
+    ]);
+    const result = await dex.placeTwapOrder({
+      marketName: "BTC/USD",
+      size: 1,
+      isBuy: true,
+      isReduceOnly: false,
+      twapFrequencySeconds: 60,
+      twapDurationSeconds: 600,
+      subaccountAddr: sub,
+    });
+    expect(result).toMatchObject({ success: true, orderId: "9" });
   });
 });

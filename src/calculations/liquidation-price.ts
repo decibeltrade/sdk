@@ -6,6 +6,8 @@
  * Conservative for both longs and shorts.
  */
 
+import { addressComparisonKey } from "../address";
+
 /**
  * Input for liquidation price calculation.
  *
@@ -76,11 +78,12 @@ function getMaintenanceMargin(
  */
 export function calculateLiquidationPrice(input: LiquidationPriceInput): number {
   const { accountEquity, positions, markets, marketContexts, targetMarketAddr, orderSize } = input;
-  const marketByAddr = new Map(markets.map((m) => [m.marketAddr, m]));
+  const marketByAddr = new Map(markets.map((m) => [addressComparisonKey(m.marketAddr), m]));
   const contextByName = new Map(marketContexts.map((c) => [c.marketName, c]));
 
-  const position = positions.find((p) => p.marketAddr === targetMarketAddr);
-  const market = marketByAddr.get(targetMarketAddr);
+  const targetKey = addressComparisonKey(targetMarketAddr);
+  const position = positions.find((p) => addressComparisonKey(p.marketAddr) === targetKey);
+  const market = marketByAddr.get(targetKey);
 
   if (!market) {
     throw new Error(`Market not found for address: ${targetMarketAddr}`);
@@ -149,9 +152,10 @@ export function calculateLiquidationPrice(input: LiquidationPriceInput): number 
 
   if (positions.length > 0) {
     for (const pos of positions) {
-      if (pos.marketAddr === targetMarketAddr) continue;
+      const posKey = addressComparisonKey(pos.marketAddr);
+      if (posKey === targetKey) continue;
 
-      const posMarket = marketByAddr.get(pos.marketAddr);
+      const posMarket = marketByAddr.get(posKey);
       if (!posMarket) continue;
 
       const posMarketContext = contextByName.get(posMarket.marketName);

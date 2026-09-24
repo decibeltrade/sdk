@@ -1,6 +1,6 @@
 import { stringStructTag, TypeTagAddress, TypeTagStruct, TypeTagVector } from "@aptos-labs/ts-sdk";
 
-import { getMarketAddr } from "../../utils";
+import { addressComparisonKey, getMarketAddr } from "../../utils";
 import { BaseReader, BaseRequestArgs } from "../base-reader";
 import {
   isSpotMarket,
@@ -66,10 +66,11 @@ export class MarketsReader extends BaseReader {
       if (!includeSpot && market.asset_type === "spot") {
         return false;
       }
-      if (seen.has(market.market_addr)) {
+      const key = addressComparisonKey(market.market_addr);
+      if (seen.has(key)) {
         return false;
       }
-      seen.add(market.market_addr);
+      seen.add(key);
       return true;
     });
 

@@ -10,6 +10,8 @@ import { QUERY_PARAM_KEYS } from "./constants";
 import { PageParams, SearchTermParams, SortParams } from "./read";
 import { CompatVersion } from "./release-config";
 
+export { addressComparisonKey, addressesEqual } from "./address";
+
 export function getMarketAddr(name: string, perpEngineGlobalAddr: string) {
   const marketNameBytes = new MoveString(name).bcsToBytes();
   return createObjectAddress(AccountAddress.fromString(perpEngineGlobalAddr), marketNameBytes);

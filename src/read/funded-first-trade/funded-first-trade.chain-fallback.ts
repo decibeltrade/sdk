@@ -1,5 +1,6 @@
 import { AccountAddress, Aptos } from "@aptos-labs/ts-sdk";
 
+import { addressesEqual } from "../../utils";
 import { TrialDto } from "./funded-first-trade.types";
 
 export interface ChainFallbackDeps {
@@ -111,7 +112,8 @@ export async function getTrialHistoryFromChain(
     for (const event of tx.events) {
       if (event.type !== closedEventType) continue;
       const d = event.data as Record<string, unknown>;
-      if (d.user !== account || d.campaign_addr !== campaign) continue;
+      if (!addressesEqual(d.user as string, account)) continue;
+      if (!addressesEqual(d.campaign_addr as string, campaign)) continue;
       const userPayout = Number(d.user_payout);
       const reason = Number(d.settle_reason);
       rows.push({

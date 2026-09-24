@@ -1,5 +1,6 @@
 import { AccountAddress, Aptos, createObjectAddress, Network } from "@aptos-labs/ts-sdk";
 
+import { addressesEqual } from "./address";
 import { DecibelWsSubscription } from "./read/ws-subscription";
 import { PACKAGE, RELEASE_CONFIGS, ReleaseConfig } from "./release-config";
 
@@ -57,8 +58,8 @@ export function getDlpShareAddress(publisherAddr: string) {
 }
 
 export function getCampaignPackage(publisherAddr: string): string {
-  if (publisherAddr === PACKAGE.TESTNET) return PACKAGE.CAMPAIGN_TESTNET;
-  if (publisherAddr === PACKAGE.MAINNET) return PACKAGE.CAMPAIGN_MAINNET;
+  if (addressesEqual(publisherAddr, PACKAGE.TESTNET)) return PACKAGE.CAMPAIGN_TESTNET;
+  if (addressesEqual(publisherAddr, PACKAGE.MAINNET)) return PACKAGE.CAMPAIGN_MAINNET;
   return "";
 }
 export interface DecibelConfig extends ReleaseConfig {

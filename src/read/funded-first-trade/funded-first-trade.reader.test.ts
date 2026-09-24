@@ -207,6 +207,76 @@ describe("FundedFirstTradeReader.getActiveTrial", () => {
 
     expect(await reader.getActiveTrial({ account: "0xu1" })).toBeNull();
   });
+
+  it("matches a recently-settled trial whose campaign_addr is zero-padded", async () => {
+    const { deps } = createMockDeps();
+    const reader = new FundedFirstTradeReader(deps);
+    const paddedCampaignTrial: TrialDto = {
+      ...settledTrial,
+      campaign_addr: `0x${"c1".padStart(64, "0")}`,
+      closed_at_ms: Date.now() - 30_000,
+    };
+    mockFetch({
+      account: "0xu1",
+      active_trial: null,
+      active_trials: [],
+      history: [paddedCampaignTrial],
+      history_total_count: 1,
+    });
+
+    expect(await reader.getActiveTrial({ account: "0xu1" })).toMatchObject({ trial_id: 7 });
+  });
+});
+
+describe("FundedFirstTradeReader.getTrialHistory chain fallback", () => {
+  it("keeps TrialClosed events whose user and campaign differ only in zero-padding", async () => {
+    const { deps } = createMockDeps();
+    const closedEvent = {
+      type: `${deps.config.deployment.campaignPackage}::protected_trial::TrialClosed`,
+      data: {
+        trial_id: "9",
+        user: "0xa11ce",
+        campaign_addr: `0x${"c1".padStart(64, "0")}`,
+        market: { inner: "0xm" },
+        side_is_buy: true,
+        protected_amount: "1000000",
+        size: "100",
+        mark_at_open: "5000000",
+        trial_subaccount: "0xsub",
+        opened_at_ms: "1",
+        expires_at_ms: "2",
+        closed_at_ms: "3",
+        user_payout: "0",
+        vault_returned: "0",
+        settle_reason: "0",
+      },
+    };
+    deps.aptos = {
+      view: vi.fn().mockResolvedValue([
+        {
+          market: { inner: "0xm" },
+          expiry_ms: "60000",
+          min_lock_amount: "1000000",
+          size_decimals_pow10: "100",
+          payout_low_lock: "1",
+          payout_low_protected: "1",
+          payout_high_lock: "1",
+          payout_high_protected: "1",
+        },
+      ]),
+      queryIndexer: vi
+        .fn()
+        .mockResolvedValue({ account_transactions: [{ transaction_version: 1 }] }),
+      getTransactionByVersion: vi.fn().mockResolvedValue({ events: [closedEvent] }),
+    } as unknown as Aptos;
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("fetch failed"));
+    const reader = new FundedFirstTradeReader(deps);
+
+    const page = await reader.getTrialHistory({ account: `0x${"a11ce".padStart(64, "0")}` });
+
+    expect(page.history.map((t) => t.trial_id)).toEqual([9]);
+  });
 });
 
 describe("FundedFirstTradeReader chain-fallback visibility", () => {

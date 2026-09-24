@@ -38,6 +38,19 @@ describe("calculateLiquidationPrice", () => {
     expect(result).toBeCloseTo(190.47619, 4);
   });
 
+  it("resolves the target market when addresses differ only in zero-padding", () => {
+    const result = calculateLiquidationPrice(
+      makeInput({
+        accountEquity: 50,
+        markets: [{ marketAddr: "0xab", marketName: "BTC/USD", maxLeverage: 10 }],
+        positions: [{ marketAddr: "0xab", size: 1, entryPrice: 100 }],
+        targetMarketAddr: `0x${"ab".padStart(64, "0")}`,
+        orderSize: 0,
+      }),
+    );
+    expect(result).toBeCloseTo(52.631579, 5);
+  });
+
   // --- Boundary conditions ---
 
   it("returns markPrice when margin buffer is zero (equity equals maintenance margin)", () => {

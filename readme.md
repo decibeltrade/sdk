@@ -1164,7 +1164,7 @@ export enum CandlestickInterval {
 ### Address Utilities
 
 ```typescript
-import { getPrimarySubaccountAddr, getMarketAddr } from "@decibeltrade/sdk";
+import { addressesEqual, getPrimarySubaccountAddr, getMarketAddr } from "@decibeltrade/sdk";
 
 // Get primary subaccount address for an account
 const subaccountAddr = getPrimarySubaccountAddr(
@@ -1175,6 +1175,9 @@ const subaccountAddr = getPrimarySubaccountAddr(
 
 // Get market address from name
 const marketAddr = getMarketAddr("BTC-USD", "perp_engine_global_address");
+
+// Compare addresses that may disagree on zero-padding (RPC responses trim leading zero bytes)
+const isSame = addressesEqual(event.user, subaccountAddr);
 ```
 
 ## WebSocket Subscriptions
