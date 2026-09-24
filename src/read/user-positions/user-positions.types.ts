@@ -1,3 +1,6 @@
+/**
+ * Position schemas and account filters for HTTP and WebSocket reads.
+ */
 import z from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";

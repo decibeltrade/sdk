@@ -1,3 +1,6 @@
+/**
+ * Bounded HTTP positions and WebSocket account snapshots.
+ */
 import { BaseReader } from "../base-reader";
 import {
   UserPositionsRequestArgs,
@@ -8,10 +11,10 @@ import {
 
 export class UserPositionsReader extends BaseReader {
   /**
-   * Get the positions for a given user
-   * @param userAddr The address of the user to get positions for
-   * @param includeDeleted Whether to include deleted positions in the response
-   * @returns The positions for the given user
+   * Defaults to 10 positions and excludes deleted positions.
+   *
+   * @param options - Subaccount, position filters, limit, and HTTP options.
+   * @returns One bounded positions response; no pagination is performed.
    */
   async getByAddr({
     subAddr,
@@ -41,11 +44,11 @@ export class UserPositionsReader extends BaseReader {
   }
 
   /**
-   * Subscribe to user positions updates
-   * @param subAddr The subaccount address of the user to subscribe to
-   * @param apiUrl The WebSocket server URL
-   * @param onData Callback function for received user positions data
-   * @returns A function to unsubscribe from the user positions updates
+   * Subscribes to account position snapshots.
+   *
+   * @param subAddr - Subaccount address.
+   * @param onData - Receives each position snapshot.
+   * @returns A function that unsubscribes from the snapshots.
    */
   subscribeByAddr(subAddr: string, onData: (data: UserPositionsWsMessage) => void) {
     const topic = `account_positions:${subAddr}`;

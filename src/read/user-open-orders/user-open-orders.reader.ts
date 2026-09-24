@@ -1,3 +1,6 @@
+/**
+ * Scoped HTTP order pages and WebSocket account snapshots.
+ */
 import { toAssetTypeParam } from "../asset-type.types";
 import { BaseReader } from "../base-reader";
 import {
@@ -9,9 +12,10 @@ import {
 
 export class UserOpenOrdersReader extends BaseReader {
   /**
-   * Get the open orders for a given user
-   * @param subAddr The subaccount address of the user to get open orders for
-   * @returns The open orders for the given user
+   * Defaults to perpetual orders; `"all"` also includes spot orders.
+   *
+   * @param options - Subaccount, pagination, asset scope, and HTTP options.
+   * @returns One order page with the API's optional `total_count`.
    */
   async getByAddr({
     subAddr,
@@ -45,10 +49,11 @@ export class UserOpenOrdersReader extends BaseReader {
   }
 
   /**
-   * Subscribe to user orders updates
-   * @param subAddr The subaccount address of the user to subscribe to
-   * @param onData Callback function for received user orders data
-   * @returns A function to unsubscribe from the user orders updates
+   * Subscribes to account open-order snapshots.
+   *
+   * @param subAddr - Subaccount address.
+   * @param onData - Receives each open-order snapshot.
+   * @returns A function that unsubscribes from the snapshots.
    */
   subscribeByAddr(subAddr: string, onData: (data: UserOpenOrdersWsMessage) => void) {
     const topic = `account_open_orders:${subAddr}`;

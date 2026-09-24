@@ -296,10 +296,11 @@ const fees = await readDex.userFees.getByAddr({ subAddr: "subaccount_address" })
 
 ### User Positions
 
-Query user positions across markets.
+Position, open-order, and TWAP HTTP reads are bounded; see
+[limits and response shapes](https://docs.decibel.trade/typescript-sdk/read-sdk#bounded-account-reads).
 
 ```typescript
-// Get all positions for a user
+// Get positions (default limit: 10)
 const positions = await readDex.userPositions.getByAddr({
   subAddr: "subaccount_address",
   includeDeleted: false,
@@ -338,6 +339,7 @@ const spotOrders = await readDex.userOpenOrders.getByAddr({
   assetType: "spot",
 });
 const allOrders = await readDex.userOpenOrders.getByAddr({
+  limit: 1000,
   subAddr: "subaccount_address",
   assetType: "all",
 });
@@ -346,6 +348,16 @@ const allOrders = await readDex.userOpenOrders.getByAddr({
 const unsubscribe = readDex.userOpenOrders.subscribeByAddr("subaccount_address", (data) =>
   console.log("Orders update:", data),
 );
+```
+
+#### Active TWAPs
+
+```typescript
+const twaps = await readDex.userActiveTwaps.getByAddr({
+  subAddr: "subaccount_address",
+  limit: 1000,
+});
+const activatedTwaps = twaps.filter((twap) => twap.status === "Activated");
 ```
 
 #### Order History

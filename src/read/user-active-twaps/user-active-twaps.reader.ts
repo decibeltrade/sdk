@@ -1,3 +1,6 @@
+/**
+ * Bounded HTTP TWAPs and WebSocket account snapshots.
+ */
 import { BaseReader } from "../base-reader";
 import {
   UserActiveTwapsRequestArgs,
@@ -8,15 +11,18 @@ import {
 
 export class UserActiveTwapsReader extends BaseReader {
   /**
-   * Get the active twaps for a given user
-   * @param subAddr The subaccount address of the user to get active twaps for
-   * @returns The active twaps for the given user
+   * Uses the API's limit when omitted.
+   *
+   * @param options - Subaccount, optional limit, and HTTP options.
+   * @returns One bounded TWAP response, without pagination or status filtering.
    */
-  async getByAddr({ subAddr, fetchOptions }: UserActiveTwapsRequestArgs) {
+  async getByAddr({ subAddr, limit, fetchOptions }: UserActiveTwapsRequestArgs) {
+    const queryParams: Record<string, string> = { account: subAddr };
+    if (limit !== undefined) queryParams.limit = limit.toString();
     const response = await this.getRequest({
       schema: UserActiveTwapsSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/active_twaps`,
-      queryParams: { account: subAddr },
+      queryParams,
       options: fetchOptions,
     });
 
@@ -24,10 +30,11 @@ export class UserActiveTwapsReader extends BaseReader {
   }
 
   /**
-   * Subscribe to active twaps updates
-   * @param subAddr The subaccount address of the user to subscribe to
-   * @param onData Callback function for received active twaps data
-   * @returns A function to unsubscribe from the active twaps updates
+   * Subscribes to account TWAP snapshots.
+   *
+   * @param subAddr - Subaccount address.
+   * @param onData - Receives each TWAP snapshot.
+   * @returns A function that unsubscribes from the snapshots.
    */
   subscribeByAddr(subAddr: string, onData: (data: UserActiveTwapsWsMessage) => void) {
     const topic = `user_active_twaps:${subAddr}`;

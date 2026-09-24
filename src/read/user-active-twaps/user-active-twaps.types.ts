@@ -1,9 +1,13 @@
+/**
+ * TWAP schemas and request options for HTTP and WebSocket reads.
+ */
 import z from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";
 
 export interface UserActiveTwapsRequestArgs extends BaseRequestArgs {
   subAddr: string;
+  limit?: number;
 }
 
 export const UserActiveTwapSchema = z.object({
