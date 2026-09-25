@@ -8,6 +8,7 @@ export * from "./candlesticks/candlesticks.types";
 export * from "./delegations/delegations.types";
 export * from "./global-points-stats/global-points-stats.types";
 export * from "./leaderboard/leaderboard.types";
+export * from "./market-activity/market-activity.types";
 export * from "./market-contexts/market-contexts.types";
 export * from "./market-depth/market-depth.types";
 export * from "./market-prices/market-prices.types";

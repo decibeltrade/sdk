@@ -14,6 +14,7 @@ import { DelegationsReader } from "./delegations/delegations.reader";
 import { FundedFirstTradeReader } from "./funded-first-trade/funded-first-trade.reader";
 import { GlobalPointsStatsReader } from "./global-points-stats/global-points-stats.reader";
 import { LeaderboardReader } from "./leaderboard/leaderboard.reader";
+import { MarketActivityReader } from "./market-activity/market-activity.reader";
 import { MarketContextsReader } from "./market-contexts/market-contexts.reader";
 import { MarketDepthReader } from "./market-depth/market-depth.reader";
 import { MarketPricesReader } from "./market-prices/market-prices.reader";
@@ -119,6 +120,7 @@ export class DecibelReadDex {
   readonly accountOverview: AccountOverviewReader;
   readonly campaigns: CampaignsReader;
   readonly markets: MarketsReader;
+  readonly marketActivity: MarketActivityReader;
   readonly marketContexts: MarketContextsReader;
   readonly marketDepth: MarketDepthReader;
   readonly marketPrices: MarketPricesReader;
@@ -186,6 +188,7 @@ export class DecibelReadDex {
     this.accountOverview = new AccountOverviewReader(this.deps);
     this.campaigns = new CampaignsReader(this.deps);
     this.markets = new MarketsReader(this.deps);
+    this.marketActivity = new MarketActivityReader(this.deps);
     this.marketContexts = new MarketContextsReader(this.deps);
     this.marketDepth = new MarketDepthReader(this.deps);
     this.marketPrices = new MarketPricesReader(this.deps);
