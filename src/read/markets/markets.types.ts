@@ -52,6 +52,8 @@ export const PerpMarketSchema = z.object({
   lot_size: z.number(),
   max_open_interest: z.number(),
   mode: MarketModeSchema,
+  // Served by the API (rust/trading-api-dto market.rs); optional for older fixtures.
+  is_isolated_only: z.boolean().optional(),
 });
 
 export const PerpMarketsSchema = z.array(PerpMarketSchema);
