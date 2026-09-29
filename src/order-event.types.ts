@@ -1,4 +1,9 @@
-// Type definitions for OrderEvent returned by placeOrder transactions
+import type { TransactionSubmissionFailure } from "./submission-error";
+
+export const ORDER_EVENT_TYPES = {
+  order: "market_types::OrderEvent",
+  twap: "async_matching_engine::TwapEvent",
+} as const;
 
 export interface OrderEventClientOrderId {
   vec: unknown[];
@@ -83,6 +88,7 @@ export type PlaceOrderResult =
   | {
       success: false;
       error: string;
+      submission?: TransactionSubmissionFailure;
     };
 
 export type PlaceSpotOrderResult =

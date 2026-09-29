@@ -16,6 +16,7 @@ import {
   BuildSettleTrialPayloadArgs,
 } from "./funded-first-trade/payloads";
 import {
+  ORDER_EVENT_TYPES,
   OrderEvent,
   PlaceOrderResult,
   PlaceSpotOrderResult,
@@ -30,6 +31,7 @@ import {
   WithdrawFromVaultArgs,
 } from "./read";
 import { RenameSubaccountArgs, RenameSubaccountSchema } from "./subaccount-types";
+import { getTransactionSubmissionFailure } from "./submission-error";
 import {
   addressesEqual,
   getMarketAddr,
@@ -138,11 +140,11 @@ export class DecibelWriteDex extends BaseSDK {
   /**
    * Extract order_id from OrderEvent in transaction response
    */
-  private extractOrderIdFromTransaction(
+  extractOrderIdFromTransaction(
     txResponse: CommittedTransactionResponse,
     subaccountAddr?: string,
   ): string | null {
-    const orderEvents = ["market_types::OrderEvent", "async_matching_engine::TwapEvent"];
+    const orderEvents = Object.values(ORDER_EVENT_TYPES);
     // With no subaccount the order goes to the primary one, not the owner.
     const placedBy =
       subaccountAddr || this.getPrimarySubaccountAddress(this.account.accountAddress);
@@ -411,6 +413,7 @@ export class DecibelWriteDex extends BaseSDK {
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
+        submission: getTransactionSubmissionFailure(error),
       };
     }
   }

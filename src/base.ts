@@ -28,8 +28,13 @@ import {
 } from "./constants";
 import { GasPriceManager } from "./gas/gas-price-manager";
 import { resolveMaxGasAmount } from "./gas/resolve-max-gas-amount";
+import { submitAndWaitForTransaction, TransactionSubmissionError } from "./submission-error";
 import { buildSimpleTransactionSync } from "./transaction-builder";
-import { generateRandomReplayProtectionNonce, getPrimarySubaccountAddr } from "./utils";
+import {
+  errorToMessage,
+  generateRandomReplayProtectionNonce,
+  getPrimarySubaccountAddr,
+} from "./utils";
 
 export interface Options {
   skipSimulate?: boolean;
@@ -79,12 +84,6 @@ export interface TransactionSettledMetrics {
 /** Submission-time concerns shared by every write call. */
 export interface SendTxOpts {
   accountOverride?: Account;
-}
-
-function errorToMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  return "Unknown error";
 }
 
 /**
@@ -333,10 +332,9 @@ export class BaseSDK {
     const start = Date.now();
     try {
       const senderAuthenticator = this.aptos.transaction.sign({ signer, transaction });
-      const pendingTransaction = await this.submitTx(transaction, senderAuthenticator);
-      const committed = await this.aptos.waitForTransaction({
-        transactionHash: pendingTransaction.hash,
-      });
+      const committed = await submitAndWaitForTransaction(this.aptos, () =>
+        this.submitTx(transaction, senderAuthenticator),
+      );
       this.emitTransactionSettled({
         ...telemetry,
         response: committed,
@@ -344,8 +342,12 @@ export class BaseSDK {
       });
       return committed;
     } catch (err) {
-      this.emitTransactionSettled({ ...telemetry, error: err, durationMs: Date.now() - start });
-      throw err;
+      const error =
+        err instanceof TransactionSubmissionError
+          ? err
+          : new TransactionSubmissionError(errorToMessage(err), { outcome: "not-submitted" }, err);
+      this.emitTransactionSettled({ ...telemetry, error, durationMs: Date.now() - start });
+      throw error;
     }
   }
 
@@ -396,42 +398,50 @@ export class BaseSDK {
     const signer = accountOverride ?? this.account;
     const sender = signer.accountAddress;
 
-    let transaction = await this.buildTx(payload, sender);
+    let transaction: SimpleTransaction;
+    try {
+      transaction = await this.buildTx(payload, sender);
 
-    if (!this.skipSimulate) {
-      const [sim] = await this.aptos.transaction.simulate.simple({
-        transaction,
-        options: {
-          estimateMaxGasAmount: true,
-          estimateGasUnitPrice: true,
-        },
-      });
+      if (!this.skipSimulate) {
+        const [sim] = await this.aptos.transaction.simulate.simple({
+          transaction,
+          options: {
+            estimateMaxGasAmount: true,
+            estimateGasUnitPrice: true,
+          },
+        });
 
-      if (typeof sim === "undefined") {
-        throw new Error("Transaction simulation returned no results");
+        if (typeof sim === "undefined") {
+          throw new Error("Transaction simulation returned no results");
+        }
+
+        if (!sim.max_gas_amount || !sim.gas_unit_price) {
+          throw new Error("Transaction simulation returned no results");
+        }
+
+        const simulatedMaxGas = Number(sim.max_gas_amount);
+        const simulatedGasPrice = Number(sim.gas_unit_price);
+        const defaultMaxGasAmount = this.aptos.config.getDefaultMaxGasAmount();
+
+        // 2x buffer over simulation with the default as a floor, then clamped to
+        // the gas-station ceiling when sponsored (see resolveMaxGasAmount).
+        const maxGasAmount = resolveMaxGasAmount({
+          simulatedMaxGas,
+          defaultMaxGasAmount,
+          useGasStation: this.useGasStation,
+        });
+
+        const gasUnitPrice = Math.max(simulatedGasPrice, 1);
+
+        transaction = await this.buildTx({ ...payload, maxGasAmount, gasUnitPrice }, sender);
       }
-
-      if (!sim.max_gas_amount || !sim.gas_unit_price) {
-        throw new Error("Transaction simulation returned no results");
-      }
-
-      const simulatedMaxGas = Number(sim.max_gas_amount);
-      const simulatedGasPrice = Number(sim.gas_unit_price);
-      const defaultMaxGasAmount = this.aptos.config.getDefaultMaxGasAmount();
-
-      // 2x buffer over simulation with the default as a floor, then clamped to
-      // the gas-station ceiling when sponsored (see resolveMaxGasAmount).
-      const maxGasAmount = resolveMaxGasAmount({
-        simulatedMaxGas,
-        defaultMaxGasAmount,
-        useGasStation: this.useGasStation,
-      });
-
-      const gasUnitPrice = Math.max(simulatedGasPrice, 1);
-
-      transaction = await this.buildTx({ ...payload, maxGasAmount, gasUnitPrice }, sender);
+    } catch (error) {
+      throw new TransactionSubmissionError(
+        errorToMessage(error),
+        { outcome: "not-submitted" },
+        error,
+      );
     }
-
     return this.signAndSubmit(signer, transaction, {
       encrypted: false,
       functionId: this.extractFunctionId(payload),
@@ -449,11 +459,30 @@ export class BaseSDK {
     payload: InputGenerateTransactionPayloadData,
     { accountOverride }: SendTxOpts = {},
   ) {
-    if (!(await this.canEncrypt())) {
+    let encrypt: boolean;
+    try {
+      encrypt = await this.canEncrypt();
+    } catch (error) {
+      throw new TransactionSubmissionError(
+        errorToMessage(error),
+        { outcome: "not-submitted" },
+        error,
+      );
+    }
+    if (!encrypt) {
       return this.sendTx(payload, { accountOverride });
     }
     const signer = accountOverride ?? this.account;
-    const transaction = await this.buildEncryptedTx(payload, signer.accountAddress);
+    let transaction: SimpleTransaction;
+    try {
+      transaction = await this.buildEncryptedTx(payload, signer.accountAddress);
+    } catch (error) {
+      throw new TransactionSubmissionError(
+        errorToMessage(error),
+        { outcome: "not-submitted" },
+        error,
+      );
+    }
     return this.signAndSubmit(signer, transaction, {
       encrypted: true,
       functionId: this.extractFunctionId(payload),

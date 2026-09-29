@@ -13,5 +13,6 @@ export * from "./read/index";
 export * from "./release-config";
 export * from "./spot-admin";
 export * from "./subaccount-types";
+export * from "./submission-error";
 export * from "./utils";
 export * from "./write";

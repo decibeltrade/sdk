@@ -2,6 +2,7 @@ import { Account } from "@aptos-labs/ts-sdk";
 import { describe, expect, it, vi } from "vitest";
 
 import { TESTNET_CONFIG } from "./constants";
+import { TransactionSubmissionError } from "./submission-error";
 import { DecibelWriteDex, TimeInForce } from "./write";
 
 // sendTx / sendEncryptedTx are protected on BaseSDK. Stub them on the instance so
@@ -53,6 +54,127 @@ describe("DecibelWriteDex encryption routing", () => {
     await dex.cancelOrder({ ...CANCEL_ARGS, encrypted: false });
     expect(sendTx).toHaveBeenCalledTimes(1);
     expect(sendEncryptedTx).not.toHaveBeenCalled();
+  });
+});
+
+const MARKET_NAME = "APT/USDC";
+const ORDER_ARGS = {
+  marketName: MARKET_NAME,
+  price: 500,
+  size: 1000,
+  isBuy: true,
+  timeInForce: TimeInForce.GoodTillCanceled,
+  isReduceOnly: false,
+};
+
+function makeOrderDex(txResponse: object): { dex: DecibelWriteDex; account: Account } {
+  const account = Account.generate();
+  const dex = new DecibelWriteDex(TESTNET_CONFIG, account, { defaultEncrypted: false });
+  (dex as unknown as SendSpies).sendTx = vi.fn().mockResolvedValue(txResponse);
+  return { dex, account };
+}
+
+function orderEventTx(user: string) {
+  return {
+    hash: "0xplaintext",
+    events: [
+      {
+        type: `${TESTNET_CONFIG.deployment.package}::market_types::OrderEvent`,
+        data: { order_id: "42", user },
+      },
+    ],
+  };
+}
+
+describe("order id extraction", () => {
+  it("exposes the same account-scoped decoder for original-transaction recovery", () => {
+    const { dex } = makeOrderDex({});
+    expect(dex.extractOrderIdFromTransaction(orderEventTx("0x1") as never, "0x1")).toBe("42");
+    expect(dex.extractOrderIdFromTransaction(orderEventTx("0x2") as never, "0x1")).toBeNull();
+    expect(dex.extractOrderIdFromTransaction({ hash: "0xaccepted" } as never, "0x1")).toBeNull();
+  });
+  it("extracts the order id when no subaccountAddr is passed", async () => {
+    const account = Account.generate();
+    const dex = new DecibelWriteDex(TESTNET_CONFIG, account, { defaultEncrypted: false });
+    const primarySubaccount = dex.getPrimarySubaccountAddress(account.accountAddress);
+    (dex as unknown as SendSpies).sendTx = vi
+      .fn()
+      .mockResolvedValue(orderEventTx(primarySubaccount));
+
+    const result = await dex.placeOrder({ ...ORDER_ARGS });
+    expect(result).toEqual({ success: true, orderId: "42", transactionHash: "0xplaintext" });
+  });
+
+  it("matches a supplied subaccountAddr across zero-trimmed and padded forms", async () => {
+    const padded = `0x0a11ce${"0".repeat(52)}0a11ce`;
+    const trimmed = `0xa11ce${"0".repeat(52)}0a11ce`;
+    const { dex } = makeOrderDex(orderEventTx(trimmed));
+
+    const result = await dex.placeOrder({ ...ORDER_ARGS, subaccountAddr: padded });
+    expect(result).toEqual({ success: true, orderId: "42", transactionHash: "0xplaintext" });
+  });
+
+  it("ignores an event whose user is the owner account rather than its subaccount", async () => {
+    const account = Account.generate();
+    const dex = new DecibelWriteDex(TESTNET_CONFIG, account, { defaultEncrypted: false });
+    (dex as unknown as SendSpies).sendTx = vi
+      .fn()
+      .mockResolvedValue(orderEventTx(account.accountAddress.toString()));
+
+    const result = await dex.placeOrder({ ...ORDER_ARGS });
+    expect(result).toEqual({ success: true, orderId: undefined, transactionHash: "0xplaintext" });
+  });
+
+  it("extracts the order id from a TwapEvent for the default subaccount", async () => {
+    const account = Account.generate();
+    const dex = new DecibelWriteDex(TESTNET_CONFIG, account, { defaultEncrypted: false });
+    const primarySubaccount = dex.getPrimarySubaccountAddress(account.accountAddress);
+    (dex as unknown as SendSpies).sendTx = vi.fn().mockResolvedValue({
+      hash: "0xplaintext",
+      events: [
+        {
+          type: `${TESTNET_CONFIG.deployment.package}::async_matching_engine::TwapEvent`,
+          data: { order_id: "77", account: primarySubaccount },
+        },
+      ],
+    });
+
+    const result = await dex.placeTwapOrder({
+      marketName: MARKET_NAME,
+      size: 1000,
+      isBuy: true,
+      isReduceOnly: false,
+      twapFrequencySeconds: 60,
+      twapDurationSeconds: 600,
+    });
+    expect(result.orderId).toBe("77");
+  });
+});
+
+describe("placeOrder submission failures", () => {
+  it.each(["not-submitted", "reverted", "unknown"] as const)(
+    "retains %s provenance in its failure result",
+    async (outcome) => {
+      const { dex, sendTx } = makeWriteDex(false);
+      const submission = { outcome, transactionHash: "0xaccepted" };
+      sendTx.mockRejectedValue(new TransactionSubmissionError("order failed", submission));
+      expect(await dex.placeOrder(ORDER_ARGS)).toEqual({
+        success: false,
+        error: "order failed",
+        submission,
+      });
+    },
+  );
+
+  it("does not invent provenance for a custom untyped submit override", async () => {
+    const { dex, sendTx } = makeWriteDex(false);
+    sendTx.mockRejectedValue(new Error("user rejected after submission timeout"));
+    const result = await dex.placeOrder(ORDER_ARGS);
+    expect(result).toMatchObject({
+      success: false,
+      error: "user rejected after submission timeout",
+    });
+    expect("submission" in result && result.submission).toBeUndefined();
   });
 });
 

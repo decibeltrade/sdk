@@ -175,6 +175,7 @@ async function baseRequest<TResponseData>({
     fetchInit.body = JSON.stringify(body);
   }
 
+  fetchInit.signal ??= AbortSignal.timeout(60_000);
   const response = await fetch(fullUrl, fetchInit);
   const { status, statusText } = response;
 
@@ -190,6 +191,13 @@ async function baseRequest<TResponseData>({
   } catch (e) {
     throw prettifyMaybeZodError(e);
   }
+}
+
+export function errorToMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string")
+    return error.message;
+  return "Unknown error";
 }
 
 export class FetchError extends Error {

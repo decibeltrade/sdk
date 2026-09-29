@@ -648,6 +648,7 @@ payload at build time. Check that ahead of time with `configSupportsEncryptedSub
   `buildDeactiveSubaccountTx`
 - Orders and matching:
   `placeOrder`,
+  `extractOrderIdFromTransaction`,
   `triggerMatching`,
   `placeTwapOrder`,
   `cancelOrder`,
@@ -1108,7 +1109,7 @@ await writeDex.placeOrder({
 
 ### Error Handling
 
-All write operations return transaction results. For order placement, you get a structured result:
+Write submission failures throw `TransactionSubmissionError`; `placeOrder` returns failures in its structured result:
 
 ```typescript
 type PlaceOrderResult =
@@ -1120,6 +1121,7 @@ type PlaceOrderResult =
   | {
       success: false;
       error: string;
+      submission?: TransactionSubmissionFailure;
     };
 
 const result = await writeDex.placeOrder({
@@ -1133,6 +1135,16 @@ if (result.success) {
   console.error("Order failed:", result.error);
 }
 ```
+
+`TransactionSubmissionFailure` has `outcome: "not-submitted" | "reverted" | "unknown"` and an optional `transactionHash`. Proven build/sign failures are `not-submitted`; a committed unsuccessful transaction is `reverted`. A transport or confirmation error after submission may have committed, so its outcome is `unknown`. An acknowledged hash is retained when confirmation fails. Missing provenance from a custom submit override also means the outcome is unknown.
+
+For throwing methods, use `getTransactionSubmissionFailure(error)` to read metadata from `TransactionSubmissionError`; it does not inspect private Aptos error fields. `new TransactionSubmissionError(message, submission, cause?)` lets custom submission implementations preserve the same contract.
+
+Custom wallet submitters can use `submitAndWaitForTransaction(aptos, () => wallet.signAndSubmitTransaction(...))` to submit once, validate confirmation, and retain the same failure metadata. Untyped callback errors remain `unknown`; proven pre-submit failures should throw `TransactionSubmissionError` with `outcome: "not-submitted"`.
+
+`unknown` is unresolved, not terminal. Later evidence can establish success or revert; an empty or failed lookup may leave the attempt unresolved indefinitely and does not authorize another submission. The error is a snapshot: the SDK does not provide durable ownership or automatic recovery.
+
+A successful `placeOrder` result with no `orderId` still retains the committed transaction hash. Decode a subsequently fetched transaction with `writeDex.extractOrderIdFromTransaction(txResponse, subaccountAddr?)`; it returns the matching OrderEvent/TwapEvent order ID or `null`. The optional subaccount defaults to the signer's primary subaccount. Do not submit a replacement merely because an event is absent.
 
 ## Constants and Enums
 
@@ -1572,6 +1584,7 @@ type PlaceOrderResult =
   | {
       success: false;
       error: string;
+      submission?: TransactionSubmissionFailure;
     };
 
 async function placeOrder(
