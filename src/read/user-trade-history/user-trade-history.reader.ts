@@ -1,3 +1,4 @@
+/** Reads trade history over HTTP and exposes live events with subscription ACKs for HTTP reconciliation. */
 import { toAssetTypeParam } from "../asset-type.types";
 import { BaseReader } from "../base-reader";
 import {
@@ -50,11 +51,16 @@ export class UserTradeHistoryReader extends BaseReader {
    * Subscribe to user trades updates
    * @param subAddr The subaccount address of the user to subscribe to
    * @param onData Callback function for received user trades data
+   * @param onSubscribed Called after subscription acknowledgment; use it to reconcile non-replaying history over HTTP.
    * @returns A function to unsubscribe from the user trades updates
    */
-  subscribeByAddr(subAddr: string, onData: (data: UserTradesWsMessage) => void) {
+  subscribeByAddr(
+    subAddr: string,
+    onData: (data: UserTradesWsMessage) => void,
+    onSubscribed?: () => void,
+  ) {
     const topic = `user_trades:${subAddr}`;
 
-    return this.deps.ws.subscribe(topic, UserTradesWsMessageSchema, onData);
+    return this.deps.ws.subscribe(topic, UserTradesWsMessageSchema, onData, onSubscribed);
   }
 }

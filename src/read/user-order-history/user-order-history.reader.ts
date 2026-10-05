@@ -1,3 +1,4 @@
+/** Reads order history over HTTP and exposes live events with subscription ACKs for HTTP reconciliation. */
 import { toAssetTypeParam } from "../asset-type.types";
 import { BaseReader } from "../base-reader";
 import {
@@ -43,11 +44,16 @@ export class UserOrderHistoryReader extends BaseReader {
    * Subscribe to user order updates
    * @param subAddr The subaccount address of the user to subscribe to
    * @param onData Callback function for received user order data
+   * @param onSubscribed Called after subscription acknowledgment; use it to reconcile non-replaying history over HTTP.
    * @returns A function to unsubscribe from the user order updates
    */
-  subscribeByAddr(subAddr: string, onData: (data: UserOrdersWsMessage) => void) {
+  subscribeByAddr(
+    subAddr: string,
+    onData: (data: UserOrdersWsMessage) => void,
+    onSubscribed?: () => void,
+  ) {
     const topic = `order_updates:${subAddr}`;
 
-    return this.deps.ws.subscribe(topic, UserOrdersWsMessageSchema, onData);
+    return this.deps.ws.subscribe(topic, UserOrdersWsMessageSchema, onData, onSubscribed);
   }
 }

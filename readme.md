@@ -375,6 +375,9 @@ const unsubscribe = readDex.userOrderHistory.subscribeByAddr("subaccount_address
 );
 ```
 
+Order and trade history subscriptions accept an optional third `onSubscribed`
+callback; see [history reconciliation](#history-reconciliation).
+
 #### Single Order Lookup
 
 ```typescript
@@ -523,7 +526,6 @@ Query historical trade data for a user.
 // Get trade history
 const trades = await readDex.userTradeHistory.getByAddr({
   subAddr: "subaccount_address",
-  marketAddr: "market_address", // optional
   limit: 100,
 });
 
@@ -532,6 +534,24 @@ const unsubscribe = readDex.userTradeHistory.subscribeByAddr("subaccount_address
   console.log("Trade history update:", data),
 );
 ```
+
+#### History reconciliation
+
+`userTradeHistory.subscribeByAddr(subAddr, onData, onSubscribed?)` and
+`userOrderHistory.subscribeByAddr(subAddr, onData, onSubscribed?)` call
+`onSubscribed` after the server acknowledges the initial subscription and each
+resubscription, including reconnects. A consumer joining an acknowledged topic
+receives the callback immediately; consumers share the topic and socket.
+
+Use `readDex.onWsDisconnect(listener)` to track interrupted live updates,
+including explicit SDK close. `readDex.onWsReconnect(listener)`
+runs after a replacement socket opens and subscribe frames are sent, before
+topic acknowledgement. Both methods return an unregister function.
+
+Use `onSubscribed` to fetch HTTP history while buffering incoming events, then
+merge and deduplicate the results. These streams do not replay missed events,
+and the acknowledgement supplies no snapshot sequence boundary. HTTP history
+can lag the stream, so reconciliation does not guarantee a gap-free snapshot.
 
 ### User Funding History
 

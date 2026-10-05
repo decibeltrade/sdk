@@ -1,8 +1,14 @@
+/** Shares one reconnecting socket across topics and exposes ACKs so consumers can recover missed history over HTTP. */
 import WebSocket, { ErrorEvent } from "isomorphic-ws";
 import { z } from "zod/v4";
 
 import { DecibelConfig } from "../constants";
 import { bigIntReviver, prettifyMaybeZodError } from "../utils";
+
+interface SubscriptionListener {
+  onData: (data: unknown) => void | Promise<void>;
+  onSubscribed?: () => void;
+}
 
 export class DecibelWsSubscription {
   constructor(
@@ -12,9 +18,14 @@ export class DecibelWsSubscription {
   ) {}
 
   #ws: WebSocket | null = null;
-  #subscriptions = new Map<string, Set<(data: unknown) => void | Promise<void>>>();
+  #subscriptions = new Map<string, Set<SubscriptionListener>>();
+  #readyTopics = new Set<string>();
+  // Unsubscribe ACKs separate old subscribe responses from a reset or rejoin.
+  #pendingUnsubscribes = new Map<string, number>();
   #reconnectAttempts = 0;
   #reconnectListeners = new Set<() => void>();
+  #disconnectListeners = new Set<() => void>();
+  #reconnectTimer: ReturnType<typeof setTimeout> | undefined;
 
   #getSubscribeMessage(topic: string) {
     return JSON.stringify({ method: "subscribe", topic });
@@ -22,6 +33,46 @@ export class DecibelWsSubscription {
 
   #getUnsubscribeMessage(topic: string) {
     return JSON.stringify({ method: "unsubscribe", topic });
+  }
+
+  #sendUnsubscribe(topic: string) {
+    if (this.#ws?.readyState !== WebSocket.OPEN) return;
+    this.#pendingUnsubscribes.set(topic, (this.#pendingUnsubscribes.get(topic) ?? 0) + 1);
+    this.#ws.send(this.#getUnsubscribeMessage(topic));
+  }
+
+  #notifySubscribed(topic: string, listener: SubscriptionListener) {
+    try {
+      listener.onSubscribed?.();
+    } catch (error) {
+      console.error("Error in WebSocket subscription callback for topic:", topic, error);
+    }
+  }
+
+  #handleAcknowledgement(topic: string, method: unknown, success: unknown) {
+    if (method === "unsubscribe") {
+      const pending = this.#pendingUnsubscribes.get(topic) ?? 0;
+      if (pending <= 1) this.#pendingUnsubscribes.delete(topic);
+      else this.#pendingUnsubscribes.set(topic, pending - 1);
+      return;
+    }
+    if (
+      method !== "subscribe" ||
+      success !== true ||
+      this.#pendingUnsubscribes.has(topic) ||
+      this.#readyTopics.has(topic)
+    ) {
+      return;
+    }
+
+    const listeners = this.#subscriptions.get(topic);
+    if (!listeners) return;
+    this.#readyTopics.add(topic);
+    for (const listener of [...listeners]) {
+      if (listeners.has(listener) && this.#readyTopics.has(topic)) {
+        this.#notifySubscribed(topic, listener);
+      }
+    }
   }
 
   #parseMessageData(data: WebSocket.Data): { topic: string; data: unknown } | null {
@@ -42,8 +93,13 @@ export class DecibelWsSubscription {
       "topic" in jsonData &&
       typeof jsonData.topic === "string"
     ) {
-      // Filter out response messages (they have a "success" field; data payloads do not)
+      // Control replies carry success; event payloads do not.
       if ("success" in jsonData) {
+        this.#handleAcknowledgement(
+          jsonData.topic,
+          "method" in jsonData ? jsonData.method : undefined,
+          jsonData.success,
+        );
         // A rejected subscribe means the topic will never deliver — surface it.
         if (jsonData.success === false) {
           const error = "error" in jsonData ? jsonData.error : "unknown error";
@@ -57,10 +113,23 @@ export class DecibelWsSubscription {
     throw new Error("Unhandled WebSocket message: missing topic field", { cause: data });
   }
 
+  #notifyDisconnected() {
+    for (const listener of [...this.#disconnectListeners]) {
+      if (!this.#disconnectListeners.has(listener)) continue;
+      try {
+        listener();
+      } catch (error) {
+        console.error("Error in WebSocket disconnect callback:", error);
+      }
+    }
+  }
+
   #open() {
-    if (this.#ws) {
+    if (this.#ws || this.#subscriptions.size === 0) {
       return;
     }
+    clearTimeout(this.#reconnectTimer);
+    this.#reconnectTimer = undefined;
 
     const extra = this.config.additionalHeaders;
     // When additionalHeaders are set (server-side), pass them as HTTP upgrade
@@ -73,6 +142,7 @@ export class DecibelWsSubscription {
       : new WebSocket(this.config.tradingWsUrl, this.apiKey ? ["decibel", this.apiKey] : undefined);
 
     ws.addEventListener("open", () => {
+      if (this.#ws !== ws) return;
       const isReconnect = this.#reconnectAttempts > 0;
       this.#reconnectAttempts = 0;
       for (const topic of this.#subscriptions.keys()) {
@@ -84,9 +154,9 @@ export class DecibelWsSubscription {
     });
 
     ws.addEventListener("message", (event: WebSocket.MessageEvent) => {
+      if (this.#ws !== ws) return;
       const parsedMessage = this.#parseMessageData(event.data);
       if (!parsedMessage) {
-        // Response messages (subscribe/unsubscribe confirmations) are silently ignored
         return;
       }
       const { topic, data } = parsedMessage;
@@ -94,7 +164,7 @@ export class DecibelWsSubscription {
       if (listeners) {
         listeners.forEach((listener) => {
           try {
-            void listener(data);
+            void listener.onData(data);
           } catch (e) {
             // Log error but don't break other listeners
             console.error(`Error in WebSocket listener for topic : `, topic, " with error : ", e);
@@ -104,16 +174,21 @@ export class DecibelWsSubscription {
     });
 
     ws.addEventListener("error", (event) => {
+      if (this.#ws !== ws) return;
       this.onError?.(event);
       ws.close();
     });
 
     ws.addEventListener("close", () => {
+      if (this.#ws !== ws) return;
       this.#ws = null;
+      this.#readyTopics.clear();
+      this.#pendingUnsubscribes.clear();
+      this.#notifyDisconnected();
 
       // If there are still subscriptions, reconnect.
       if (this.#subscriptions.size > 0) {
-        setTimeout(
+        this.#reconnectTimer = setTimeout(
           () => this.#open(),
           Math.min(Math.pow(1.5, this.#reconnectAttempts) * 1000, 30_000),
         );
@@ -134,27 +209,37 @@ export class DecibelWsSubscription {
     return () => this.#reconnectListeners.delete(listener);
   }
 
+  /** Fires when the current socket closes, including explicit close. */
+  onDisconnect(listener: () => void): () => void {
+    this.#disconnectListeners.add(listener);
+    return () => this.#disconnectListeners.delete(listener);
+  }
+
+  /** onSubscribed permits HTTP reconciliation after each ACK; it provides no replay or sequence boundary. */
   subscribe<TMessageData>(
     topic: string,
     schema: z.ZodType<TMessageData>,
     onData: (data: TMessageData) => void | Promise<void>,
+    onSubscribed?: () => void,
   ) {
-    const listeners = this.#subscriptions.get(topic) ?? new Set();
+    const listeners = this.#subscriptions.get(topic) ?? new Set<SubscriptionListener>();
 
-    // If subscription arent found, subscribe to topic first
     if (listeners.size === 0) {
       if (this.#ws?.readyState === WebSocket.OPEN) {
         this.#ws.send(this.#getSubscribeMessage(topic));
       }
     }
 
-    const listener = (data: unknown) => {
-      try {
-        const parsedData = schema.parse(data);
-        void onData(parsedData);
-      } catch (e) {
-        throw prettifyMaybeZodError(e);
-      }
+    const listener: SubscriptionListener = {
+      onData: (data: unknown) => {
+        try {
+          const parsedData = schema.parse(data);
+          void onData(parsedData);
+        } catch (e) {
+          throw prettifyMaybeZodError(e);
+        }
+      },
+      onSubscribed,
     };
 
     listeners.add(listener);
@@ -165,6 +250,9 @@ export class DecibelWsSubscription {
     if (!this.#ws) {
       this.#open();
     }
+    if (this.#readyTopics.has(topic)) {
+      this.#notifySubscribed(topic, listener);
+    }
 
     return () => this.unsubscribeByListener(topic, listener);
   }
@@ -173,10 +261,8 @@ export class DecibelWsSubscription {
     if (!this.#subscriptions.has(topic)) return;
 
     this.#subscriptions.delete(topic);
-
-    if (this.#ws?.readyState === WebSocket.OPEN) {
-      this.#ws.send(this.#getUnsubscribeMessage(topic));
-    }
+    this.#readyTopics.delete(topic);
+    this.#sendUnsubscribe(topic);
 
     // Close the WebSocket if the last subscription was removed.
     if (this.#subscriptions.size === 0) {
@@ -195,7 +281,7 @@ export class DecibelWsSubscription {
    * If no listeners remain for the topic after removal, unsubscribes from the topic.
    * If all subscriptions are removed, closes the WebSocket connection.
    */
-  private unsubscribeByListener(topic: string, listener: (data: unknown) => void | Promise<void>) {
+  private unsubscribeByListener(topic: string, listener: SubscriptionListener) {
     if (this.#subscriptions.has(topic)) {
       const listeners = this.#subscriptions.get(topic);
 
@@ -219,17 +305,26 @@ export class DecibelWsSubscription {
     if (!this.#subscriptions.has(topic)) {
       return;
     }
+    this.#readyTopics.delete(topic);
 
     if (this.#ws?.readyState === WebSocket.OPEN) {
-      this.#ws.send(this.#getUnsubscribeMessage(topic));
+      this.#sendUnsubscribe(topic);
       this.#ws.send(this.#getSubscribeMessage(topic));
       return;
     }
   }
 
   close() {
+    clearTimeout(this.#reconnectTimer);
+    this.#reconnectTimer = undefined;
+    this.#reconnectAttempts = 0;
     this.#subscriptions.clear();
-    this.#ws?.close();
+    this.#readyTopics.clear();
+    this.#pendingUnsubscribes.clear();
+    const ws = this.#ws;
+    this.#ws = null;
+    if (ws) this.#notifyDisconnected();
+    ws?.close();
   }
 
   readyState() {

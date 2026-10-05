@@ -228,6 +228,11 @@ export class DecibelReadDex {
     return this.deps.ws.onReconnect(listener);
   }
 
+  /** See {@link DecibelWsSubscription.onDisconnect}. Returns an unregister fn. */
+  onWsDisconnect(listener: () => void): () => void {
+    return this.deps.ws.onDisconnect(listener);
+  }
+
   async globalPerpEngineState() {
     try {
       // Attempt to get the global perp engine state resource
