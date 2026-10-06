@@ -89,7 +89,7 @@ export interface DecibelConfig extends ReleaseConfig {
    * either — the gas-station plugin fills the fee payer in at submit time. When a
    * gas station is active (`gasStationApiKey` set) but this is unset, encryption
    * is disabled and the transaction falls back to the plaintext path (see
-   * `canEncrypt`).
+   * `encryptionBlocker`).
    *
    * Geomi currently supports a single fee-payer address (no multi-fee-payer).
    */

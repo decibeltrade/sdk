@@ -7,6 +7,7 @@ export * from "./fee-pay";
 export * from "./funded-first-trade/payloads";
 export * from "./gas/gas-price-manager";
 export * from "./order-event.types";
+export * from "./order-functions";
 export * from "./order-status";
 export * from "./protected-amount";
 export * from "./read/index";
