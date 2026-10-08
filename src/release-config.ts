@@ -15,7 +15,7 @@ export interface ReleaseConfig {
 export const PACKAGE = {
   // Deterministic publisher address for localnet/docker deploys.
   LOCAL: "0xb8a5788314451ce4d2fbbad32e1bad88d4184b73943b7fe5166eab93cf1a5a95",
-  TESTNET: "0xe7da2794b1d8af76532ed95f38bfdf1136abfd8ea3a240189971988a83101b7f",
+  TESTNET: "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1",
   // Same address on testnet and mainnet.
   PREDEPOSIT: "0xc5939ec6e7e656cb6fed9afa155e390eb2aa63ba74e73157161829b2f80e1538",
   MAINNET: "0x50ead22afd6ffd9769e3b3d6e0e64a2a350d68e8b102c4e72e33d0b8cfdfdb06",
