@@ -294,6 +294,9 @@ const fees = await readDex.userFees.getByAddr({ subAddr: "subaccount_address" })
 // fees.fee_schedule.tiers.vip[], fees.daily_user_volume[]
 ```
 
+`BASE_FEE_RATES` and `SPOT_BASE_FEE_RATES` export the tier-0 perp and spot `{ taker, maker }`
+rates, a fallback for when this read fails.
+
 ### User Positions
 
 Position, open-order, and TWAP HTTP reads are bounded; see

@@ -23,6 +23,24 @@ export const USDC_SCALE = 10 ** USDC_DECIMALS;
 // full cap costs nothing and gains headroom against rare large transactions.
 export const GAS_STATION_MAX_GAS_AMOUNT = 250_000;
 
+/**
+ * Perp tier-0 fee rates as decimals (0.00045 = 0.045%): the fallback when `userFees` can't be read.
+ * Mirrors trading-api `DEFAULT_PERP_TIER_{TAKER,MAKER}_FEES[0]` (450 / 150 in 0.0001% units).
+ */
+export const BASE_FEE_RATES = {
+  taker: 0.00045,
+  maker: 0.00015,
+} as const;
+
+/**
+ * Spot tier-0 fee rates, distinct from perp at every tier. Mirrors trading-api
+ * `DEFAULT_SPOT_TIER_{TAKER,MAKER}_FEES[0]` (700 / 400); live schedules are retunable on-chain.
+ */
+export const SPOT_BASE_FEE_RATES = {
+  taker: 0.0007,
+  maker: 0.0004,
+} as const;
+
 export function getUsdcAddress(publisherAddr: string) {
   return createObjectAddress(
     AccountAddress.fromString(publisherAddr),
