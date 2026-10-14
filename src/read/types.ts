@@ -23,6 +23,7 @@ export * from "./streaks/streaks.types";
 export * from "./tier/tier.types";
 export * from "./trading-amps/trading-amps.types";
 export * from "./trading-points/trading-points.types";
+export * from "./trending-markets/trending-markets.types";
 export * from "./user-active-twaps/user-active-twaps.types";
 export * from "./user-bulk-orders/user-bulk-orders.types";
 export * from "./user-fund-history/user-fund-history.types";

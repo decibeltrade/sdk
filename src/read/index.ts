@@ -28,6 +28,7 @@ import { StreaksReader } from "./streaks/streaks.reader";
 import { TierReader } from "./tier/tier.reader";
 import { TradingAmpsReader } from "./trading-amps/trading-amps.reader";
 import { TradingPointsReader } from "./trading-points/trading-points.reader";
+import { TrendingMarketsReader } from "./trending-markets/trending-markets.reader";
 import { CrossedPosition } from "./types";
 import { UserActiveTwapsReader } from "./user-active-twaps/user-active-twaps.reader";
 import { UserBulkOrdersReader } from "./user-bulk-orders/user-bulk-orders.reader";
@@ -153,6 +154,7 @@ export class DecibelReadDex {
   readonly withdrawQueue: WithdrawQueueReader;
   readonly fundedFirstTrade: FundedFirstTradeReader;
   readonly userFees: UserFeesReader;
+  readonly trendingMarkets: TrendingMarketsReader;
 
   constructor(
     readonly config: DecibelConfig,
@@ -221,6 +223,7 @@ export class DecibelReadDex {
     this.withdrawQueue = new WithdrawQueueReader(this.deps);
     this.fundedFirstTrade = new FundedFirstTradeReader(this.deps);
     this.userFees = new UserFeesReader(this.deps);
+    this.trendingMarkets = new TrendingMarketsReader(this.deps);
   }
 
   /** See {@link DecibelWsSubscription.onReconnect}. Returns an unregister fn. */
