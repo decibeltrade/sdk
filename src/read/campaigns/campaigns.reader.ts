@@ -1,3 +1,4 @@
+import { FetchOptions } from "../../utils";
 import { BaseReader } from "../base-reader";
 import {
   ActiveCampaignsSchema,
@@ -6,12 +7,23 @@ import {
   GetCampaignSummaryArgs,
 } from "./campaigns.types";
 
+// Without the opt-in the API withholds campaign types added after SDK 0.8.2.
+function withEnumOptIn(options?: FetchOptions): FetchOptions {
+  return {
+    ...options,
+    headers: {
+      Prefer: "include-unknown-enum-members",
+      ...(options?.headers as Record<string, string> | undefined),
+    },
+  };
+}
+
 export class CampaignsReader extends BaseReader {
   async getActive({ fetchOptions }: GetActiveCampaignsArgs = {}) {
     const response = await this.getRequest({
       schema: ActiveCampaignsSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/campaigns/active`,
-      options: fetchOptions,
+      options: withEnumOptIn(fetchOptions),
     });
     return response.data;
   }
@@ -24,7 +36,7 @@ export class CampaignsReader extends BaseReader {
       schema: CampaignSummarySchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/campaigns/account`,
       queryParams,
-      options: fetchOptions,
+      options: withEnumOptIn(fetchOptions),
     });
     return response.data;
   }

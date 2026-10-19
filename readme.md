@@ -260,7 +260,10 @@ const summary = await readDex.campaigns.getSummary({
 
 Campaign metadata, `summary.claims`, and `summary.breakdownByType` use `campaignType`:
 `"fee_rebate"`, `"maker_incentive"`, `"liquidation_rebate"`, `"volume_milestone"`,
-`"first_funded_trial"`, or `"affiliate"`. Unknown campaign types fail response validation.
+`"first_funded_trial"`, `"affiliate"`, or `"discretionary"`. `campaignType` and `status` are
+extensible: values newer than the SDK come through as raw strings, so narrow with
+`isKnownCampaignType` / `isKnownCampaignStatus` before switching on them. The SDK opts in to
+those values by sending `Prefer: include-unknown-enum-members`.
 Reward amounts are raw token units (divide USDC amounts by `10 ** 6`). Each claim exposes
 `hasAllocation`, `readyToClaim`, `claimedAmount`, `claimedAtTsSec`, and `claimTxHash`.
 

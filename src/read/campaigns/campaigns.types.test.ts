@@ -5,8 +5,13 @@ import {
   ActiveCampaignsSchema,
   CampaignClaimSchema,
   CampaignMetadataHttpSchema,
+  CampaignStatusNameSchema,
   CampaignSummarySchema,
   CampaignTypeNameSchema,
+  isKnownCampaignStatus,
+  isKnownCampaignType,
+  KnownCampaignStatusNameSchema,
+  KnownCampaignTypeNameSchema,
   TypeBreakdownSchema,
 } from "./campaigns.types";
 
@@ -86,6 +91,7 @@ describe("campaign response schemas", () => {
     "volume_milestone",
     "first_funded_trial",
     "affiliate",
+    "discretionary",
   ])("accepts the %s campaign type", (campaignType) => {
     expect(CampaignTypeNameSchema.parse(campaignType)).toBe(campaignType);
   });
@@ -170,17 +176,77 @@ describe("campaign response schemas", () => {
     ]);
   });
 
-  it("rejects unknown campaign types instead of substituting an existing type", () => {
-    expect(CampaignTypeNameSchema.safeParse("unknown").success).toBe(false);
+  it("accepts the known campaign types as known", () => {
+    for (const campaignType of KnownCampaignTypeNameSchema.options) {
+      expect(isKnownCampaignType(campaignType)).toBe(true);
+    }
+    for (const status of KnownCampaignStatusNameSchema.options) {
+      expect(isKnownCampaignStatus(status)).toBe(true);
+    }
+  });
+
+  it("keeps the known schemas closed while the open schemas accept any string", () => {
+    expect(KnownCampaignTypeNameSchema.safeParse("unknown").success).toBe(false);
+    expect(KnownCampaignStatusNameSchema.safeParse("unknown").success).toBe(false);
+    expect(CampaignTypeNameSchema.parse("unknown")).toBe("unknown");
+    expect(CampaignStatusNameSchema.parse("unknown")).toBe("unknown");
+  });
+});
+
+describe("campaign enum values this SDK predates", () => {
+  const futureType = "some_future_type";
+  const futureStatus = "some_future_status";
+
+  it("preserves future-type and future-status rows in the active list", () => {
+    const campaigns = ActiveCampaignsSchema.parse([
+      affiliateCampaign,
+      { ...feeRebateCampaign, campaign_type: futureType },
+      { ...feeRebateCampaign, campaign_id: 7, status: futureStatus },
+    ]);
+
+    expect(campaigns.map((c) => [c.campaignId, c.campaignType, c.status])).toEqual([
+      [5, "affiliate", "active"],
+      [6, futureType, "active"],
+      [7, "fee_rebate", futureStatus],
+    ]);
+    expect(campaigns.map((c) => isKnownCampaignType(c.campaignType))).toEqual([true, false, true]);
+    expect(campaigns.map((c) => isKnownCampaignStatus(c.status))).toEqual([true, true, false]);
+  });
+
+  it("preserves future-type claims and breakdown rows in the summary", () => {
+    const parsed = CampaignSummarySchema.parse({
+      ...summary,
+      breakdown_by_type: [...breakdown, { ...breakdown[0], campaign_type: futureType }],
+      claims: [affiliateClaim, { ...feeRebateClaim, campaign_type: futureType }],
+    });
+
+    expect(parsed.claims.map((c) => c.campaignType)).toEqual(["affiliate", futureType]);
+    expect(parsed.breakdownByType.map((b) => b.campaignType)).toEqual([
+      "affiliate",
+      "fee_rebate",
+      futureType,
+    ]);
+    expect(parsed.claims.map((c) => isKnownCampaignType(c.campaignType))).toEqual([true, false]);
+  });
+
+  it("still rejects a known-type row with a malformed field", () => {
+    expect(ActiveCampaignsSchema.safeParse([{ ...affiliateCampaign, title: 5 }]).success).toBe(
+      false,
+    );
+  });
+
+  it("still rejects a row with no campaign type", () => {
+    const { campaign_type: _, ...untyped } = affiliateCampaign;
+    expect(ActiveCampaignsSchema.safeParse([untyped]).success).toBe(false);
+  });
+
+  it("still rejects a non-string campaign type", () => {
     expect(
-      CampaignMetadataHttpSchema.safeParse({ ...affiliateCampaign, campaign_type: "unknown" })
-        .success,
+      CampaignMetadataHttpSchema.safeParse({ ...affiliateCampaign, campaign_type: 3 }).success,
     ).toBe(false);
-    expect(
-      CampaignClaimSchema.safeParse({ ...affiliateClaim, campaign_type: "unknown" }).success,
-    ).toBe(false);
-    expect(
-      TypeBreakdownSchema.safeParse({ ...breakdown[0], campaign_type: "unknown" }).success,
-    ).toBe(false);
+    expect(CampaignClaimSchema.safeParse({ ...affiliateClaim, status: null }).success).toBe(false);
+    expect(TypeBreakdownSchema.safeParse({ ...breakdown[0], campaign_type: 3 }).success).toBe(
+      false,
+    );
   });
 });

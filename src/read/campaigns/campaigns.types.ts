@@ -2,17 +2,23 @@ import { z } from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";
 
-export const CampaignTypeNameSchema = z.enum([
+export const KnownCampaignTypeNameSchema = z.enum([
   "fee_rebate",
   "maker_incentive",
   "liquidation_rebate",
   "volume_milestone",
   "first_funded_trial",
   "affiliate",
+  "discretionary",
 ]);
+
+export type KnownCampaignTypeName = z.infer<typeof KnownCampaignTypeNameSchema>;
+
+export const CampaignTypeNameSchema = z.union([KnownCampaignTypeNameSchema, z.string()]);
+
 export type CampaignTypeName = z.infer<typeof CampaignTypeNameSchema>;
 
-export const CampaignStatusNameSchema = z.enum([
+export const KnownCampaignStatusNameSchema = z.enum([
   "draft",
   "funded",
   "active",
@@ -20,7 +26,26 @@ export const CampaignStatusNameSchema = z.enum([
   "reclaimed",
   "cancelled",
 ]);
+
+export type KnownCampaignStatusName = z.infer<typeof KnownCampaignStatusNameSchema>;
+
+export const CampaignStatusNameSchema = z.union([KnownCampaignStatusNameSchema, z.string()]);
+
 export type CampaignStatusName = z.infer<typeof CampaignStatusNameSchema>;
+
+const KNOWN_CAMPAIGN_TYPES: ReadonlySet<string> = new Set(KnownCampaignTypeNameSchema.options);
+
+export function isKnownCampaignType(type: CampaignTypeName): type is KnownCampaignTypeName {
+  return KNOWN_CAMPAIGN_TYPES.has(type);
+}
+
+const KNOWN_CAMPAIGN_STATUSES: ReadonlySet<string> = new Set(KnownCampaignStatusNameSchema.options);
+
+export function isKnownCampaignStatus(
+  status: CampaignStatusName,
+): status is KnownCampaignStatusName {
+  return KNOWN_CAMPAIGN_STATUSES.has(status);
+}
 
 export const CampaignMetadataHttpSchema = z
   .object({
