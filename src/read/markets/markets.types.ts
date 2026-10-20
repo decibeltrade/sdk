@@ -34,6 +34,10 @@ export const MarketModeSchema = z.enum([
   "Delisting",
 ]);
 
+/** Asset class the API derives per market (`classify_category` in the indexer). */
+export const MarketAssetCategorySchema = z.enum(["crypto", "equity", "commodity"]);
+export type MarketAssetCategory = z.infer<typeof MarketAssetCategorySchema>;
+
 export const PerpMarketSchema = z.object({
   /**
    * Absent on API versions that predate spot support (treat as "perp").
@@ -54,6 +58,11 @@ export const PerpMarketSchema = z.object({
   mode: MarketModeSchema,
   // Served by the API (rust/trading-api-dto market.rs); optional for older fixtures.
   is_isolated_only: z.boolean().optional(),
+  /**
+   * Absent on API versions that predate it. An unrecognised value parses as absent rather
+   * than failing the whole `/markets` response, so a new server category degrades gracefully.
+   */
+  category: MarketAssetCategorySchema.optional().catch(undefined),
 });
 
 export const PerpMarketsSchema = z.array(PerpMarketSchema);
