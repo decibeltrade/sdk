@@ -386,6 +386,16 @@ export class DecibelAdminDex extends BaseSDK {
     });
   }
 
+  /** Liquidation slippage increment in chain units (10_000 = 1%). Requires MarketRiskGovernor. */
+  async setMarketSlippageIncrementPct(marketName: string, slippageIncrementPct: number) {
+    const marketAddr = getMarketAddr(marketName, this.config.deployment.perpEngineGlobal);
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::admin_apis::set_market_slippage_increment_pct`,
+      typeArguments: [],
+      functionArguments: [marketAddr, slippageIncrementPct],
+    });
+  }
+
   async addMarketModeGuardian(delegatedAdmin: string) {
     return await this.sendTx({
       function: `${this.config.deployment.package}::admin_apis::add_market_mode_guardian`,

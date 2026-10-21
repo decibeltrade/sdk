@@ -57,6 +57,9 @@ export const RWA_TICKERS = [
   "UBER",
   // Pharma
   "MRNA",
+  "TTWO",
+  "GME",
+  "SONY",
 ] as const;
 
 export type RwaTicker = (typeof RWA_TICKERS)[number];
