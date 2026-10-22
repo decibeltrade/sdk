@@ -83,6 +83,7 @@ export {
 export * from "./rwa-insights/rwa-insights.types";
 export * from "./types";
 export * from "./user-fees/user-fees.types";
+export * from "./user-positions/market-settings";
 export type {
   KnownWithdrawCancelReason,
   PendingWithdrawRequest,
