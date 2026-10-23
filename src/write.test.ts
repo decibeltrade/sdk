@@ -294,6 +294,24 @@ describe("placeOrder submission failures", () => {
     });
     expect("submission" in result && result.submission).toBeUndefined();
   });
+
+  it("flags a failed_decryption commit so the caller can offer a retry", async () => {
+    const { dex, sendEncryptedTx } = makeWriteDex(true);
+    const submission = { outcome: "reverted" as const, transactionHash: "0xaccepted" };
+    const committed = {
+      payload: { encrypted_state: "failed_decryption", encryption_epoch: "100" },
+    };
+    sendEncryptedTx.mockRejectedValue(
+      new TransactionSubmissionError("failed", submission, undefined, committed as never),
+    );
+    expect(await dex.placeOrder(ORDER_ARGS)).toEqual({
+      success: false,
+      error: "failed",
+      submission,
+      failedDecryption: true,
+      encryptionEpoch: "100",
+    });
+  });
 });
 
 describe("DecibelWriteDex.placeOrder order id extraction", () => {

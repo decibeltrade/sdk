@@ -31,7 +31,7 @@ import {
   WithdrawFromVaultArgs,
 } from "./read";
 import { RenameSubaccountArgs, RenameSubaccountSchema } from "./subaccount-types";
-import { getTransactionSubmissionFailure } from "./submission-error";
+import { failedDecryptionFlags, getTransactionSubmissionFailure } from "./submission-error";
 import {
   addressesEqual,
   getMarketAddr,
@@ -414,6 +414,7 @@ export class DecibelWriteDex extends BaseSDK {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
         submission: getTransactionSubmissionFailure(error),
+        ...failedDecryptionFlags(error),
       };
     }
   }
@@ -650,6 +651,7 @@ export class DecibelWriteDex extends BaseSDK {
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
+        ...failedDecryptionFlags(error),
       };
     }
   }

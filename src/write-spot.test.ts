@@ -2,6 +2,7 @@ import { Account } from "@aptos-labs/ts-sdk";
 import { describe, expect, it, vi } from "vitest";
 
 import { TESTNET_CONFIG } from "./constants";
+import { TransactionSubmissionError } from "./submission-error";
 import { getSpotMarketAddr } from "./utils";
 import { DecibelWriteDex, roundToTickSizeForSide, TimeInForce } from "./write";
 
@@ -353,6 +354,30 @@ describe("placeSpotOrder", () => {
     });
 
     expect(result).toEqual({ success: false, error: "boom" });
+  });
+
+  it("flags a failed_decryption commit so the caller can offer a retry", async () => {
+    const { dex, sendEncryptedTx } = makeWriteDex({ defaultEncrypted: true });
+    sendEncryptedTx.mockRejectedValue(
+      new TransactionSubmissionError("failed", { outcome: "reverted" }, undefined, {
+        payload: { encrypted_state: "failed_decryption", encryption_epoch: "100" },
+      } as never),
+    );
+    const result = await dex.placeSpotOrder({
+      marketAddr: MARKET_ADDR,
+      price: 500,
+      size: 1000,
+      isBuy: true,
+      timeInForce: TimeInForce.GoodTillCanceled,
+      subaccountAddr: SUB,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "failed",
+      failedDecryption: true,
+      encryptionEpoch: "100",
+    });
   });
 
   it("routes through sendEncryptedTx when defaultEncrypted is true", async () => {

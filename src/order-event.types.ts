@@ -79,17 +79,23 @@ export interface SpotOrderPendingCbsEvent {
   created_at: string;
 }
 
+/** `failedDecryption`: see `isFailedDecryptionError`; nothing executed, so a fresh resubmit is safe. */
+interface FailedDecryptionFlags {
+  failedDecryption?: true;
+  encryptionEpoch?: string;
+}
+
 export type PlaceOrderResult =
   | {
       success: true;
       orderId: string | undefined;
       transactionHash: string;
     }
-  | {
+  | ({
       success: false;
       error: string;
       submission?: TransactionSubmissionFailure;
-    };
+    } & FailedDecryptionFlags);
 
 export type PlaceSpotOrderResult =
   | {
@@ -103,7 +109,7 @@ export type PlaceSpotOrderResult =
       pendingCbs: boolean;
       transactionHash: string;
     }
-  | {
+  | ({
       success: false;
       error: string;
-    };
+    } & FailedDecryptionFlags);

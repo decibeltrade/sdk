@@ -126,6 +126,10 @@ interface SettleContext {
   start: number;
 }
 
+// ts-sdk memoizes getLedgerInfo (and so the encryption key) for 10s; see ts-sdk
+// `internal/general.ts` LEDGER_INFO_CACHE_TTL_MS. The margin covers clock jitter.
+const LEDGER_INFO_MEMO_WAIT_MS = 10_000 + 250;
+
 const chainIdToAbi: Record<number, ABIData> = {};
 if (TESTNET_CONFIG.chainId) chainIdToAbi[TESTNET_CONFIG.chainId] = testnetAbis as ABIData;
 if (MAINNET_CONFIG.chainId) chainIdToAbi[MAINNET_CONFIG.chainId] = mainnetAbis as ABIData;
@@ -147,6 +151,8 @@ export class BaseSDK {
   // for the SDK's lifetime; a failed probe is uncached so the next call retries
   // instead of stranding the SDK in unencrypted mode.
   private nodeSupportsEncryptionPromise: Promise<ProbeState> | undefined;
+  // Last encrypted build: when (for the ts-sdk memo window) and at which key epoch.
+  private lastEncryptedBuild: { at: number; epoch: bigint } | undefined;
   /**
    * Time delta in milliseconds to add to Date.now() for expiration timestamps.
    */
@@ -335,7 +341,7 @@ export class BaseSDK {
       aptosConfig: this.aptos.config,
       ...(payload as InputEntryFunctionData),
     });
-    return await buildTransaction({
+    const transaction = await buildTransaction({
       aptosConfig: this.aptos.config,
       sender,
       payload: txnPayload,
@@ -348,6 +354,28 @@ export class BaseSDK {
         gasUnitPrice: MIN_ENCRYPTED_TXN_GAS_UNIT_PRICE,
       },
     });
+    const encryptedPayload = transaction.rawTransaction.payload;
+    if (
+      "encryptionEpoch" in encryptedPayload &&
+      typeof encryptedPayload.encryptionEpoch === "bigint"
+    ) {
+      // At or after ts-sdk's memo timestamp, so the refresh wait never ends early.
+      this.lastEncryptedBuild = { at: Date.now(), epoch: encryptedPayload.encryptionEpoch };
+    }
+    return transaction;
+  }
+
+  /**
+   * Waits out ts-sdk's ledger-info memo so the next build refetches the encryption key.
+   * Resolves `false` if the epoch hasn't advanced past `failedEpoch` (default: last build's).
+   */
+  public async refreshEncryptionKey(failedEpoch?: bigint): Promise<boolean> {
+    const last = this.lastEncryptedBuild;
+    const waitMs = last ? LEDGER_INFO_MEMO_WAIT_MS - (Date.now() - last.at) : 0;
+    if (waitMs > 0) await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+    const { epoch } = await this.aptos.getLedgerInfo();
+    const baseline = failedEpoch ?? last?.epoch;
+    return baseline === undefined || BigInt(epoch) > baseline;
   }
 
   private async signAndSubmit(

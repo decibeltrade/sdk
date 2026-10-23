@@ -3,11 +3,23 @@ import type {
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import { Account } from "@aptos-labs/ts-sdk";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { Account, AccountAddress, buildTransaction } from "@aptos-labs/ts-sdk";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BaseSDK, configSupportsEncryptedSubmission, TransactionSettledMetrics } from "./base";
 import { DecibelConfig, TESTNET_CONFIG } from "./constants";
+import {
+  getFailedDecryptionEpoch,
+  isFailedDecryptionError,
+  TransactionSubmissionError,
+} from "./submission-error";
+
+// Network-free encrypted builds: only `buildTransaction` and `generateTransactionPayload` are mocked.
+vi.mock("@aptos-labs/ts-sdk", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@aptos-labs/ts-sdk")>()),
+  buildTransaction: vi.fn(),
+  generateTransactionPayload: vi.fn(),
+}));
 
 // Reach the private encryption gate + probe without a public seam. The probe is
 // stubbed to "supported" in every case so the only thing under test is the
@@ -390,5 +402,191 @@ describe("installed Aptos confirmation response contract", () => {
       submission: { outcome: "unknown", transactionHash: "0xaccepted" },
     });
     expect(submit).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("failed_decryption surfaces to the caller", () => {
+  interface EncryptedInternals {
+    encryptionBlocker(): Promise<undefined>;
+    buildEncryptedTx(
+      p?: InputGenerateTransactionPayloadData,
+      s?: AccountAddress,
+    ): Promise<SimpleTransaction>;
+    signAndSubmit(): Promise<unknown>;
+  }
+
+  const TTL_PLUS_MARGIN_MS = 10_250;
+  const failedCommit = {
+    type: "user_transaction",
+    hash: "0xaccepted",
+    success: false,
+    vm_status: "Failed to deserialize argument",
+    payload: { encrypted_state: "failed_decryption", encryption_epoch: "100" },
+  };
+  const failedDecryption = () =>
+    new TransactionSubmissionError(
+      "failed",
+      { outcome: "reverted", transactionHash: "0xaccepted" },
+      undefined,
+      failedCommit as never,
+    );
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.mocked(buildTransaction).mockReset();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function encryptedSdk() {
+    const sdk = new SubmissionSdk(TESTNET_CONFIG, Account.generate(), { skipSimulate: true });
+    const internals = sdk as unknown as EncryptedInternals;
+    vi.spyOn(internals, "encryptionBlocker").mockResolvedValue(undefined);
+    const build = vi.spyOn(internals, "buildEncryptedTx");
+    const submit = vi.spyOn(internals, "signAndSubmit");
+    return { sdk, build, submit };
+  }
+
+  it("B1: does not rebuild or resubmit after failed_decryption", async () => {
+    const { sdk, build, submit } = encryptedSdk();
+    const error = failedDecryption();
+    build.mockResolvedValue({} as SimpleTransaction);
+    submit.mockRejectedValue(error);
+    const result = expect(sdk.send(true)).rejects.toBe(error);
+    await vi.advanceTimersByTimeAsync(TTL_PLUS_MARGIN_MS * 2);
+    await result;
+    expect(build).toHaveBeenCalledTimes(1);
+    expect(submit).toHaveBeenCalledTimes(1);
+  });
+
+  it("B2: a reverted failed_decryption confirmation carries the committed transaction", async () => {
+    const { sdk, build } = encryptedSdk();
+    build.mockResolvedValue({} as SimpleTransaction);
+    vi.spyOn(sdk.aptos.transaction, "sign").mockReturnValue({} as AccountAuthenticator);
+    vi.spyOn(sdk, "submitTx").mockResolvedValue({ hash: "0xaccepted" } as never);
+    vi.spyOn(sdk.aptos, "waitForTransaction").mockResolvedValue(failedCommit as never);
+    const error = await sdk.send(true).catch((e: unknown) => e);
+    expect(error).toMatchObject({
+      submission: { outcome: "reverted", transactionHash: "0xaccepted" },
+      transaction: failedCommit,
+    });
+    expect(isFailedDecryptionError(error)).toBe(true);
+  });
+
+  it.each([
+    ["the error itself", failedDecryption(), 100n],
+    ["a cause chain", new Error("outer", { cause: failedDecryption() }), 100n],
+    [
+      "a flagged order result",
+      new Error("outer", {
+        cause: { success: false, error: "x", failedDecryption: true, encryptionEpoch: "7" },
+      }),
+      7n,
+    ],
+    [
+      "a flagged result without an epoch",
+      new Error("outer", { cause: { success: false, error: "x", failedDecryption: true } }),
+      undefined,
+    ],
+  ])("B3: detects failed_decryption through %s and reads its epoch", (_name, error, epoch) => {
+    expect(isFailedDecryptionError(error)).toBe(true);
+    expect(getFailedDecryptionEpoch(error)).toBe(epoch);
+  });
+
+  it.each([
+    ["a plain error", new Error("Failed to fetch")],
+    ["undefined", undefined],
+    [
+      "a decrypted move abort",
+      new TransactionSubmissionError("abort", { outcome: "reverted" }, undefined, {
+        ...failedCommit,
+        payload: { encrypted_state: "decrypted" },
+      } as never),
+    ],
+    ["a plain failed result", new Error("outer", { cause: { success: false, error: "x" } })],
+    [
+      "a null committed payload",
+      new TransactionSubmissionError("x", { outcome: "reverted" }, undefined, {
+        ...failedCommit,
+        payload: null,
+      } as never),
+    ],
+  ])("B4: is not failed_decryption for %s", (_name, error) => {
+    expect(isFailedDecryptionError(error)).toBe(false);
+    expect(getFailedDecryptionEpoch(error)).toBeUndefined();
+  });
+
+  describe("refreshEncryptionKey", () => {
+    const NOW = new Date("2026-01-01T00:00:00.000Z");
+    const sender = AccountAddress.from("0xabc".padEnd(66, "0"));
+    const payload: InputGenerateTransactionPayloadData = {
+      function: "0x1::test::submit",
+      functionArguments: [],
+    };
+    const txAtEpoch = (epoch: bigint) =>
+      ({ rawTransaction: { payload: { encryptionEpoch: epoch } } }) as never;
+
+    beforeEach(() => vi.setSystemTime(NOW));
+
+    async function builtAtEpoch(
+      epoch: bigint,
+      sdk = new BaseSDK(TESTNET_CONFIG, Account.generate()),
+    ) {
+      vi.mocked(buildTransaction).mockResolvedValue(txAtEpoch(epoch));
+      await (sdk as unknown as EncryptedInternals).buildEncryptedTx(payload, sender);
+      const ledger = vi.spyOn(sdk.aptos, "getLedgerInfo");
+      return { sdk, ledger };
+    }
+
+    it("R1: waits out the ledger-info memo window measured from the last encrypted build", async () => {
+      const { sdk, ledger } = await builtAtEpoch(100n);
+      ledger.mockResolvedValue({ epoch: "101" } as never);
+      await vi.advanceTimersByTimeAsync(4_000);
+      const result = sdk.refreshEncryptionKey();
+      await vi.advanceTimersByTimeAsync(TTL_PLUS_MARGIN_MS - 4_000 - 1);
+      expect(ledger).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(result).resolves.toBe(true);
+      expect(ledger).toHaveBeenCalledTimes(1);
+    });
+
+    it("R2: does not wait once the memo window has elapsed", async () => {
+      const { sdk, ledger } = await builtAtEpoch(100n);
+      ledger.mockResolvedValue({ epoch: "101" } as never);
+      await vi.advanceTimersByTimeAsync(TTL_PLUS_MARGIN_MS);
+      await expect(sdk.refreshEncryptionKey()).resolves.toBe(true);
+    });
+
+    it.each([
+      { name: "R3: the epoch did not advance", built: 100n, failedEpoch: undefined },
+      { name: "R6: the failed epoch is current", built: 101n, failedEpoch: 101n },
+    ])("reports false when $name", async ({ built, failedEpoch }) => {
+      const { sdk, ledger } = await builtAtEpoch(built);
+      ledger.mockResolvedValue({ epoch: built.toString() } as never);
+      const result = sdk.refreshEncryptionKey(failedEpoch);
+      await vi.advanceTimersByTimeAsync(TTL_PLUS_MARGIN_MS);
+      await expect(result).resolves.toBe(false);
+    });
+
+    it("R4: reports true without waiting when nothing was built encrypted", async () => {
+      const sdk = new BaseSDK(TESTNET_CONFIG, Account.generate());
+      const ledger = vi
+        .spyOn(sdk.aptos, "getLedgerInfo")
+        .mockResolvedValue({ epoch: "5" } as never);
+      await expect(sdk.refreshEncryptionKey()).resolves.toBe(true);
+      expect(ledger).toHaveBeenCalledTimes(1);
+    });
+
+    it("R5: compares against the failed txn's epoch, not a later build at the new key", async () => {
+      const { sdk, ledger } = await builtAtEpoch(100n);
+      // A second order built at the rotated key lands between the failure and the retry.
+      await builtAtEpoch(101n, sdk);
+      ledger.mockResolvedValue({ epoch: "101" } as never);
+      const result = sdk.refreshEncryptionKey(100n);
+      await vi.advanceTimersByTimeAsync(TTL_PLUS_MARGIN_MS);
+      await expect(result).resolves.toBe(true);
+    });
   });
 });
