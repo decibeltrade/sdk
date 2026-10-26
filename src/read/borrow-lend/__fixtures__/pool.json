@@ -1,0 +1,13 @@
+{
+  "pool_address": "0x3",
+  "primary_asset": "0x1",
+  "primary_decimals": 6,
+  "share_asset": "0x2",
+  "available_liquidity": "10",
+  "total_debt": "50",
+  "total_lender_claim": "0",
+  "utilization_ray": "833333333333333333333333333",
+  "borrow_apr_ray": "0",
+  "supply_apr_ray": "0",
+  "indices_as_of_secs": "1000"
+}
