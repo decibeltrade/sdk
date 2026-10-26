@@ -249,37 +249,14 @@ export class DecibelWriteDex extends BaseSDK {
    * @param amount u64 amount of collateral to deposit
    */
   async deposit(amount: number, subaccountAddr?: string) {
-    if (!subaccountAddr) {
-      subaccountAddr = getPrimarySubaccountAddr(
-        this.account.accountAddress,
-        this.config.compatVersion,
-        this.config.deployment.package,
-      );
-    }
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts_entry::deposit_to_subaccount_at`,
-          typeArguments: [],
-          functionArguments: [subaccountAddr, this.config.deployment.usdc, amount],
-        }),
-      subaccountAddr,
-    );
+    return await this.depositCollateral(this.config.deployment.usdc, amount, subaccountAddr);
   }
 
   /**
    * @param amount u64 amount of collateral to withdraw
    */
   async withdraw(amount: number, subaccountAddr?: string) {
-    return await this.sendSubaccountTx(
-      (subaccountAddr) =>
-        this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts_entry::withdraw_from_cross_collateral`,
-          typeArguments: [],
-          functionArguments: [subaccountAddr, this.config.deployment.usdc, amount],
-        }),
-      subaccountAddr,
-    );
+    return await this.withdrawCollateral(this.config.deployment.usdc, amount, subaccountAddr);
   }
 
   async withdrawNonCollateral(assetAddr: string, amount: number, subaccountAddr?: string) {
@@ -289,6 +266,66 @@ export class DecibelWriteDex extends BaseSDK {
           function: `${this.config.deployment.package}::dex_accounts_entry::withdraw_from_non_collateral`,
           typeArguments: [],
           functionArguments: [subaccountAddr, assetAddr, amount],
+        }),
+      subaccountAddr,
+    );
+  }
+
+  /** Mints non-transferable dLEND shares from wallet USDC. */
+  async supplyToLenderPool(amount: number) {
+    return await this.sendTx({
+      function: `${this.config.deployment.package}::account_management_apis::supply_to_lender_pool`,
+      typeArguments: [],
+      functionArguments: [amount],
+    });
+  }
+
+  /** Credits USDC to a perp-initialized subaccount. */
+  async redeemFromLenderPool(shareAmount: number, subaccountAddr?: string) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::account_management_apis::redeem_from_lender_pool_entry`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, shareAmount],
+        }),
+      subaccountAddr,
+    );
+  }
+
+  /** Registered borrow-lend assets are pledged as collateral. */
+  async depositCollateral(assetAddr: string, amount: number, subaccountAddr?: string) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::dex_accounts_entry::deposit_to_subaccount_at`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, assetAddr, amount],
+        }),
+      subaccountAddr,
+    );
+  }
+
+  async withdrawCollateral(assetAddr: string, amount: number, subaccountAddr?: string) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::dex_accounts_entry::withdraw_from_cross_collateral`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, assetAddr, amount],
+        }),
+      subaccountAddr,
+    );
+  }
+
+  /** Uses free cross margin; the amount is clamped to outstanding debt. */
+  async repayUsdc(amount: number, subaccountAddr?: string) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx({
+          function: `${this.config.deployment.package}::dex_accounts_entry::repay_usdc_from_subaccount`,
+          typeArguments: [],
+          functionArguments: [subaccountAddr, amount],
         }),
       subaccountAddr,
     );

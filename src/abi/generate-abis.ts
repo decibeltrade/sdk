@@ -23,6 +23,7 @@ const CONFIGS = [TESTNET_CONFIG, MAINNET_CONFIG];
 const SDK_MODULES = [
   "admin_apis",
   "public_apis",
+  "account_management_apis",
   "dex_accounts",
   "perp_engine",
   "async_withdraw_queue",

@@ -672,6 +672,12 @@ payload at build time. Check that ahead of time with `configSupportsEncryptedSub
   `withdrawNonCollateral`,
   `configureUserSettingsForMarket`,
   `buildDeactiveSubaccountTx`
+- Borrow-lend:
+  `supplyToLenderPool`,
+  `redeemFromLenderPool`,
+  `depositCollateral`,
+  `withdrawCollateral`,
+  `repayUsdc`
 - Orders and matching:
   `placeOrder`,
   `extractOrderIdFromTransaction`,
@@ -740,6 +746,22 @@ await writeDex.withdraw(500000, "subaccount_address");
 
 // Withdraw a non-collateral asset from a subaccount
 await writeDex.withdrawNonCollateral("0x...asset_metadata", 250000, "subaccount_address");
+```
+
+### Borrow-lend
+
+Cross fills that need more margin than the subaccount's free USDC borrow from the lender pool
+automatically against pledged collateral. Read debt with `perp_engine::borrow_lend_debt` and
+pledged balances with `perp_engine::get_cross_secondary_balance`. Taker fills settle
+asynchronously, so poll debt after placing an order. Supply and redemption emit
+`debt_lender::LenderCashUpdatedEvent`.
+
+```typescript
+await writeDex.supplyToLenderPool(1_000_000_000);
+await writeDex.depositCollateral("0xa", 10_00000000, "subaccount_address");
+await writeDex.repayUsdc(50_000_000, "subaccount_address");
+await writeDex.withdrawCollateral("0xa", 10_00000000, "subaccount_address");
+await writeDex.redeemFromLenderPool(shares, "subaccount_address");
 ```
 
 ### Trading Delegation and Builder Fees
