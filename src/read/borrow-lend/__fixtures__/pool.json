@@ -9,5 +9,7 @@
   "utilization_ray": "833333333333333333333333333",
   "borrow_apr_ray": "0",
   "supply_apr_ray": "0",
+  "treasury_fee_bps": 1000,
+  "insurance_fee_bps": 500,
   "indices_as_of_secs": "1000"
 }

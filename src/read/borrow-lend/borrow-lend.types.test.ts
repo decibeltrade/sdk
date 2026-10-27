@@ -22,6 +22,21 @@ describe("BorrowLendPoolSchema", () => {
     expect(parsed.total_lender_claim).toBeTypeOf("string");
     expect(parsed.indices_as_of_secs).toBe("1000");
   });
+
+  it("carries the current protocol fees as numbers", () => {
+    const parsed = BorrowLendPoolSchema.parse(pool);
+    expect(parsed.treasury_fee_bps).toBe(1000);
+    expect(parsed.insurance_fee_bps).toBe(500);
+  });
+
+  it.each(["treasury_fee_bps", "insurance_fee_bps"])("requires %s", (field) => {
+    const { [field]: _omitted, ...incomplete } = pool as Record<string, unknown>;
+    expect(() => BorrowLendPoolSchema.parse(incomplete)).toThrow();
+  });
+
+  it.each(["treasury_fee_bps", "insurance_fee_bps"])("rejects a string %s", (field) => {
+    expect(() => BorrowLendPoolSchema.parse({ ...pool, [field]: "1000" })).toThrow();
+  });
 });
 
 describe("BorrowLendAccountSchema", () => {

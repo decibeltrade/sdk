@@ -17,6 +17,8 @@ export const BorrowLendPoolSchema = z.object({
   utilization_ray: z.string(),
   borrow_apr_ray: z.string(),
   supply_apr_ray: z.string(),
+  treasury_fee_bps: z.number(),
+  insurance_fee_bps: z.number(),
   indices_as_of_secs: z.string(),
 });
 
