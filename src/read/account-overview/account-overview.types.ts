@@ -121,6 +121,31 @@ export type SpotInFlightOrder = z.infer<typeof SpotInFlightOrderSchema>;
 export type SpotMetrics = z.infer<typeof SpotMetricsSchema>;
 export type SpotOverview = z.infer<typeof SpotOverviewSchema>;
 
+export const BorrowLendOverviewSectionSchema = z.object({
+  owner: z.string(),
+  /** Null when the account has no borrower record. */
+  rescue_enabled: z.boolean().nullable(),
+  debt_in_primary: z.string(),
+  liquidatable: z.boolean(),
+  pledges: z.array(
+    z.object({
+      asset: z.string(),
+      decimals: z.number().int().min(0).max(255),
+      amount: z.string(),
+      value_in_primary: z.string(),
+      max_weighted_value_in_primary: z.string(),
+      target_weighted_value_in_primary: z.string(),
+      max_ltv_bps: z.number(),
+      target_ltv_bps: z.number(),
+      /** Null = unavailable (no registered market source or no recorded price). */
+      price_in_primary_per_unit: z.string().nullable(),
+    }),
+  ),
+  collateral_value_in_primary: z.string(),
+  max_weighted_collateral_in_primary: z.string(),
+  borrow_capacity_in_primary: z.string(),
+});
+
 export const AccountOverviewSchema = z.object({
   perp_equity_balance: z.number(),
   perp_equity_haircutted: z.number().optional(),
@@ -191,11 +216,17 @@ export const AccountOverviewSchema = z.object({
    * subaccount. NULL for wallet-only owners or when spot enrichment fails.
    */
   spot: SpotOverviewSchema.nullable().optional(), // TODO: Remove optional once back-end is deployed
+  /** Additive borrow/lend collateral section: BL's own target/max LTV and
+   * values, distinct from the perp haircut. Absent when borrow/lend reads are
+   * disabled or the pool is not initialized. An unavailable BL valuation fails
+   * the whole overview (503) instead of omitting this. */
+  borrow_lend: BorrowLendOverviewSectionSchema.nullable().optional(),
 });
 
 export const AccountOverviewWsMessageSchema = z.object({
   account_overview: AccountOverviewSchema.omit({ volume: true }),
 });
 
+export type BorrowLendOverviewSection = z.infer<typeof BorrowLendOverviewSectionSchema>;
 export type AccountOverview = z.infer<typeof AccountOverviewSchema>;
 export type AccountOverviewWsMessage = z.infer<typeof AccountOverviewWsMessageSchema>;
