@@ -18,6 +18,16 @@ export interface MarketTradesByAddrRequestArgs extends BaseRequestArgs {
   limit?: number;
 }
 
+export interface MarketTradesWindowArgs extends BaseRequestArgs {
+  marketAddr: string;
+  /** At most 31 days apart; the API rejects a wider window. */
+  fromMs: number;
+  toMs: number;
+  minNotionalUsd?: number;
+  /** Default 500, max 1000. */
+  limit?: number;
+}
+
 export const MarketTradeSchema = z.object({
   /** Absent on API versions that predate spot support (treat as "perp"). */
   asset_type: AssetTypeSchema.optional(),
@@ -42,6 +52,8 @@ export const MarketTradesHistorySchema = z.object({
   items: z.array(MarketTradeSchema),
   total_count: z.number(),
 });
+
+export const MarketTradesWindowSchema = z.array(MarketTradeSchema);
 
 export const MarketTradeWsMessageSchema = z.object({
   trades: z.array(MarketTradeSchema),

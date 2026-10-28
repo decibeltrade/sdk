@@ -5,8 +5,14 @@ import { PageParams, PaginatedResponseSchema, SearchTermParams, SortParams } fro
 
 export type LeaderboardSortKey = "volume" | "realized_pnl" | "roi" | "account_value";
 
+/** A rolling window to rank realized PnL over; "all" is the all-time board. */
+export type LeaderboardWindow = "24h" | "7d" | "30d" | "all";
+
 export interface LeaderboardRequestArgs
-  extends BaseRequestArgs, PageParams, SearchTermParams, SortParams<LeaderboardSortKey> {}
+  extends BaseRequestArgs, PageParams, SearchTermParams, SortParams<LeaderboardSortKey> {
+  /** Ranks over a window instead of all time; the trading API takes it with realized_pnl only. */
+  window?: LeaderboardWindow;
+}
 
 export const LeaderboardItemSchema = z.object({
   rank: z.number(),

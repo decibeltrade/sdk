@@ -5,6 +5,8 @@ import {
   MarketTradesByAddrRequestArgs,
   MarketTradesHistorySchema,
   MarketTradesRequestArgs,
+  MarketTradesWindowArgs,
+  MarketTradesWindowSchema,
   MarketTradeWsMessage,
   MarketTradeWsMessageSchema,
 } from "./market-trades.types";
@@ -49,6 +51,41 @@ export class MarketTradesReader extends BaseReader {
     });
 
     return response.data.items;
+  }
+
+  /**
+   * A perp market's fills between two timestamps, newest first
+   * @param minNotionalUsd Only fills worth at least this much
+   * @returns The fills in the window
+   */
+  async getWindow({
+    marketAddr,
+    fromMs,
+    toMs,
+    minNotionalUsd,
+    limit,
+    fetchOptions,
+  }: MarketTradesWindowArgs) {
+    const queryParams = new URLSearchParams({
+      market: marketAddr,
+      from_ms: fromMs.toString(),
+      to_ms: toMs.toString(),
+    });
+    if (minNotionalUsd !== undefined) {
+      queryParams.set("min_notional_usd", minNotionalUsd.toString());
+    }
+    if (limit !== undefined) {
+      queryParams.set("limit", limit.toString());
+    }
+
+    const response = await this.getRequest({
+      schema: MarketTradesWindowSchema,
+      url: `${this.deps.config.tradingHttpUrl}/api/v1/trades/window`,
+      queryParams,
+      options: fetchOptions,
+    });
+
+    return response.data;
   }
 
   /**

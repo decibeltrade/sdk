@@ -8,11 +8,14 @@ export class LeaderboardReader extends BaseReader {
    * @param queryParams The query parameters for the leaderboard
    * @returns The leaderboard
    */
-  async getLeaderboard({ fetchOptions, ...args }: LeaderboardRequestArgs) {
+  async getLeaderboard({ fetchOptions, window, ...args }: LeaderboardRequestArgs) {
+    const queryParams = constructKnownQueryParams(args);
+    // All time is the API's default; only a real window goes on the wire.
+    if (window && window !== "all") queryParams.set("window", window);
     const response = await this.getRequest({
       schema: LeaderboardSchema,
       url: `${this.deps.config.tradingHttpUrl}/api/v1/leaderboard`,
-      queryParams: constructKnownQueryParams(args),
+      queryParams,
       options: fetchOptions,
     });
 
