@@ -94,6 +94,8 @@ export const BorrowLendActivitySchema = z.object({
   protocol_fee_amount: z.string(),
   reaches_target: z.boolean(),
   is_full_repay: z.boolean(),
+  target_amount: z.string(),
+  insurance_amount: z.string(),
 });
 
 export const BorrowLendActivityPageSchema = z.object({

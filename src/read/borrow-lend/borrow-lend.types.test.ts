@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import accountBorrower from "./__fixtures__/account_borrower.json";
 import accountLenderOnly from "./__fixtures__/account_lender_only.json";
 import pool from "./__fixtures__/pool.json";
-import { BorrowLendAccountSchema, BorrowLendPoolSchema } from "./borrow-lend.types";
+import {
+  BorrowLendAccountSchema,
+  BorrowLendActivitySchema,
+  BorrowLendPoolSchema,
+} from "./borrow-lend.types";
 
 /**
  * The fixtures are written by `cargo test -p trading-api --lib write_sdk_fixtures`
@@ -55,6 +59,37 @@ describe("BorrowLendAccountSchema", () => {
     expect(() =>
       BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: "yes" }),
     ).toThrow();
+  });
+});
+
+describe("BorrowLendActivitySchema", () => {
+  const liquidation = {
+    source: { transaction_version: "42", transaction_unix_ms: 100123 },
+    event_index: "6",
+    account: "0xborrower",
+    event_type: "Liquidation",
+    reason: "",
+    counterparty: "0xliquidator",
+    asset: "0xasset",
+    amount: "100",
+    shares: "0",
+    secondary_amount: "25",
+    protocol_fee_amount: "2",
+    reaches_target: false,
+    is_full_repay: false,
+    target_amount: "110",
+    insurance_amount: "1",
+  };
+
+  it("parses a liquidation row with its target and insurance amounts", () => {
+    const parsed = BorrowLendActivitySchema.parse(liquidation);
+    expect(parsed.target_amount).toBe("110");
+    expect(parsed.insurance_amount).toBe("1");
+  });
+
+  it.each(["target_amount", "insurance_amount"])("requires %s", (field) => {
+    const { [field]: _omitted, ...incomplete } = liquidation as Record<string, unknown>;
+    expect(() => BorrowLendActivitySchema.parse(incomplete)).toThrow();
   });
 });
 
