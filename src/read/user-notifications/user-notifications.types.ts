@@ -29,6 +29,13 @@ export enum NotificationType {
   SlHit = "SlHit",
   TpCancelled = "TpCancelled",
   SlCancelled = "SlCancelled",
+  BorrowLendBorrowed = "BorrowLendBorrowed",
+  BorrowLendRepaid = "BorrowLendRepaid",
+  BorrowLendLiquidated = "BorrowLendLiquidated",
+  BorrowLendSupplied = "BorrowLendSupplied",
+  BorrowLendRedeemed = "BorrowLendRedeemed",
+  BorrowLendCollateralDeposited = "BorrowLendCollateralDeposited",
+  BorrowLendCollateralWithdrawn = "BorrowLendCollateralWithdrawn",
 }
 
 export enum ClientNotificationType {
@@ -49,6 +56,15 @@ export const NotificationMetadataSchema = z.object({
   reason: z.string().optional(),
   amount: z.number().optional(),
   filled_size: z.number().optional(),
+  // BorrowLend* only: chain units as a decimal string (not normalized);
+  // `asset` is absent when the amount is in the pool's primary asset.
+  amount_raw: z.string().optional(),
+  asset: z.string().optional(),
+  transaction_version: z.string().optional(),
+  event_index: z.string().optional(),
+  // BorrowLendLiquidated only: collateral seized from the borrower.
+  seized_asset: z.string().optional(),
+  seized_amount_raw: z.string().optional(),
 });
 
 export const UserNotificationSchema = z.object({
