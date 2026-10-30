@@ -218,9 +218,13 @@ export const AccountOverviewSchema = z.object({
   spot: SpotOverviewSchema.nullable().optional(), // TODO: Remove optional once back-end is deployed
   /** Additive borrow/lend collateral section: BL's own target/max LTV and
    * values, distinct from the perp haircut. Absent when borrow/lend reads are
-   * disabled or the pool is not initialized. An unavailable BL valuation fails
-   * the whole overview (503) instead of omitting this. */
+   * disabled, the pool is not initialized, or the section is unavailable
+   * (see `borrow_lend_unavailable`). */
   borrow_lend: BorrowLendOverviewSectionSchema.nullable().optional(),
+  /** Reason the borrow/lend section could not be produced for this response
+   * (read timeout, database error, unpriceable pledge). The other fields are
+   * unaffected. */
+  borrow_lend_unavailable: z.string().nullable().optional(),
 });
 
 export const AccountOverviewWsMessageSchema = z.object({
