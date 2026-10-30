@@ -4,7 +4,7 @@
   "primary_decimals": 6,
   "indices_as_of_secs": "1000",
   "debt": "0",
-  "rescue_enabled": null,
+  "rescue_enabled": true,
   "pledges": [
     {
       "asset": "0xb",

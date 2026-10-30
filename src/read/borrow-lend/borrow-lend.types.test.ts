@@ -50,14 +50,14 @@ describe("BorrowLendAccountSchema", () => {
     expect(parsed.debt).toBeTypeOf("string");
   });
 
-  it("accepts a lender-only account whose rescue_enabled is null", () => {
+  it("reads the chain default for a lender-only account", () => {
     const parsed = BorrowLendAccountSchema.parse(accountLenderOnly);
-    expect(parsed.rescue_enabled).toBeNull();
+    expect(parsed.rescue_enabled).toBe(true);
   });
 
-  it("rejects a rescue_enabled that is neither a boolean nor null", () => {
+  it.each([null, "yes"])("rejects a rescue_enabled of %s", (value) => {
     expect(() =>
-      BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: "yes" }),
+      BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: value }),
     ).toThrow();
   });
 });

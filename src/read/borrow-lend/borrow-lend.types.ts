@@ -53,8 +53,8 @@ export const BorrowLendAccountSchema = z.object({
   primary_decimals: z.number().int().min(0).max(255),
   indices_as_of_secs: z.string(),
   debt: z.string(),
-  /** Null when the account has no borrower record. */
-  rescue_enabled: z.boolean().nullable(),
+  /** The chain default (true) when the account has no borrower record. */
+  rescue_enabled: z.boolean(),
   pledges: z.array(
     z.object({
       asset: z.string(),
