@@ -123,8 +123,12 @@ export type SpotOverview = z.infer<typeof SpotOverviewSchema>;
 
 export const BorrowLendOverviewSectionSchema = z.object({
   owner: z.string(),
-  /** The chain default (true) when the account has no borrower record. */
-  rescue_enabled: z.boolean(),
+  /** The chain default (true) when the account has no borrower record. Older
+   * servers send null for that case. */
+  rescue_enabled: z
+    .boolean()
+    .nullable()
+    .transform((value) => value ?? true), // TODO: Remove nullable once back-end is deployed
   debt_in_primary: z.string(),
   liquidatable: z.boolean(),
   pledges: z.array(
