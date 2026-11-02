@@ -1,3 +1,5 @@
+import { AptosApiError } from "@aptos-labs/ts-sdk";
+
 import { BaseReader } from "../base-reader";
 import { UserSubaccountsRequestArgs, UserSubaccountsSchema } from "./user-subaccounts.types";
 
@@ -30,6 +32,7 @@ export class UserSubaccountsReader extends BaseReader {
 
   /**
    * Check if an address is a Decibel subaccount by checking for the on-chain Subaccount resource.
+   * Only the fullnode's `resource_not_found` means "no"; any other failure rejects.
    */
   async isSubaccount(address: string): Promise<boolean> {
     try {
@@ -39,8 +42,15 @@ export class UserSubaccountsReader extends BaseReader {
         resourceType: `${this.deps.config.deployment.package}::dex_accounts::Subaccount`,
       });
       return true;
-    } catch {
-      return false;
+    } catch (e) {
+      if (isResourceNotFound(e)) return false;
+      throw e;
     }
   }
+}
+
+function isResourceNotFound(e: unknown): boolean {
+  if (!(e instanceof AptosApiError)) return false;
+  const data = e.data as Record<string, unknown> | undefined;
+  return data?.error_code === "resource_not_found";
 }
