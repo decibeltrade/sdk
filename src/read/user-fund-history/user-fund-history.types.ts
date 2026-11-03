@@ -7,7 +7,13 @@ export interface UserFundHistoryRequestArgs extends BaseRequestArgs, PageParams 
   subAddr: string;
 }
 
-export const FundMovementTypeSchema = z.enum(["deposit", "withdrawal", "reward"]);
+export const FundMovementTypeSchema = z.enum([
+  "deposit",
+  "withdrawal",
+  "reward",
+  "borrow_lend_in",
+  "borrow_lend_out",
+]);
 
 export const UserFundSchema = z.object({
   movement_type: FundMovementTypeSchema,
