@@ -68,7 +68,7 @@ describe("BorrowLendActivitySchema", () => {
     event_index: "6",
     account: "0xborrower",
     event_type: "Liquidation",
-    reason: "",
+    reason: "Borrower",
     counterparty: "0xliquidator",
     asset: "0xasset",
     amount: "100",
@@ -85,6 +85,17 @@ describe("BorrowLendActivitySchema", () => {
     const parsed = BorrowLendActivitySchema.parse(liquidation);
     expect(parsed.target_amount).toBe("110");
     expect(parsed.insurance_amount).toBe("1");
+  });
+
+  it("parses the liquidator's row of the same liquidation with its side", () => {
+    const parsed = BorrowLendActivitySchema.parse({
+      ...liquidation,
+      account: "0xliquidator",
+      counterparty: "0xborrower",
+      reason: "Liquidator",
+    });
+    expect(parsed.reason).toBe("Liquidator");
+    expect(parsed.secondary_amount).toBe("25");
   });
 
   it.each(["target_amount", "insurance_amount"])("requires %s", (field) => {
