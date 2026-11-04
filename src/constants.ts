@@ -161,7 +161,12 @@ const getDeployment = (pkg: string): Deployment => {
   };
 };
 
-export const TESTNET_DEPLOYMENT: Deployment = getDeployment(PACKAGE.TESTNET);
+const TESTNET_FFT_CAMPAIGN = "0x450304373a8ec8dea2b7bd09798e944ff0b115e6f014cb7adb47dd368571c0ae";
+
+export const TESTNET_DEPLOYMENT: Deployment = {
+  ...getDeployment(PACKAGE.TESTNET),
+  fftCampaignAddr: TESTNET_FFT_CAMPAIGN,
+};
 
 export const TESTNET_CONFIG: DecibelConfig = {
   network: Network.TESTNET,
