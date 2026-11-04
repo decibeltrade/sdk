@@ -2,7 +2,7 @@
   "packageAddress": "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1",
   "network": "testnet",
   "fullnodeUrl": "https://api.testnet.aptoslabs.com/v1",
-  "fetchedAt": "2026-10-08T22:29:18.811Z",
+  "fetchedAt": "2026-11-03T18:49:35.747Z",
   "abis": {
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::initialize": {
       "name": "initialize",
@@ -238,6 +238,141 @@
         "&signer",
         "address",
         "0x1::string::String"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::configure_lender_curve": {
+      "name": "configure_lender_curve",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u128",
+        "u128",
+        "u128",
+        "u128"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::configure_bl_liquidation_target_ltv_bps": {
+      "name": "configure_bl_liquidation_target_ltv_bps",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::configure_lender_insurance_fee_bps": {
+      "name": "configure_lender_insurance_fee_bps",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::configure_lender_treasury_fee_bps": {
+      "name": "configure_lender_treasury_fee_bps",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::liquidate_borrow_lend_leg": {
+      "name": "liquidate_borrow_lend_leg",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::register_borrower_collateral_asset": {
+      "name": "register_borrower_collateral_asset",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64",
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::set_borrower_collateral_asset_liquidation_bonus_bps": {
+      "name": "set_borrower_collateral_asset_liquidation_bonus_bps",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::set_borrower_collateral_asset_liquidation_protocol_fee_bps": {
+      "name": "set_borrower_collateral_asset_liquidation_protocol_fee_bps",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::set_borrower_collateral_asset_ltv_bps": {
+      "name": "set_borrower_collateral_asset_ltv_bps",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::set_borrower_collateral_asset_max_collateral_units": {
+      "name": "set_borrower_collateral_asset_max_collateral_units",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64"
       ],
       "return": []
     },
@@ -759,6 +894,18 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::add_borrow_lend_liquidator": {
+      "name": "add_borrow_lend_liquidator",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::add_fee_config_governor": {
       "name": "add_fee_config_governor",
       "visibility": "public",
@@ -1079,7 +1226,18 @@
     },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::initialize_asset_price_registry": {
       "name": "initialize_asset_price_registry",
-      "visibility": "private",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::initialize_borrow_lend": {
+      "name": "initialize_borrow_lend",
+      "visibility": "public",
       "is_entry": true,
       "is_view": false,
       "generic_type_params": [],
@@ -1353,6 +1511,18 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::remove_borrow_lend_liquidator": {
+      "name": "remove_borrow_lend_liquidator",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::remove_fee_config_governor": {
       "name": "remove_fee_config_governor",
       "visibility": "friend",
@@ -1581,6 +1751,18 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::set_async_matching_queue_taker_delay_blocks": {
+      "name": "set_async_matching_queue_taker_delay_blocks",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::set_async_matching_queue_taker_delay_millis": {
       "name": "set_async_matching_queue_taker_delay_millis",
       "visibility": "private",
@@ -1720,6 +1902,20 @@
         "&signer",
         "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_market::PerpMarket>",
         "u8"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::admin_apis::set_markets_funding_mode_premium_based_with_interest": {
+      "name": "set_markets_funding_mode_premium_based_with_interest",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "vector<0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_market::PerpMarket>>",
+        "u64",
+        "u64"
       ],
       "return": []
     },
@@ -2112,6 +2308,55 @@
       "params": [
         "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_market::PerpMarket>",
         "u32"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::account_management_apis::repay_usdc": {
+      "name": "repay_usdc",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::account_management_apis::set_borrow_rescue_enabled": {
+      "name": "set_borrow_rescue_enabled",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "bool"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::account_management_apis::redeem_from_lender_pool_entry": {
+      "name": "redeem_from_lender_pool_entry",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::account_management_apis::supply_to_lender_pool": {
+      "name": "supply_to_lender_pool",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
       ],
       "return": []
     },
@@ -2535,6 +2780,20 @@
         "u64"
       ]
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_engine::get_cross_secondary_balance": {
+      "name": "get_cross_secondary_balance",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_engine::get_cross_total_collateral_value": {
       "name": "get_cross_total_collateral_value",
       "visibility": "friend",
@@ -2560,6 +2819,19 @@
       ],
       "return": [
         "i64"
+      ]
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_engine::is_borrow_lend_liquidatable": {
+      "name": "is_borrow_lend_liquidatable",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
       ]
     },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_engine::max_allowed_withdraw_from_cross": {
@@ -2654,6 +2926,19 @@
         "bool"
       ]
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_engine::borrow_lend_debt": {
+      "name": "borrow_lend_debt",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_engine::can_deposit_to_cross": {
       "name": "can_deposit_to_cross",
       "visibility": "friend",
@@ -2688,6 +2973,19 @@
       "generic_type_params": [],
       "params": [
         "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_market::PerpMarket>"
+      ],
+      "return": [
+        "i64"
+      ]
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_engine::get_cross_primary_balance": {
+      "name": "get_cross_primary_balance",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
       ],
       "return": [
         "i64"
@@ -3340,6 +3638,20 @@
         "0x1::object::Object<0x1::fungible_asset::Metadata>"
       ]
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault::get_vault_lending_position": {
+      "name": "get_vault_lending_position",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault::Vault>"
+      ],
+      "return": [
+        "u64",
+        "u64"
+      ]
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault::get_vault_net_asset_value": {
       "name": "get_vault_net_asset_value",
       "visibility": "friend",
@@ -3670,6 +3982,32 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault_admin_api::lend_to_borrow_lend": {
+      "name": "lend_to_borrow_lend",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault::Vault>",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault_admin_api::redeem_from_borrow_lend": {
+      "name": "redeem_from_borrow_lend",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault::Vault>",
+        "u64"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::vault_admin_api::request_admin_change": {
       "name": "request_admin_change",
       "visibility": "private",
@@ -3931,6 +4269,20 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts_entry::delegate_borrow_lend_liquidation_to_for_subaccount": {
+      "name": "delegate_borrow_lend_liquidation_to_for_subaccount",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "address",
+        "0x1::option::Option<u64>"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts_entry::delegate_perp_trading_to_for_subaccount": {
       "name": "delegate_perp_trading_to_for_subaccount",
       "visibility": "friend",
@@ -3974,6 +4326,36 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts_entry::liquidate_borrow_lend_leg_from_subaccount": {
+      "name": "liquidate_borrow_lend_leg_from_subaccount",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts::Subaccount>",
+        "address",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts_entry::liquidate_borrow_lend_leg_from_subaccount_delegated": {
+      "name": "liquidate_borrow_lend_leg_from_subaccount_delegated",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts::Subaccount>",
+        "address",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts_entry::reactivate_subaccount": {
       "name": "reactivate_subaccount",
       "visibility": "private",
@@ -3983,6 +4365,19 @@
       "params": [
         "&signer",
         "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts::Subaccount>"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts_entry::repay_usdc_from_subaccount": {
+      "name": "repay_usdc_from_subaccount",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts::Subaccount>",
+        "u64"
       ],
       "return": []
     },
@@ -4008,6 +4403,19 @@
         "&signer",
         "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts::Subaccount>",
         "address"
+      ],
+      "return": []
+    },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts_entry::set_borrow_rescue_enabled_from_subaccount": {
+      "name": "set_borrow_rescue_enabled_from_subaccount",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::dex_accounts::Subaccount>",
+        "bool"
       ],
       "return": []
     },
@@ -5004,6 +5412,19 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::spot_admin_apis::decrease_market_tick_size": {
+      "name": "decrease_market_tick_size",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::spot_market::SpotMarket>",
+        "u64"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::spot_admin_apis::set_market_allowlist_only": {
       "name": "set_market_allowlist_only",
       "visibility": "public",
@@ -5149,6 +5570,18 @@
       ],
       "return": []
     },
+    "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::spot_admin_apis::set_async_matching_queue_taker_delay_blocks": {
+      "name": "set_async_matching_queue_taker_delay_blocks",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
+      ],
+      "return": []
+    },
     "0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::spot_admin_apis::set_async_matching_queue_taker_delay_micros": {
       "name": "set_async_matching_queue_taker_delay_micros",
       "visibility": "private",
@@ -5237,44 +5670,1424 @@
       "return": [
         "0x1::object::Object<0x1::fungible_asset::Metadata>"
       ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::is_initialized": {
+      "name": "is_initialized",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::campaign_end_ms": {
+      "name": "campaign_end_ms",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::credit_eligible_duration_days": {
+      "name": "credit_eligible_duration_days",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "u16"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::duration_bounds": {
+      "name": "duration_bounds",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u16",
+        "u16"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::get_active_locked_total": {
+      "name": "get_active_locked_total",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::get_amount_by_duration": {
+      "name": "get_amount_by_duration",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "vector<0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::DurationAmount>"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::get_lock": {
+      "name": "get_lock",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::Lock"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::get_owner_lock_totals": {
+      "name": "get_owner_lock_totals",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "u64",
+        "u16",
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::is_lock_active": {
+      "name": "is_lock_active",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::locks_paused": {
+      "name": "locks_paused",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::next_lock_id": {
+      "name": "next_lock_id",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_lock::time_to_unlock_ms": {
+      "name": "time_to_unlock_ms",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::activate_campaign": {
+      "name": "activate_campaign",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::add_admin": {
+      "name": "add_admin",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::add_operator": {
+      "name": "add_operator",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::add_sweeper": {
+      "name": "add_sweeper",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::cancel_campaign": {
+      "name": "cancel_campaign",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::check_is_admin": {
+      "name": "check_is_admin",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::check_is_operator": {
+      "name": "check_is_operator",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::check_is_sweeper": {
+      "name": "check_is_sweeper",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::claim": {
+      "name": "claim",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::claim_batch": {
+      "name": "claim_batch",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "vector<address>"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::claim_batch_by_id": {
+      "name": "claim_batch_by_id",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "vector<u64>"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::claim_by_id": {
+      "name": "claim_by_id",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::create_campaign": {
+      "name": "create_campaign",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "u8",
+        "0x1::string::String",
+        "0x1::string::String",
+        "0x1::object::Object<0x1::fungible_asset::Metadata>",
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::expire_campaign": {
+      "name": "expire_campaign",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::fund_campaign": {
+      "name": "fund_campaign",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::get_campaign": {
+      "name": "get_campaign",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::CampaignView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::get_campaign_address": {
+      "name": "get_campaign_address",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "u64"
+      ],
+      "return": [
+        "address"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::get_campaign_by_id": {
+      "name": "get_campaign_by_id",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "u64"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::CampaignView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::get_campaign_count": {
+      "name": "get_campaign_count",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::get_user_campaign_claim": {
+      "name": "get_user_campaign_claim",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::ClaimView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::get_user_campaign_claims": {
+      "name": "get_user_campaign_claims",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "vector<u64>"
+      ],
+      "return": [
+        "vector<0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::ClaimView>"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::is_campaign_active": {
+      "name": "is_campaign_active",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::reclaim_expired": {
+      "name": "reclaim_expired",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::remove_admin": {
+      "name": "remove_admin",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::remove_operator": {
+      "name": "remove_operator",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::remove_sweeper": {
+      "name": "remove_sweeper",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::set_campaign_metadata": {
+      "name": "set_campaign_metadata",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "0x1::string::String",
+        "0x1::string::String"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::campaign_manager::upsert_allocations": {
+      "name": "upsert_allocations",
+      "visibility": "public",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "vector<address>",
+        "vector<u64>",
+        "vector<u128>"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::unlock": {
+      "name": "unlock",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_market_max_leverage": {
+      "name": "set_market_max_leverage",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u8"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_campaign_end_ms": {
+      "name": "set_campaign_end_ms",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_duration_bounds": {
+      "name": "set_duration_bounds",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u16",
+        "u16"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::lock": {
+      "name": "lock",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64",
+        "u16"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_daily_burn_cap": {
+      "name": "set_daily_burn_cap",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_expiry_ms": {
+      "name": "set_expiry_ms",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_max_committed_exposure": {
+      "name": "set_max_committed_exposure",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_max_ioc_slippage_bps": {
+      "name": "set_max_ioc_slippage_bps",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_max_total_trial_notional": {
+      "name": "set_max_total_trial_notional",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_min_lock_amount": {
+      "name": "set_min_lock_amount",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_payout_config": {
+      "name": "set_payout_config",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64",
+        "u64",
+        "u64",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_cancel_lock_order": {
+      "name": "admin_cancel_lock_order",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "address",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_market::PerpMarket>",
+        "u128"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_close_lock_position": {
+      "name": "admin_close_lock_position",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_close_lock_position_on_market": {
+      "name": "admin_close_lock_position_on_market",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "address",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_market::PerpMarket>"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_force_mark_residual": {
+      "name": "admin_force_mark_residual",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_force_settle": {
+      "name": "admin_force_settle",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_refund_credit_for_user": {
+      "name": "admin_refund_credit_for_user",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_reset_in_flight_trial": {
+      "name": "admin_reset_in_flight_trial",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_settle_closing_during_freeze": {
+      "name": "admin_settle_closing_during_freeze",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::admin_sweep_lock_funds": {
+      "name": "admin_sweep_lock_funds",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "address",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::drain_fft_funding_pool": {
+      "name": "drain_fft_funding_pool",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::extend_lock": {
+      "name": "extend_lock",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64",
+        "u16"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::fft_action_gates": {
+      "name": "fft_action_gates",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::FftActionGatesView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::fft_active_trial_count": {
+      "name": "fft_active_trial_count",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::fft_daily_burn_view": {
+      "name": "fft_daily_burn_view",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::FftDailyBurnView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::fft_list_active_trial_ids": {
+      "name": "fft_list_active_trial_ids",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64",
+        "u64"
+      ],
+      "return": [
+        "vector<u64>"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::freeze_all_trials": {
+      "name": "freeze_all_trials",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::get_tier_config": {
+      "name": "get_tier_config",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::user_credits::TierConfig"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::init_funded_first_trade": {
+      "name": "init_funded_first_trade",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "0x1::object::Object<0xd368b820fdfbfe004679cdb0facef4b920c4fc0c2c80bd2fecf3843a93427bd1::perp_market::PerpMarket>",
+        "u64",
+        "u64",
+        "u64",
+        "u8",
+        "u64",
+        "u8"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::init_lock_recovery_state": {
+      "name": "init_lock_recovery_state",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::lock_from_subaccount": {
+      "name": "lock_from_subaccount",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64",
+        "u16"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::open_trial": {
+      "name": "open_trial",
+      "visibility": "private",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::pause_locks": {
+      "name": "pause_locks",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::pause_trials": {
+      "name": "pause_trials",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::relock_disabled": {
+      "name": "relock_disabled",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_credit_tier_config": {
+      "name": "set_credit_tier_config",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "vector<u16>",
+        "vector<u8>",
+        "vector<u8>",
+        "vector<u64>"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::set_relock_disabled": {
+      "name": "set_relock_disabled",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "bool"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::settle_trial": {
+      "name": "settle_trial",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::sweep_residual": {
+      "name": "sweep_residual",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::tier_config_diff_view": {
+      "name": "tier_config_diff_view",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::TierConfigDiffView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::top_up_fft_funding_pool": {
+      "name": "top_up_fft_funding_pool",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address",
+        "u64"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::unfreeze_all_trials": {
+      "name": "unfreeze_all_trials",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::unpause_locks": {
+      "name": "unpause_locks",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::funded_first_trade::unpause_trials": {
+      "name": "unpause_trials",
+      "visibility": "friend",
+      "is_entry": true,
+      "is_view": false,
+      "generic_type_params": [],
+      "params": [
+        "&signer",
+        "address"
+      ],
+      "return": []
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::active_trial_count": {
+      "name": "active_trial_count",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::active_trial_id_for": {
+      "name": "active_trial_id_for",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "0x1::option::Option<u64>"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::all_trials_frozen": {
+      "name": "all_trials_frozen",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::committed_exposure_status": {
+      "name": "committed_exposure_status",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::CommittedExposureView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::daily_burn_view": {
+      "name": "daily_burn_view",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::DailyBurnView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::daily_burn_view_with_now": {
+      "name": "daily_burn_view_with_now",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::DailyBurnView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::list_active_trial_ids": {
+      "name": "list_active_trial_ids",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64",
+        "u64"
+      ],
+      "return": [
+        "vector<u64>"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::list_residual_trial_ids": {
+      "name": "list_residual_trial_ids",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64",
+        "u64"
+      ],
+      "return": [
+        "vector<u64>"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::oi_state": {
+      "name": "oi_state",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::OiStateView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::protected_amount_for": {
+      "name": "protected_amount_for",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "u64"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::residual_position_view": {
+      "name": "residual_position_view",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "0x1::option::Option<0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::ResidualPositionView>"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::trial_exists": {
+      "name": "trial_exists",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::trial_state_config": {
+      "name": "trial_state_config",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::TrialStateConfigView"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::trial_summary": {
+      "name": "trial_summary",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "u64"
+      ],
+      "return": [
+        "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::TrialSnapshot"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::protected_trial::trials_paused": {
+      "name": "trials_paused",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::user_credits::is_initialized": {
+      "name": "is_initialized",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::user_credits::get_credit_account": {
+      "name": "get_credit_account",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "u8",
+        "u8",
+        "u8",
+        "u32"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::user_credits::get_credits_remaining": {
+      "name": "get_credits_remaining",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "u8"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::user_credits::get_lifetime_granted": {
+      "name": "get_lifetime_granted",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "u8"
+      ]
+    },
+    "0xd69845c02d62d248a228f41d64cb14ca75b5add05ee6db9c8f77da9c472334f0::user_credits::has_ever_been_granted": {
+      "name": "has_ever_been_granted",
+      "visibility": "friend",
+      "is_entry": false,
+      "is_view": true,
+      "generic_type_params": [],
+      "params": [
+        "address",
+        "address"
+      ],
+      "return": [
+        "bool"
+      ]
     }
   },
-  "errors": [
-    {
-      "module": "campaign_lock",
-      "function": "entire_module",
-      "error": "Request to [Fullnode]: GET https://api.testnet.aptoslabs.com/v1/accounts/0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3/module/campaign_lock failed with: {\"message\":\"Module not found by Address(0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3), Module name(campaign_lock) and Ledger version(1378456)\",\"error_code\":\"module_not_found\",\"vm_error_code\":null}"
-    },
-    {
-      "module": "campaign_manager",
-      "function": "entire_module",
-      "error": "Request to [Fullnode]: GET https://api.testnet.aptoslabs.com/v1/accounts/0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3/module/campaign_manager failed with: {\"message\":\"Module not found by Address(0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3), Module name(campaign_manager) and Ledger version(1378456)\",\"error_code\":\"module_not_found\",\"vm_error_code\":null}"
-    },
-    {
-      "module": "funded_first_trade",
-      "function": "entire_module",
-      "error": "Request to [Fullnode]: GET https://api.testnet.aptoslabs.com/v1/accounts/0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3/module/funded_first_trade failed with: {\"message\":\"Module not found by Address(0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3), Module name(funded_first_trade) and Ledger version(1378456)\",\"error_code\":\"module_not_found\",\"vm_error_code\":null}"
-    },
-    {
-      "module": "protected_trial",
-      "function": "entire_module",
-      "error": "Request to [Fullnode]: GET https://api.testnet.aptoslabs.com/v1/accounts/0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3/module/protected_trial failed with: {\"message\":\"Module not found by Address(0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3), Module name(protected_trial) and Ledger version(1378458)\",\"error_code\":\"module_not_found\",\"vm_error_code\":null}"
-    },
-    {
-      "module": "user_credits",
-      "function": "entire_module",
-      "error": "Request to [Fullnode]: GET https://api.testnet.aptoslabs.com/v1/accounts/0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3/module/user_credits failed with: {\"message\":\"Module not found by Address(0x6c8e3171c638045f765e1d66e8e71e819eaf0afa54d1914db3c37f3b02a9c5b3), Module name(user_credits) and Ledger version(1378460)\",\"error_code\":\"module_not_found\",\"vm_error_code\":null}"
-    }
-  ],
+  "errors": [],
   "summary": {
-    "totalModules": 21,
-    "totalFunctions": 375,
-    "successful": 375,
-    "failed": 5
+    "totalModules": 22,
+    "totalFunctions": 513,
+    "successful": 513,
+    "failed": 0
   },
   "modules": [
     "admin_apis",
     "public_apis",
+    "account_management_apis",
     "dex_accounts",
     "perp_engine",
     "async_withdraw_queue",
