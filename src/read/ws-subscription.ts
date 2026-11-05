@@ -155,7 +155,14 @@ export class DecibelWsSubscription {
 
     ws.addEventListener("message", (event: WebSocket.MessageEvent) => {
       if (this.#ws !== ws) return;
-      const parsedMessage = this.#parseMessageData(event.data);
+      let parsedMessage: { topic: string; data: unknown } | null;
+      try {
+        parsedMessage = this.#parseMessageData(event.data);
+      } catch (e) {
+        // A frame we cannot read must not become an uncaught exception in the listener.
+        console.error("Unhandled WebSocket message:", e);
+        return;
+      }
       if (!parsedMessage) {
         return;
       }

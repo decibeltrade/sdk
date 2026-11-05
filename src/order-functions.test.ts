@@ -38,6 +38,9 @@ const UNROUTED_ORDER_FUNCTIONS: Readonly<Record<string, string>> = {
   "dex_accounts_spot_entry::place_spot_twap_order": "wallet-direct, no subaccount",
   "dex_accounts_spot_entry::cancel_spot_twap_order": "wallet-direct, no subaccount",
   "dex_accounts_spot_entry::place_spot_bulk_order": "wallet-direct, no subaccount",
+  "dex_accounts_spot_entry::place_spot_bulk_order_with_repricing": "wallet-direct, no subaccount",
+  "dex_accounts_spot_entry::place_spot_bulk_order_to_subaccount_with_repricing":
+    "not called by the SDK",
   "dex_accounts_spot_entry::cancel_spot_bulk_order": "wallet-direct, no subaccount",
   "dex_accounts_spot_entry::cancel_spot_bulk_order_at_price_level": "wallet-direct, no subaccount",
 };
