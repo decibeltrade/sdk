@@ -1,0 +1,31 @@
+{
+  "points": [
+    {
+      "bucket_start": 3600000,
+      "borrow_apr_ray": "788400000000000000000000000",
+      "supply_apr_ray": "7884000000000000000000000",
+      "supply_bad_debt_loss_ray": "0",
+      "borrow_index": "1000100000000000000000000000",
+      "supply_index": "1000001000000000000000000000",
+      "as_of_secs": "7000"
+    },
+    {
+      "bucket_start": 7200000,
+      "borrow_apr_ray": "0",
+      "supply_apr_ray": "0",
+      "supply_bad_debt_loss_ray": "9999990000009999990001",
+      "borrow_index": "1000100000000000000000000000",
+      "supply_index": "999991000000000000000000000",
+      "as_of_secs": "10600"
+    },
+    {
+      "bucket_start": 10800000,
+      "borrow_apr_ray": "0",
+      "supply_apr_ray": null,
+      "supply_bad_debt_loss_ray": "1000000000000000000000000000",
+      "borrow_index": "1000100000000000000000000000",
+      "supply_index": "0",
+      "as_of_secs": "14200"
+    }
+  ]
+}

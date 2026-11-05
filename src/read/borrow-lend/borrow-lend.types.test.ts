@@ -3,10 +3,13 @@ import { describe, expect, it } from "vitest";
 import accountBorrower from "./__fixtures__/account_borrower.json";
 import accountLenderOnly from "./__fixtures__/account_lender_only.json";
 import pool from "./__fixtures__/pool.json";
+import rateHistory from "./__fixtures__/rate_history.json";
 import {
   BorrowLendAccountSchema,
   BorrowLendActivitySchema,
   BorrowLendPoolSchema,
+  BorrowLendRateHistorySchema,
+  BorrowLendRatePointSchema,
 } from "./borrow-lend.types";
 
 /**
@@ -104,6 +107,35 @@ describe("BorrowLendActivitySchema", () => {
   });
 });
 
+describe("BorrowLendRateHistorySchema", () => {
+  it("parses a serialized rate history that keeps bad-debt losses apart from the supply rate", () => {
+    const parsed = BorrowLendRateHistorySchema.parse(rateHistory);
+    expect(parsed.points.map((point) => point.bucket_start)).toEqual([
+      3_600_000, 7_200_000, 10_800_000,
+    ]);
+    const [earning, partialLoss, wipedOut] = parsed.points;
+    expect(earning.supply_apr_ray).not.toBe("0");
+    expect(earning.supply_bad_debt_loss_ray).toBe("0");
+    expect(partialLoss.supply_apr_ray).toBe("0");
+    expect(partialLoss.supply_bad_debt_loss_ray).not.toBe("0");
+    expect(wipedOut.supply_apr_ray).toBeNull();
+    expect(wipedOut.supply_bad_debt_loss_ray).toBe("1000000000000000000000000000");
+  });
+
+  it.each(["supply_apr_ray", "supply_bad_debt_loss_ray"] as const)(
+    "rejects a negative %s",
+    (key) => {
+      const [point] = rateHistory.points;
+      expect(() => BorrowLendRatePointSchema.parse({ ...point, [key]: "-1" })).toThrow();
+    },
+  );
+
+  it.each(["1.5", "", "1e27", "--1"])("rejects a borrow_apr_ray of %j", (value) => {
+    const [point] = rateHistory.points;
+    expect(() => BorrowLendRatePointSchema.parse({ ...point, borrow_apr_ray: value })).toThrow();
+  });
+});
+
 /**
  * These pin every key the server emits, so a field the schema forgot cannot
  * hide as an undeclared one.
@@ -118,5 +150,11 @@ describe("schema coverage of the serialized DTOs", () => {
 
   it("declares every key the account DTO emits", () => {
     expect(declaredKeys(BorrowLendAccountSchema)).toEqual(Object.keys(accountBorrower).sort());
+  });
+
+  it("declares every key a rate history point emits", () => {
+    expect(declaredKeys(BorrowLendRatePointSchema)).toEqual(
+      Object.keys(rateHistory.points[0]).sort(),
+    );
   });
 });

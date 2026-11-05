@@ -141,3 +141,34 @@ export type BorrowLendActivity = z.infer<typeof BorrowLendActivitySchema>;
 export type BorrowLendActivityPage = z.infer<typeof BorrowLendActivityPageSchema>;
 export type BorrowLendPoolHistory = z.infer<typeof BorrowLendPoolHistorySchema>;
 export type BorrowLendPoolHistoryPage = z.infer<typeof BorrowLendPoolHistoryPageSchema>;
+
+const signedRayString = z.string().regex(/^-?\d+$/);
+
+const rayString = z.string().regex(/^\d+$/);
+
+/**
+ * Realized interest rates since the previous point, from the last stored
+ * indices in the bucket. Buckets with no index update are omitted, not carried
+ * forward. `supply_apr_ray` is supplier interest only and reads "0" while the
+ * supply index has not grown; it is null once bad debt wrote supplier value to
+ * zero. `supply_bad_debt_loss_ray` is the one-time fraction of supplier value
+ * written off in the period (1e27 = 100%): not annualized, not a rate, and not
+ * for the APR axis.
+ */
+export const BorrowLendRatePointSchema = z.object({
+  bucket_start: z.number(),
+  borrow_apr_ray: signedRayString,
+  supply_apr_ray: rayString.nullable(),
+  supply_bad_debt_loss_ray: rayString,
+  borrow_index: z.string(),
+  supply_index: z.string(),
+  as_of_secs: z.string(),
+});
+
+export const BorrowLendRateHistorySchema = z.object({
+  points: z.array(BorrowLendRatePointSchema),
+});
+
+export type BorrowLendRateInterval = "1h" | "1d";
+export type BorrowLendRatePoint = z.infer<typeof BorrowLendRatePointSchema>;
+export type BorrowLendRateHistory = z.infer<typeof BorrowLendRateHistorySchema>;
