@@ -18,5 +18,11 @@
   "borrow_capacity_in_primary": "10",
   "liquidatable": false,
   "lending_positions": [],
-  "lender_claim_in_primary": "0"
+  "lender_claim_in_primary": "0",
+  "debt_principal_usdc": "0",
+  "debt_interest_usdc": "0",
+  "lender_net_supplied_usdc": null,
+  "lender_earned_usdc": null,
+  "debt_split_unavailable": null,
+  "lender_earnings_unavailable": "history_lagging"
 }

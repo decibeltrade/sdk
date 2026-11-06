@@ -5,6 +5,7 @@ import accountLenderOnly from "./__fixtures__/account_lender_only.json";
 import pool from "./__fixtures__/pool.json";
 import rateHistory from "./__fixtures__/rate_history.json";
 import {
+  BORROW_LEND_HISTORY_UNAVAILABLE_REASONS,
   BorrowLendAccountSchema,
   BorrowLendActivitySchema,
   BorrowLendPoolSchema,
@@ -62,6 +63,103 @@ describe("BorrowLendAccountSchema", () => {
     expect(() =>
       BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: value }),
     ).toThrow();
+  });
+
+  const splitFields = [
+    "debt_principal_usdc",
+    "debt_interest_usdc",
+    "lender_net_supplied_usdc",
+    "lender_earned_usdc",
+  ];
+
+  it("carries the debt and lender splits as raw-unit strings", () => {
+    const parsed = BorrowLendAccountSchema.parse(accountBorrower);
+    expect(parsed.debt_principal_usdc).toBe("40");
+    expect(parsed.debt_interest_usdc).toBe("10");
+    expect(parsed.lender_net_supplied_usdc).toBe("0");
+    expect(parsed.lender_earned_usdc).toBe("0");
+  });
+
+  const reasonFields = ["debt_split_unavailable", "lender_earnings_unavailable"];
+
+  it("reads an unavailable split as null values with its reason", () => {
+    const parsed = BorrowLendAccountSchema.parse(accountLenderOnly);
+    expect(parsed.lender_net_supplied_usdc).toBeNull();
+    expect(parsed.lender_earned_usdc).toBeNull();
+    expect(parsed.lender_earnings_unavailable).toBe("history_lagging");
+    expect(parsed.debt_principal_usdc).toBe("0");
+    expect(parsed.debt_split_unavailable).toBeNull();
+  });
+
+  it.each([accountBorrower, accountLenderOnly])(
+    "has null values exactly when the split has a reason",
+    (fixture) => {
+      const parsed = BorrowLendAccountSchema.parse(fixture);
+      const sides = [
+        [[parsed.debt_principal_usdc, parsed.debt_interest_usdc], parsed.debt_split_unavailable],
+        [
+          [parsed.lender_net_supplied_usdc, parsed.lender_earned_usdc],
+          parsed.lender_earnings_unavailable,
+        ],
+      ] as const;
+      for (const [values, reason] of sides) {
+        for (const value of values) {
+          expect(value === null).toBe(reason !== null);
+        }
+      }
+    },
+  );
+
+  it("parses a server that predates the split fields", () => {
+    const legacy = Object.fromEntries(
+      Object.entries(accountBorrower).filter(
+        ([key]) => !splitFields.includes(key) && !reasonFields.includes(key),
+      ),
+    );
+    const parsed = BorrowLendAccountSchema.parse(legacy);
+    expect(parsed.debt_interest_usdc).toBeUndefined();
+    expect(parsed.debt_split_unavailable).toBeUndefined();
+  });
+
+  it.each(BORROW_LEND_HISTORY_UNAVAILABLE_REASONS)("parses the known reason %s", (reason) => {
+    const parsed = BorrowLendAccountSchema.parse({
+      ...accountLenderOnly,
+      lender_earnings_unavailable: reason,
+    });
+    expect(parsed.lender_earnings_unavailable).toBe(reason);
+  });
+
+  it("reads a debt row that predates carried interest as an unavailable debt split", () => {
+    const parsed = BorrowLendAccountSchema.parse({
+      ...accountBorrower,
+      debt_principal_usdc: null,
+      debt_interest_usdc: null,
+      debt_split_unavailable: "interest_not_reported",
+    });
+    expect(parsed.debt_split_unavailable).toBe("interest_not_reported");
+    expect(parsed.debt_interest_usdc).toBeNull();
+    expect(parsed.debt).toBe(accountBorrower.debt);
+  });
+
+  it("accepts a reason added by a newer server", () => {
+    const parsed = BorrowLendAccountSchema.parse({
+      ...accountLenderOnly,
+      lender_earnings_unavailable: "history_reindexing",
+    });
+    expect(parsed.lender_earnings_unavailable).toBe("history_reindexing");
+  });
+
+  it.each([...splitFields, ...reasonFields])("rejects a numeric %s", (field) => {
+    expect(() => BorrowLendAccountSchema.parse({ ...accountBorrower, [field]: 10 })).toThrow();
+  });
+
+  it("accepts a negative lender net supplied", () => {
+    const parsed = BorrowLendAccountSchema.parse({
+      ...accountBorrower,
+      lender_net_supplied_usdc: "-50",
+      lender_earned_usdc: "50",
+    });
+    expect(parsed.lender_net_supplied_usdc).toBe("-50");
   });
 });
 

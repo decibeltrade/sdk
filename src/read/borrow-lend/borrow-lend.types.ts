@@ -47,6 +47,23 @@ export const LendingPositionSchema = z.object({
   frozen: z.boolean(),
 });
 
+export const BORROW_LEND_HISTORY_UNAVAILABLE_REASONS = [
+  "history_lagging",
+  "history_read_failed",
+  "history_too_long",
+  "history_inconsistent",
+  "interest_not_reported",
+] as const;
+
+export type BorrowLendHistoryUnavailableReason =
+  (typeof BORROW_LEND_HISTORY_UNAVAILABLE_REASONS)[number];
+
+/** Any string parses, so a reason added by a newer server does not break this client. */
+export const BorrowLendHistoryUnavailableSchema = z.union([
+  z.enum(BORROW_LEND_HISTORY_UNAVAILABLE_REASONS),
+  z.string(),
+]);
+
 export const BorrowLendAccountSchema = z.object({
   account: z.string(),
   primary_asset: z.string(),
@@ -69,6 +86,18 @@ export const BorrowLendAccountSchema = z.object({
   liquidatable: z.boolean(),
   lending_positions: z.array(LendingPositionSchema),
   lender_claim_in_primary: z.string(),
+  /** Optional until every server emits it; null when `debt_split_unavailable` is set. */
+  debt_principal_usdc: z.string().nullable().optional(),
+  /** Unpaid interest in `debt`, split interest-first as the chain repays. */
+  debt_interest_usdc: z.string().nullable().optional(),
+  /** Signed: supplied minus redeemed cash. */
+  lender_net_supplied_usdc: z.string().nullable().optional(),
+  /** Signed: `lender_claim_in_primary` minus net supplied, including redeemed interest. */
+  lender_earned_usdc: z.string().nullable().optional(),
+  /** Null when both debt split fields are present; otherwise why they are null. */
+  debt_split_unavailable: BorrowLendHistoryUnavailableSchema.nullable().optional(),
+  /** Null when both lender earnings fields are present; otherwise why they are null. */
+  lender_earnings_unavailable: BorrowLendHistoryUnavailableSchema.nullable().optional(),
 });
 
 export const VaultLendingPositionSchema = z.object({
