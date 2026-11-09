@@ -62,6 +62,125 @@ describe("BaseSDK.encryptionBlocker", () => {
   });
 });
 
+describe("BaseSDK encryption-support probe", () => {
+  const TTL_MS = 60_000;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.spyOn(console, "warn").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function probeSdk() {
+    const sdk = new BaseSDK(TESTNET_CONFIG, Account.generate());
+    const ledger = vi.spyOn(sdk.aptos, "getLedgerInfo");
+    const probe = () => (sdk as unknown as EncryptionInternals).nodeSupportsEncryption();
+    return { ledger, probe };
+  }
+
+  it("reuses a settled answer within the TTL", async () => {
+    const { ledger, probe } = probeSdk();
+    ledger.mockResolvedValue({ encryption_key: "0xkey" } as never);
+
+    expect(await probe()).toBe("supported");
+    vi.advanceTimersByTime(TTL_MS - 1);
+    expect(await probe()).toBe("supported");
+
+    expect(ledger).toHaveBeenCalledTimes(1);
+  });
+
+  it("downgrades once the TTL lapses and the node no longer exposes a key", async () => {
+    const { ledger, probe } = probeSdk();
+    ledger.mockResolvedValueOnce({ encryption_key: "0xkey" } as never);
+    expect(await probe()).toBe("supported");
+
+    ledger.mockResolvedValueOnce({} as never);
+    vi.advanceTimersByTime(TTL_MS);
+
+    expect(await probe()).toBe("unsupported");
+    expect(ledger).toHaveBeenCalledTimes(2);
+  });
+
+  it("recovers once the TTL lapses and the node exposes a key again", async () => {
+    const { ledger, probe } = probeSdk();
+    ledger.mockResolvedValueOnce({} as never);
+    expect(await probe()).toBe("unsupported");
+
+    ledger.mockResolvedValueOnce({ encryption_key: "0xkey" } as never);
+    vi.advanceTimersByTime(TTL_MS);
+
+    expect(await probe()).toBe("supported");
+  });
+
+  it("keeps the last answer when a re-check errors, and retries after the next TTL", async () => {
+    const { ledger, probe } = probeSdk();
+    ledger.mockResolvedValueOnce({ encryption_key: "0xkey" } as never);
+    expect(await probe()).toBe("supported");
+
+    ledger.mockRejectedValueOnce(new Error("429"));
+    vi.advanceTimersByTime(TTL_MS);
+    expect(await probe()).toBe("supported");
+    // The failed re-check is cached for a TTL rather than hammering the node per call.
+    expect(await probe()).toBe("supported");
+    expect(ledger).toHaveBeenCalledTimes(2);
+
+    ledger.mockResolvedValueOnce({} as never);
+    vi.advanceTimersByTime(TTL_MS);
+    expect(await probe()).toBe("unsupported");
+  });
+
+  it("resolves a superseded probe that settles late with the newer answer", async () => {
+    const { ledger, probe } = probeSdk();
+    let settleSlow!: (info: never) => void;
+    ledger.mockReturnValueOnce(new Promise((resolve) => (settleSlow = resolve)) as never);
+    const slow = probe();
+
+    vi.advanceTimersByTime(TTL_MS);
+    ledger.mockResolvedValueOnce({} as never);
+    expect(await probe()).toBe("unsupported");
+
+    settleSlow({ encryption_key: "0xkey" } as never);
+    // The caller that awaited the slow probe must not act on its stale "supported".
+    expect(await slow).toBe("unsupported");
+
+    // The late "supported" must not become the fallback for a later failed re-check.
+    ledger.mockRejectedValueOnce(new Error("429"));
+    vi.advanceTimersByTime(TTL_MS);
+    expect(await probe()).toBe("unsupported");
+  });
+
+  it("lets a superseded probe that settles first stand in for a newer probe that then errors", async () => {
+    const { ledger, probe } = probeSdk();
+    let settleSlow!: (info: never) => void;
+    ledger.mockReturnValueOnce(new Promise((resolve) => (settleSlow = resolve)) as never);
+    const slow = probe();
+
+    vi.advanceTimersByTime(TTL_MS);
+    let failFresh!: (err: Error) => void;
+    ledger.mockReturnValueOnce(new Promise((_, reject) => (failFresh = reject)) as never);
+    const fresh = probe();
+
+    settleSlow({ encryption_key: "0xkey" } as never);
+    expect(await slow).toBe("supported");
+    failFresh(new Error("429"));
+    expect(await fresh).toBe("supported");
+  });
+
+  it("resolves failed, uncached, when the first probe errors", async () => {
+    const { ledger, probe } = probeSdk();
+    ledger.mockRejectedValueOnce(new Error("network"));
+    expect(await probe()).toBe("failed");
+
+    ledger.mockResolvedValueOnce({ encryption_key: "0xkey" } as never);
+    expect(await probe()).toBe("supported");
+    expect(ledger).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("configSupportsEncryptedSubmission", () => {
   it("is true when no gas station is configured (sender-paid)", () => {
     expect(configSupportsEncryptedSubmission({ gasStationApiKey: undefined })).toBe(true);

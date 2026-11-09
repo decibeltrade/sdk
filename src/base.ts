@@ -130,6 +130,11 @@ interface SettleContext {
 // `internal/general.ts` LEDGER_INFO_CACHE_TTL_MS. The margin covers clock jitter.
 const LEDGER_INFO_MEMO_WAIT_MS = 10_000 + 250;
 
+// How long a settled encryption-support probe is trusted before the next call
+// re-checks it, so a long-lived SDK (a bot that never reloads) notices the node
+// turning encryption off, or back on.
+const NODE_SUPPORT_PROBE_TTL_MS = 60_000;
+
 const chainIdToAbi: Record<number, ABIData> = {};
 if (TESTNET_CONFIG.chainId) chainIdToAbi[TESTNET_CONFIG.chainId] = testnetAbis as ABIData;
 if (MAINNET_CONFIG.chainId) chainIdToAbi[MAINNET_CONFIG.chainId] = mainnetAbis as ABIData;
@@ -146,11 +151,17 @@ export class BaseSDK {
   private readonly abi: ABIData | undefined;
   private readonly gasPriceManager: GasPriceManager | undefined;
   private readonly onTransactionSettled: Options["onTransactionSettled"];
-  // Memoized probe result. We cache the Promise so concurrent first-time
-  // callers share a single getLedgerInfo round-trip. A settled answer is kept
-  // for the SDK's lifetime; a failed probe is uncached so the next call retries
-  // instead of stranding the SDK in unencrypted mode.
-  private nodeSupportsEncryptionPromise: Promise<ProbeState> | undefined;
+  // Memoized probe. We cache the Promise so concurrent callers share a single
+  // getLedgerInfo round-trip, and re-probe once it is older than
+  // NODE_SUPPORT_PROBE_TTL_MS. A probe that fails before any answer was ever
+  // obtained is uncached so the next call retries instead of stranding the SDK
+  // in unencrypted mode.
+  private nodeSupportProbe: { promise: Promise<ProbeState>; at: number } | undefined;
+  // The answer of the most recently *started* probe that actually got one. A later
+  // probe that errors falls back to it, so a transient fullnode blip doesn't flip a
+  // running SDK to plaintext. A probe that settles after a newer one has answered
+  // resolves with that newer answer instead of its own stale one.
+  private lastProbeAnswer: { answer: Exclude<ProbeState, "failed">; startedAt: number } | undefined;
   // Last encrypted build: when (for the ts-sdk memo window) and at which key epoch.
   private lastEncryptedBuild: { at: number; epoch: bigint } | undefined;
   /**
@@ -211,26 +222,38 @@ export class BaseSDK {
     return this.abi?.abis[functionId] ?? null;
   }
 
-  // Whether the connected fullnode exposes an `encryption_key`. On probe failure
-  // we log, uncache, and resolve "failed" — so a transient ledger-info blip
-  // degrades safely for the current submission while the next call retries.
+  // Whether the connected fullnode exposes an `encryption_key`, re-checked every
+  // NODE_SUPPORT_PROBE_TTL_MS. If a re-check errors we keep the last answer we
+  // actually got (and retry after the TTL), so only a probe that succeeds and
+  // sees no key downgrades a running SDK. With no prior answer we log, uncache,
+  // and resolve "failed" — the current submission degrades safely and the next
+  // call retries.
   private nodeSupportsEncryption(): Promise<ProbeState> {
-    if (!this.nodeSupportsEncryptionPromise) {
-      const safe = this.aptos
-        .getLedgerInfo()
-        .then((info): ProbeState => (info.encryption_key ? "supported" : "unsupported"))
-        .catch((err: unknown): ProbeState => {
-          console.warn("[decibel-sdk] encryption-support probe failed:", err);
-          // Identity-guard so a slow rejection can't clobber a fresh probe
-          // that started after this one's cache entry was overwritten.
-          if (this.nodeSupportsEncryptionPromise === safe) {
-            this.nodeSupportsEncryptionPromise = undefined;
-          }
-          return "failed";
-        });
-      this.nodeSupportsEncryptionPromise = safe;
-    }
-    return this.nodeSupportsEncryptionPromise;
+    const cached = this.nodeSupportProbe;
+    if (cached && Date.now() - cached.at < NODE_SUPPORT_PROBE_TTL_MS) return cached.promise;
+
+    const startedAt = Date.now();
+    const safe = this.aptos
+      .getLedgerInfo()
+      .then((info): ProbeState => {
+        const answer = info.encryption_key ? "supported" : "unsupported";
+        // A superseded probe must not overwrite the answer a newer one recorded,
+        // and its own caller should act on the newer answer, not its stale one.
+        if (!this.lastProbeAnswer || this.lastProbeAnswer.startedAt <= startedAt) {
+          this.lastProbeAnswer = { answer, startedAt };
+        }
+        return this.lastProbeAnswer.answer;
+      })
+      .catch((err: unknown): ProbeState => {
+        console.warn("[decibel-sdk] encryption-support probe failed:", err);
+        if (this.lastProbeAnswer) return this.lastProbeAnswer.answer;
+        // Identity-guard so a slow rejection can't clobber a fresh probe
+        // that started after this one's cache entry was overwritten.
+        if (this.nodeSupportProbe?.promise === safe) this.nodeSupportProbe = undefined;
+        return "failed";
+      });
+    this.nodeSupportProbe = { promise: safe, at: startedAt };
+    return safe;
   }
 
   // Single source of truth for "may we encrypt the next transaction?". Two gates:

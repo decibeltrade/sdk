@@ -658,6 +658,8 @@ transactions; it is readable back off the instance as `writeDex.defaultEncrypted
 submission requires a fullnode that exposes an encryption key, and — when a Gas Station is
 configured — a `gasStationAddress` in the config, because the fee payer is baked into the encrypted
 payload at build time. Check that ahead of time with `configSupportsEncryptedSubmission(config)`.
+The SDK re-checks that the fullnode still exposes an encryption key about once a minute, so a long-running
+process falls back to plaintext if the network turns encryption off, and resumes when it is back on.
 
 ### Public write methods
 
