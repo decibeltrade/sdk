@@ -34,24 +34,24 @@ const BASE_OVERVIEW = {
 const BORROW_LEND_SECTION = {
   owner: "0xa",
   rescue_enabled: true,
-  debt_in_primary: "5000000",
+  debt_usdc: "5000000",
   liquidatable: false,
   pledges: [
     {
       asset: "0xdlp",
       decimals: 6,
       amount: "10000000",
-      value_in_primary: "10000000",
-      max_weighted_value_in_primary: "8000000",
-      target_weighted_value_in_primary: "6000000",
+      value_usdc: "10000000",
+      max_weighted_value_usdc: "8000000",
+      target_weighted_value_usdc: "6000000",
       max_ltv_bps: 8000,
       target_ltv_bps: 6000,
-      price_in_primary_per_unit: "1000000",
+      price_usdc_per_unit: "1000000",
     },
   ],
-  collateral_value_in_primary: "10000000",
-  max_weighted_collateral_in_primary: "8000000",
-  borrow_capacity_in_primary: "1000000",
+  collateral_value_usdc: "10000000",
+  max_weighted_collateral_usdc: "8000000",
+  borrow_capacity_usdc: "1000000",
 };
 
 describe("AccountOverviewSchema borrow_lend section", () => {
@@ -61,7 +61,7 @@ describe("AccountOverviewSchema borrow_lend section", () => {
       borrow_lend: BORROW_LEND_SECTION,
     });
     expect(parsed.borrow_lend?.pledges[0]?.target_ltv_bps).toBe(6000);
-    expect(parsed.borrow_lend?.debt_in_primary).toBe("5000000");
+    expect(parsed.borrow_lend?.debt_usdc).toBe("5000000");
   });
 
   it("parses an overview without the section, as served when borrow/lend is disabled", () => {
@@ -103,33 +103,33 @@ describe("BorrowLendOverviewSectionSchema", () => {
     const parsed = BorrowLendOverviewSectionSchema.parse({
       ...BORROW_LEND_SECTION,
       rescue_enabled: null,
-      pledges: [{ ...BORROW_LEND_SECTION.pledges[0], price_in_primary_per_unit: null }],
+      pledges: [{ ...BORROW_LEND_SECTION.pledges[0], price_usdc_per_unit: null }],
     });
     expect(parsed.rescue_enabled).toBe(true);
-    expect(parsed.pledges[0]?.price_in_primary_per_unit).toBeNull();
+    expect(parsed.pledges[0]?.price_usdc_per_unit).toBeNull();
   });
 
   it.each(["0", null])("accepts a pledge price of %s (Delisting / unpriced)", (price) => {
     const parsed = BorrowLendOverviewSectionSchema.parse({
       ...BORROW_LEND_SECTION,
       liquidatable: price === "0",
-      pledges: [{ ...BORROW_LEND_SECTION.pledges[0], price_in_primary_per_unit: price }],
+      pledges: [{ ...BORROW_LEND_SECTION.pledges[0], price_usdc_per_unit: price }],
     });
-    expect(parsed.pledges[0]?.price_in_primary_per_unit).toBe(price);
+    expect(parsed.pledges[0]?.price_usdc_per_unit).toBe(price);
   });
 
   it.each(["-1", "1.5", ""])("rejects a pledge price of %j", (price) => {
     expect(() =>
       BorrowLendOverviewSectionSchema.parse({
         ...BORROW_LEND_SECTION,
-        pledges: [{ ...BORROW_LEND_SECTION.pledges[0], price_in_primary_per_unit: price }],
+        pledges: [{ ...BORROW_LEND_SECTION.pledges[0], price_usdc_per_unit: price }],
       }),
     ).toThrow();
   });
 
   it("rejects a malformed amount or a fractional bps", () => {
     const [pledge] = BORROW_LEND_SECTION.pledges;
-    for (const bad of [{ amount: "1e6" }, { value_in_primary: "-1" }, { target_ltv_bps: 1.5 }]) {
+    for (const bad of [{ amount: "1e6" }, { value_usdc: "-1" }, { target_ltv_bps: 1.5 }]) {
       expect(() =>
         BorrowLendOverviewSectionSchema.parse({
           ...BORROW_LEND_SECTION,
@@ -140,7 +140,7 @@ describe("BorrowLendOverviewSectionSchema", () => {
   });
 
   it("rejects a section missing a required field", () => {
-    const { borrow_capacity_in_primary: _dropped, ...incomplete } = BORROW_LEND_SECTION;
+    const { borrow_capacity_usdc: _dropped, ...incomplete } = BORROW_LEND_SECTION;
     expect(() => BorrowLendOverviewSectionSchema.parse(incomplete)).toThrow();
   });
 });
@@ -166,7 +166,7 @@ describe("AccountOverviewSchema borrow_lend_unavailable", () => {
 describe("AccountOverviewSchema borrow_lend isolation", () => {
   const malformedSections = {
     "a non-boolean rescue_enabled": { ...BORROW_LEND_SECTION, rescue_enabled: "yes" },
-    "a malformed uintString": { ...BORROW_LEND_SECTION, debt_in_primary: "-1.5" },
+    "a malformed uintString": { ...BORROW_LEND_SECTION, debt_usdc: "-1.5" },
   };
 
   for (const [name, section] of Object.entries(malformedSections)) {
@@ -255,12 +255,12 @@ describe("AccountOverviewSchema borrow_lend isolation edge cases", () => {
 describe("BorrowLendOverviewSectionSchema rescue_enabled", () => {
   const section = {
     owner: "0xa",
-    debt_in_primary: "0",
+    debt_usdc: "0",
     liquidatable: false,
     pledges: [],
-    collateral_value_in_primary: "0",
-    max_weighted_collateral_in_primary: "0",
-    borrow_capacity_in_primary: "0",
+    collateral_value_usdc: "0",
+    max_weighted_collateral_usdc: "0",
+    borrow_capacity_usdc: "0",
   };
 
   it.each([true, false])("keeps a recorded %s", (value) => {

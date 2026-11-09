@@ -125,25 +125,25 @@ export type SpotOverview = z.infer<typeof SpotOverviewSchema>;
 export const BorrowLendOverviewSectionSchema = z.object({
   owner: z.string(),
   rescue_enabled: rescueEnabled,
-  debt_in_primary: uintString,
+  debt_usdc: uintString,
   liquidatable: z.boolean(),
   pledges: z.array(
     z.object({
       asset: z.string(),
       decimals,
       amount: uintString,
-      value_in_primary: uintString,
-      max_weighted_value_in_primary: uintString,
-      target_weighted_value_in_primary: uintString,
+      value_usdc: uintString,
+      max_weighted_value_usdc: uintString,
+      target_weighted_value_usdc: uintString,
       max_ltv_bps: bps,
       target_ltv_bps: bps,
       /** Null = unavailable (no market source, unknown mode, or no positive oracle price). "0" only when the source market is Delisting. */
-      price_in_primary_per_unit: uintString.nullable(),
+      price_usdc_per_unit: uintString.nullable(),
     }),
   ),
-  collateral_value_in_primary: uintString,
-  max_weighted_collateral_in_primary: uintString,
-  borrow_capacity_in_primary: uintString,
+  collateral_value_usdc: uintString,
+  max_weighted_collateral_usdc: uintString,
+  borrow_capacity_usdc: uintString,
 });
 
 export const AccountOverviewObjectSchema = z.object({

@@ -52,7 +52,7 @@ describe("BorrowLendAccountSchema", () => {
   it("parses a borrower with a recorded policy", () => {
     const parsed = BorrowLendAccountSchema.parse(accountBorrower);
     expect(parsed.rescue_enabled).toBe(true);
-    expect(parsed.debt).toBeTypeOf("string");
+    expect(parsed.debt_usdc).toBeTypeOf("string");
   });
 
   it("reads the chain default for a lender-only account", () => {
@@ -149,7 +149,7 @@ describe("BorrowLendAccountSchema", () => {
     });
     expect(parsed.debt_split_unavailable).toBe("interest_not_reported");
     expect(parsed.debt_interest_usdc).toBeNull();
-    expect(parsed.debt).toBe(accountBorrower.debt);
+    expect(parsed.debt_usdc).toBe(accountBorrower.debt_usdc);
   });
 
   it("accepts a reason added by a newer server", () => {
@@ -314,12 +314,12 @@ describe("numeric string fields", () => {
   });
 });
 
-describe("BorrowLendCollateralSchema value_in_primary_per_unit", () => {
+describe("BorrowLendCollateralSchema value_usdc_per_unit", () => {
   const collateral = {
     asset: "0xabc",
     decimals: 8,
     max_collateral_units: "1000",
-    value_in_primary_per_unit: "1",
+    value_usdc_per_unit: "1",
     max_ltv_bps: 8000,
     target_ltv_bps: 6000,
     liquidation_bonus_bps: 500,
@@ -329,14 +329,14 @@ describe("BorrowLendCollateralSchema value_in_primary_per_unit", () => {
   it.each(["0", null])("accepts %s (Delisting price / unpriced)", (price) => {
     const parsed = BorrowLendCollateralSchema.parse({
       ...collateral,
-      value_in_primary_per_unit: price,
+      value_usdc_per_unit: price,
     });
-    expect(parsed.value_in_primary_per_unit).toBe(price);
+    expect(parsed.value_usdc_per_unit).toBe(price);
   });
 
   it.each(["-1", "1.5", ""])("rejects %j", (price) => {
     expect(() =>
-      BorrowLendCollateralSchema.parse({ ...collateral, value_in_primary_per_unit: price }),
+      BorrowLendCollateralSchema.parse({ ...collateral, value_usdc_per_unit: price }),
     ).toThrow();
   });
 });
@@ -360,12 +360,12 @@ describe("BorrowLendCollateralSchema live testnet item", () => {
       asset: "0xa",
       decimals: 8,
       max_collateral_units: "25000000000000",
-      value_in_primary_per_unit: "634248",
+      value_usdc_per_unit: "634248",
       max_ltv_bps: 6300,
       target_ltv_bps: 5800,
       liquidation_bonus_bps: 750,
       liquidation_protocol_fee_bps: 1000,
     });
-    expect(parsed.value_in_primary_per_unit).toBe("634248");
+    expect(parsed.value_usdc_per_unit).toBe("634248");
   });
 });

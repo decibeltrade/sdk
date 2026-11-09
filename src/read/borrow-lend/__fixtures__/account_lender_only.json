@@ -3,22 +3,22 @@
   "primary_asset": "0x1",
   "primary_decimals": 6,
   "indices_as_of_secs": "1000",
-  "debt": "0",
+  "debt_usdc": "0",
   "rescue_enabled": true,
   "pledges": [
     {
       "asset": "0xb",
       "decimals": 0,
       "amount": "100",
-      "value_in_primary": "100"
+      "value_usdc": "100"
     }
   ],
-  "collateral_value_in_primary": "100",
-  "max_weighted_collateral_in_primary": "80",
-  "borrow_capacity_in_primary": "10",
+  "collateral_value_usdc": "100",
+  "max_weighted_collateral_usdc": "80",
+  "borrow_capacity_usdc": "10",
   "liquidatable": false,
   "lending_positions": [],
-  "lender_claim_in_primary": "0",
+  "lender_claim_usdc": "0",
   "debt_principal_usdc": "0",
   "debt_interest_usdc": "0",
   "lender_net_supplied_usdc": null,

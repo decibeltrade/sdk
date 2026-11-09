@@ -20,7 +20,7 @@ const COLLATERAL_ITEM = {
   asset: "0xabc",
   decimals: 8,
   max_collateral_units: "1000",
-  value_in_primary_per_unit: "1",
+  value_usdc_per_unit: "1",
   max_ltv_bps: 8000,
   target_ltv_bps: 6000,
   liquidation_bonus_bps: 500,
@@ -145,7 +145,7 @@ describe("BorrowLendReader.getAccount", () => {
     const url = calledUrl(spy);
     expect(url.pathname).toBe("/api/v1/borrow_lend/account");
     expect(url.searchParams.get("account")).toBe(ACCOUNT);
-    expect(result.debt).toBe(accountBorrower.debt);
+    expect(result.debt_usdc).toBe(accountBorrower.debt_usdc);
   });
 
   it("rejects a malformed response instead of returning it", async () => {
@@ -194,12 +194,12 @@ describe("BorrowLendReader.getCollateral", () => {
     expect(result.total_count).toBeUndefined();
   });
 
-  it("accepts a null value_in_primary_per_unit as unavailable", async () => {
-    mockFetchJson({ items: [{ ...COLLATERAL_ITEM, value_in_primary_per_unit: null }] });
+  it("accepts a null value_usdc_per_unit as unavailable", async () => {
+    mockFetchJson({ items: [{ ...COLLATERAL_ITEM, value_usdc_per_unit: null }] });
 
     const result = await createReader().getCollateral();
 
-    expect(result.items[0]?.value_in_primary_per_unit).toBeNull();
+    expect(result.items[0]?.value_usdc_per_unit).toBeNull();
   });
 
   it("rejects an item missing required fields", async () => {
@@ -216,7 +216,7 @@ describe("BorrowLendReader.getVaultLending", () => {
       primary_asset: "0x1",
       primary_decimals: 6,
       indices_as_of_secs: "1",
-      claim_in_primary: "0",
+      claim_usdc: "0",
       positions: [],
     });
 
@@ -240,7 +240,7 @@ describe("BorrowLendReader.getVaultLending", () => {
       primary_asset: "0x1",
       primary_decimals: 6,
       indices_as_of_secs: "1",
-      claim_in_primary: "0",
+      claim_usdc: "0",
       positions: [{}],
     });
 

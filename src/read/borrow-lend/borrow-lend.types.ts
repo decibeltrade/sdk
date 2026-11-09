@@ -30,7 +30,7 @@ export const BorrowLendCollateralSchema = z.object({
   decimals,
   max_collateral_units: uintString,
   /** Null = unavailable (no market source, unknown mode, or no positive oracle price). "0" only when the source market is Delisting. */
-  value_in_primary_per_unit: uintString.nullable(),
+  value_usdc_per_unit: uintString.nullable(),
   max_ltv_bps: bps,
   target_ltv_bps: bps,
   liquidation_bonus_bps: bps,
@@ -42,7 +42,7 @@ export const BorrowLendCollateralPageSchema = PaginatedResponseSchema(BorrowLend
 export const LendingPositionSchema = z.object({
   store_address: z.string(),
   shares: uintString,
-  claim_in_primary: uintString,
+  claim_usdc: uintString,
   frozen: z.boolean(),
 });
 
@@ -68,29 +68,29 @@ export const BorrowLendAccountSchema = z.object({
   primary_asset: z.string(),
   primary_decimals: decimals,
   indices_as_of_secs: uintString,
-  debt: uintString,
+  debt_usdc: uintString,
   rescue_enabled: rescueEnabled,
   pledges: z.array(
     z.object({
       asset: z.string(),
       decimals,
       amount: uintString,
-      value_in_primary: uintString,
+      value_usdc: uintString,
     }),
   ),
-  collateral_value_in_primary: uintString,
-  max_weighted_collateral_in_primary: uintString,
-  borrow_capacity_in_primary: uintString,
+  collateral_value_usdc: uintString,
+  max_weighted_collateral_usdc: uintString,
+  borrow_capacity_usdc: uintString,
   liquidatable: z.boolean(),
   lending_positions: z.array(LendingPositionSchema),
-  lender_claim_in_primary: uintString,
+  lender_claim_usdc: uintString,
   /** Optional until every server emits it; null when `debt_split_unavailable` is set. */
   debt_principal_usdc: z.string().nullable().optional(),
-  /** Unpaid interest in `debt`, split interest-first as the chain repays. */
+  /** Unpaid interest in `debt_usdc`, split interest-first as the chain repays. */
   debt_interest_usdc: z.string().nullable().optional(),
   /** Signed: supplied minus redeemed cash. */
   lender_net_supplied_usdc: z.string().nullable().optional(),
-  /** Signed: `lender_claim_in_primary` minus net supplied, including redeemed interest. */
+  /** Signed: `lender_claim_usdc` minus net supplied, including redeemed interest. */
   lender_earned_usdc: z.string().nullable().optional(),
   /** Null when both debt split fields are present; otherwise why they are null. */
   debt_split_unavailable: BorrowLendHistoryUnavailableSchema.nullable().optional(),
@@ -103,7 +103,7 @@ export const VaultLendingPositionSchema = z.object({
   primary_asset: z.string(),
   primary_decimals: decimals,
   indices_as_of_secs: uintString,
-  claim_in_primary: uintString,
+  claim_usdc: uintString,
   positions: z.array(LendingPositionSchema),
 });
 
