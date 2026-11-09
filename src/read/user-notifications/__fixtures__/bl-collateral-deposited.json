@@ -1,0 +1,13 @@
+{
+  "topic": "notifications:0xb53203494f71424f39b104f9125dec6198ae6dadbfe7abdded5d8d85ab1ce213",
+  "notification": {
+    "account": "0xb53203494f71424f39b104f9125dec6198ae6dadbfe7abdded5d8d85ab1ce213",
+    "notification_type": "BorrowLendCollateralDeposited",
+    "notification_metadata": {
+      "amount_raw": "150000000",
+      "asset": "0x000000000000000000000000000000000000000000000000000000000000000a",
+      "transaction_version": "18446744073709551615",
+      "event_index": "7"
+    }
+  }
+}

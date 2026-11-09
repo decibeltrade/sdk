@@ -226,6 +226,7 @@ export const NAMED_CONFIGS: Record<string, DecibelConfig | undefined> = {
 export const QUERY_PARAM_KEYS = {
   offset: "offset",
   limit: "limit",
+  cursor: "cursor",
   sortKey: "sort_key",
   sortDir: "sort_dir",
   searchTerm: "search_term",

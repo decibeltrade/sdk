@@ -1,6 +1,7 @@
 import z from "zod/v4";
 
 import { BaseRequestArgs } from "../base-reader";
+import { bps, decimals, rescueEnabled, uintString } from "../borrow-lend/borrow-lend.zod";
 
 export interface AccountOverviewRequestArgs extends BaseRequestArgs {
   subAddr: string;
@@ -123,34 +124,29 @@ export type SpotOverview = z.infer<typeof SpotOverviewSchema>;
 
 export const BorrowLendOverviewSectionSchema = z.object({
   owner: z.string(),
-  /** The chain default (true) when the account has no borrower record. Older
-   * servers send null for that case. */
-  rescue_enabled: z
-    .boolean()
-    .nullable()
-    .transform((value) => value ?? true), // TODO: Remove nullable once back-end is deployed
-  debt_in_primary: z.string(),
+  rescue_enabled: rescueEnabled,
+  debt_in_primary: uintString,
   liquidatable: z.boolean(),
   pledges: z.array(
     z.object({
       asset: z.string(),
-      decimals: z.number().int().min(0).max(255),
-      amount: z.string(),
-      value_in_primary: z.string(),
-      max_weighted_value_in_primary: z.string(),
-      target_weighted_value_in_primary: z.string(),
-      max_ltv_bps: z.number(),
-      target_ltv_bps: z.number(),
-      /** Null = unavailable (no registered market source or no recorded price). */
-      price_in_primary_per_unit: z.string().nullable(),
+      decimals,
+      amount: uintString,
+      value_in_primary: uintString,
+      max_weighted_value_in_primary: uintString,
+      target_weighted_value_in_primary: uintString,
+      max_ltv_bps: bps,
+      target_ltv_bps: bps,
+      /** Null = unavailable (no market source, unknown mode, or no positive oracle price). "0" only when the source market is Delisting. */
+      price_in_primary_per_unit: uintString.nullable(),
     }),
   ),
-  collateral_value_in_primary: z.string(),
-  max_weighted_collateral_in_primary: z.string(),
-  borrow_capacity_in_primary: z.string(),
+  collateral_value_in_primary: uintString,
+  max_weighted_collateral_in_primary: uintString,
+  borrow_capacity_in_primary: uintString,
 });
 
-export const AccountOverviewSchema = z.object({
+export const AccountOverviewObjectSchema = z.object({
   perp_equity_balance: z.number(),
   perp_equity_haircutted: z.number().optional(),
   unrealized_pnl: z.number(),
@@ -231,8 +227,37 @@ export const AccountOverviewSchema = z.object({
   borrow_lend_unavailable: z.string().nullable().optional(),
 });
 
+const BORROW_LEND_PARSE_FAILURE = "Borrow/lend section failed to parse";
+
+/**
+ * The borrow/lend section is additive, so a malformed or lagging backend section must not fail
+ * the whole overview: drop it and surface the standard unavailable marker instead.
+ */
+function isolateBorrowLendSection(raw: unknown): unknown {
+  if (typeof raw !== "object" || raw === null || !("borrow_lend" in raw)) return raw;
+  const section = (raw as { borrow_lend?: unknown }).borrow_lend;
+  if (section == null || BorrowLendOverviewSectionSchema.safeParse(section).success) return raw;
+  const { borrow_lend_unavailable } = raw as { borrow_lend_unavailable?: unknown };
+  return {
+    ...raw,
+    borrow_lend: null,
+    borrow_lend_unavailable:
+      typeof borrow_lend_unavailable === "string" && borrow_lend_unavailable
+        ? borrow_lend_unavailable
+        : BORROW_LEND_PARSE_FAILURE,
+  };
+}
+
+export const AccountOverviewSchema = z.preprocess(
+  isolateBorrowLendSection,
+  AccountOverviewObjectSchema,
+);
+
 export const AccountOverviewWsMessageSchema = z.object({
-  account_overview: AccountOverviewSchema.omit({ volume: true }),
+  account_overview: z.preprocess(
+    isolateBorrowLendSection,
+    AccountOverviewObjectSchema.omit({ volume: true }),
+  ),
 });
 
 export type BorrowLendOverviewSection = z.infer<typeof BorrowLendOverviewSectionSchema>;

@@ -7,7 +7,7 @@ import {
 import { z, ZodError } from "zod/v4";
 
 import { QUERY_PARAM_KEYS } from "./constants";
-import { PageParams, SearchTermParams, SortParams } from "./read";
+import { CursorPageParams, PageParams, SearchTermParams, SortParams } from "./read";
 import { CompatVersion } from "./release-config";
 
 export { addressComparisonKey, addressesEqual } from "./address";
@@ -291,11 +291,14 @@ export function getVaultShareAddress(vaultAddress: string) {
   return createObjectAddress(AccountAddress.fromString(vaultAddress), seed).toString();
 }
 
-type KnownQueryParams = Partial<PageParams & SearchTermParams & SortParams<string>>;
+type KnownQueryParams = Partial<
+  PageParams & CursorPageParams & SearchTermParams & SortParams<string>
+>;
 
 export const PARAM_MAP: Record<keyof KnownQueryParams, string> = {
   limit: QUERY_PARAM_KEYS.limit,
   offset: QUERY_PARAM_KEYS.offset,
+  cursor: QUERY_PARAM_KEYS.cursor,
   sortKey: QUERY_PARAM_KEYS.sortKey,
   sortDir: QUERY_PARAM_KEYS.sortDir,
   searchTerm: QUERY_PARAM_KEYS.searchTerm,

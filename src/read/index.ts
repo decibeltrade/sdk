@@ -8,6 +8,7 @@ import {
   GAS_STATION_MAX_GAS_AMOUNT,
 } from "../constants";
 import { AccountOverviewReader } from "./account-overview/account-overview.reader";
+import { BorrowLendReader } from "./borrow-lend/borrow-lend.reader";
 import { CampaignsReader } from "./campaigns/campaigns.reader";
 import { CandlesticksReader } from "./candlesticks/candlesticks.reader";
 import { DelegationsReader } from "./delegations/delegations.reader";
@@ -120,6 +121,7 @@ export class DecibelReadDex {
   readonly cache: Cache;
   readonly deps: DecibelReaderDeps;
   readonly accountOverview: AccountOverviewReader;
+  readonly borrowLend: BorrowLendReader;
   readonly campaigns: CampaignsReader;
   readonly markets: MarketsReader;
   readonly marketActivity: MarketActivityReader;
@@ -189,6 +191,7 @@ export class DecibelReadDex {
 
     this.cache = {};
     this.accountOverview = new AccountOverviewReader(this.deps);
+    this.borrowLend = new BorrowLendReader(this.deps);
     this.campaigns = new CampaignsReader(this.deps);
     this.markets = new MarketsReader(this.deps);
     this.marketActivity = new MarketActivityReader(this.deps);
@@ -278,6 +281,11 @@ export class DecibelReadDex {
 
   async usdcBalance(addr: string | AccountAddress) {
     const usdcDecimals = await this.usdcDecimals();
+    return Number(await this.usdcBalanceBaseUnits(addr)) / 10 ** usdcDecimals;
+  }
+
+  /** Raw base-unit balance as an exact integer string; use this where a float would lose precision. */
+  async usdcBalanceBaseUnits(addr: string | AccountAddress) {
     const balance = await this.deps.aptos.view<[string]>({
       payload: {
         function: `0x1::primary_fungible_store::balance`,
@@ -285,7 +293,7 @@ export class DecibelReadDex {
         functionArguments: [addr, this.config.deployment.usdc],
       },
     });
-    return Number(balance[0]) / 10 ** usdcDecimals;
+    return String(balance[0]);
   }
 
   /**

@@ -17,6 +17,12 @@ export interface PageParams {
   offset?: number;
 }
 
+/** Cursor pagination: `cursor` is the previous page's `next_cursor`. */
+export interface CursorPageParams {
+  cursor?: string;
+  limit?: number;
+}
+
 // History filter params supported by all history endpoints
 export interface HistoryFilterParams {
   /** Unix milliseconds, inclusive start of date range */

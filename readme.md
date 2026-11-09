@@ -204,6 +204,9 @@ await readDex.usdcDecimals();
 // Get USDC balance for an address
 await readDex.usdcBalance("0x123...");
 
+// Get USDC balance as an exact base-unit integer string
+await readDex.usdcBalanceBaseUnits("0x123...");
+
 // Get account balance
 await readDex.accountBalance("0x123...");
 
@@ -584,6 +587,22 @@ const unsubscribe = readDex.userFundingHistory.subscribeByAddr("subaccount_addre
 const subaccounts = await readDex.userSubaccounts.getByAddr("account_address");
 ```
 
+### Borrow-lend
+
+Endpoints answer HTTP 503 (`FetchError` with `status: 503`) when borrow/lend is unavailable.
+Paged event methods return `{ items, next_cursor }`; pass `next_cursor` back as `cursor`.
+
+```typescript
+await readDex.borrowLend.getPool();
+await readDex.borrowLend.getAccount({ account: "subaccount_address" });
+await readDex.borrowLend.getCollateral({ offset: 0, limit: 50 });
+await readDex.borrowLend.getVaultLending({ vault: "vault_address" });
+await readDex.borrowLend.getActivity({ account: "subaccount_address", limit: 50 });
+await readDex.borrowLend.getLendingHistory({ account: "owner_wallet_address" });
+await readDex.borrowLend.getPoolHistory({ startTimestamp, endTimestamp }); // unix ms, max 180 days
+await readDex.borrowLend.getRateHistory({ startTimestamp, endTimestamp, interval: "1d" }); // realized APRs, unix ms, <= 1000 buckets
+```
+
 ### Vaults
 
 ```typescript
@@ -679,7 +698,8 @@ process falls back to plaintext if the network turns encryption off, and resumes
   `redeemFromLenderPool`,
   `depositCollateral`,
   `withdrawCollateral`,
-  `repayUsdc`
+  `repayUsdc`,
+  `setBorrowRescueEnabled`
 - Orders and matching:
   `placeOrder`,
   `extractOrderIdFromTransaction`,
@@ -756,15 +776,27 @@ Cross fills that need more margin than the subaccount's free USDC borrow from th
 automatically against pledged collateral. Read debt with `perp_engine::borrow_lend_debt` and
 pledged balances with `perp_engine::get_cross_secondary_balance`. Taker fills settle
 asynchronously, so poll debt after placing an order. Supply and redemption emit
-`debt_lender::LenderCashUpdatedEvent`.
+`debt_lender::LenderCashUpdatedEvent`. Amounts are `U64Input` (`string | bigint | number`);
+numbers must be safe integers, so pass a string or bigint above 2^53.
+Since 0.9.0, `deposit`/`withdraw`/`depositCollateral`/`withdrawCollateral` throw on unsafe
+numbers, and those four plus `supplyToLenderPool`/`redeemFromLenderPool`/`repayUsdc` reject zero.
 
 ```typescript
 await writeDex.supplyToLenderPool(1_000_000_000);
 await writeDex.depositCollateral("0xa", 10_00000000, "subaccount_address");
-await writeDex.repayUsdc(50_000_000, "subaccount_address");
+await writeDex.repayUsdc(U64_MAX, "subaccount_address"); // clamped to debt: repays all
 await writeDex.withdrawCollateral("0xa", 10_00000000, "subaccount_address");
-await writeDex.redeemFromLenderPool(shares, "subaccount_address");
+await writeDex.redeemFromLenderPool(event.data.scaled_delta, "subaccount_address");
+await writeDex.setBorrowRescueEnabled(false, "subaccount_address");
 ```
+
+Zero amounts are rejected for `supplyToLenderPool`, `redeemFromLenderPool`, `repayUsdc`,
+`deposit`, `withdraw`, `depositCollateral` and `withdrawCollateral`. For
+external signers, use the exported builders `buildSupplyToLenderPoolPayload`,
+`buildRedeemFromLenderPoolPayload`, `buildRepayUsdcPayload`,
+`buildDepositToSubaccountPayload`, `buildWithdrawFromCrossCollateralPayload` and
+`buildSetBorrowRescueEnabledPayload` (each takes `packageAddress` plus `U64Input` base-unit amounts),
+and `toU64String(value, label, { allowZero? })` to validate a `U64Input`.
 
 ### Trading Delegation and Builder Fees
 

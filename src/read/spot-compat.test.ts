@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  AccountOverviewSchema,
+  AccountOverviewObjectSchema,
   SpotOverviewSchema,
 } from "./account-overview/account-overview.types";
 import { MarketsGetAllArgs, MarketsReader } from "./markets/markets.reader";
@@ -171,8 +171,8 @@ describe("account overview spot holdings", () => {
   });
 
   it("account overview accepts spot as present, null, or absent", () => {
-    expect(AccountOverviewSchema.shape.spot.parse(spotOverview)).toBeTruthy();
-    expect(AccountOverviewSchema.shape.spot.parse(null)).toBeNull();
-    expect(AccountOverviewSchema.shape.spot.parse(undefined)).toBeUndefined();
+    expect(AccountOverviewObjectSchema.shape.spot.parse(spotOverview)).toBeTruthy();
+    expect(AccountOverviewObjectSchema.shape.spot.parse(null)).toBeNull();
+    expect(AccountOverviewObjectSchema.shape.spot.parse(undefined)).toBeUndefined();
   });
 });

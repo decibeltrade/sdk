@@ -6,6 +6,14 @@ import {
 } from "@aptos-labs/ts-sdk";
 
 import { BaseSDK, Options, SendTxOpts } from "./base";
+import {
+  buildDepositToSubaccountPayload,
+  buildRedeemFromLenderPoolPayload,
+  buildRepayUsdcPayload,
+  buildSetBorrowRescueEnabledPayload,
+  buildSupplyToLenderPoolPayload,
+  buildWithdrawFromCrossCollateralPayload,
+} from "./borrow-lend/payloads";
 import { DecibelConfig } from "./constants";
 import {
   buildClaimUnlockPayload,
@@ -32,6 +40,7 @@ import {
 } from "./read";
 import { RenameSubaccountArgs, RenameSubaccountSchema } from "./subaccount-types";
 import { failedDecryptionFlags, getTransactionSubmissionFailure } from "./submission-error";
+import { U64Input } from "./u64";
 import {
   addressesEqual,
   getMarketAddr,
@@ -246,16 +255,16 @@ export class DecibelWriteDex extends BaseSDK {
     return await fn(subaccountAddr);
   }
   /**
-   * @param amount u64 amount of collateral to deposit
+   * @param amount u64 USDC base units, greater than zero; pass a string or bigint above 2^53
    */
-  async deposit(amount: number, subaccountAddr?: string) {
+  async deposit(amount: U64Input, subaccountAddr?: string) {
     return await this.depositCollateral(this.config.deployment.usdc, amount, subaccountAddr);
   }
 
   /**
-   * @param amount u64 amount of collateral to withdraw
+   * @param amount u64 USDC base units, greater than zero; pass a string or bigint above 2^53
    */
-  async withdraw(amount: number, subaccountAddr?: string) {
+  async withdraw(amount: U64Input, subaccountAddr?: string) {
     return await this.withdrawCollateral(this.config.deployment.usdc, amount, subaccountAddr);
   }
 
@@ -272,61 +281,87 @@ export class DecibelWriteDex extends BaseSDK {
   }
 
   /** Mints non-transferable dLEND shares from wallet USDC. */
-  async supplyToLenderPool(amount: number) {
-    return await this.sendTx({
-      function: `${this.config.deployment.package}::account_management_apis::supply_to_lender_pool`,
-      typeArguments: [],
-      functionArguments: [amount],
-    });
+  async supplyToLenderPool(amount: U64Input) {
+    return await this.sendTx(
+      buildSupplyToLenderPoolPayload({
+        packageAddress: this.config.deployment.package,
+        amount,
+      }),
+    );
   }
 
   /** Credits USDC to a perp-initialized subaccount. */
-  async redeemFromLenderPool(shareAmount: number, subaccountAddr?: string) {
+  async redeemFromLenderPool(shareAmount: U64Input, subaccountAddr?: string) {
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
-        this.sendTx({
-          function: `${this.config.deployment.package}::account_management_apis::redeem_from_lender_pool_entry`,
-          typeArguments: [],
-          functionArguments: [subaccountAddr, shareAmount],
-        }),
+        this.sendTx(
+          buildRedeemFromLenderPoolPayload({
+            packageAddress: this.config.deployment.package,
+            subaccountAddr,
+            shares: shareAmount,
+          }),
+        ),
       subaccountAddr,
     );
   }
 
   /** Registered borrow-lend assets are pledged as collateral. */
-  async depositCollateral(assetAddr: string, amount: number, subaccountAddr?: string) {
+  async depositCollateral(assetAddr: string, amount: U64Input, subaccountAddr?: string) {
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
-        this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts_entry::deposit_to_subaccount_at`,
-          typeArguments: [],
-          functionArguments: [subaccountAddr, assetAddr, amount],
-        }),
+        this.sendTx(
+          buildDepositToSubaccountPayload({
+            packageAddress: this.config.deployment.package,
+            subaccountAddr,
+            assetAddr,
+            amount,
+          }),
+        ),
       subaccountAddr,
     );
   }
 
-  async withdrawCollateral(assetAddr: string, amount: number, subaccountAddr?: string) {
+  async withdrawCollateral(assetAddr: string, amount: U64Input, subaccountAddr?: string) {
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
-        this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts_entry::withdraw_from_cross_collateral`,
-          typeArguments: [],
-          functionArguments: [subaccountAddr, assetAddr, amount],
-        }),
+        this.sendTx(
+          buildWithdrawFromCrossCollateralPayload({
+            packageAddress: this.config.deployment.package,
+            subaccountAddr,
+            assetAddr,
+            amount,
+          }),
+        ),
       subaccountAddr,
     );
   }
 
-  /** Uses free cross margin; the amount is clamped to outstanding debt. */
-  async repayUsdc(amount: number, subaccountAddr?: string) {
+  /** Uses free cross margin; the amount is clamped to outstanding debt, so `U64_MAX` repays all. */
+  async repayUsdc(amount: U64Input, subaccountAddr?: string) {
     return await this.sendSubaccountTx(
       (subaccountAddr) =>
-        this.sendTx({
-          function: `${this.config.deployment.package}::dex_accounts_entry::repay_usdc_from_subaccount`,
-          typeArguments: [],
-          functionArguments: [subaccountAddr, amount],
-        }),
+        this.sendTx(
+          buildRepayUsdcPayload({
+            packageAddress: this.config.deployment.package,
+            subaccountAddr,
+            amount,
+          }),
+        ),
+      subaccountAddr,
+    );
+  }
+
+  /** Opts the subaccount in or out of the margin-call borrow rescue (on by default). Owner-only. */
+  async setBorrowRescueEnabled(enabled: boolean, subaccountAddr?: string) {
+    return await this.sendSubaccountTx(
+      (subaccountAddr) =>
+        this.sendTx(
+          buildSetBorrowRescueEnabledPayload({
+            packageAddress: this.config.deployment.package,
+            subaccountAddr,
+            enabled,
+          }),
+        ),
       subaccountAddr,
     );
   }

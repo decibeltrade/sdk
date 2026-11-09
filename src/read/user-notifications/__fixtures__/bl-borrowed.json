@@ -1,0 +1,12 @@
+{
+  "topic": "notifications:0xb53203494f71424f39b104f9125dec6198ae6dadbfe7abdded5d8d85ab1ce213",
+  "notification": {
+    "account": "0xb53203494f71424f39b104f9125dec6198ae6dadbfe7abdded5d8d85ab1ce213",
+    "notification_type": "BorrowLendBorrowed",
+    "notification_metadata": {
+      "amount_raw": "12500000",
+      "transaction_version": "18446744073709551615",
+      "event_index": "7"
+    }
+  }
+}

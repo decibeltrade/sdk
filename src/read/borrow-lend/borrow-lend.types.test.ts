@@ -8,6 +8,7 @@ import {
   BORROW_LEND_HISTORY_UNAVAILABLE_REASONS,
   BorrowLendAccountSchema,
   BorrowLendActivitySchema,
+  BorrowLendCollateralSchema,
   BorrowLendPoolSchema,
   BorrowLendRateHistorySchema,
   BorrowLendRatePointSchema,
@@ -38,7 +39,7 @@ describe("BorrowLendPoolSchema", () => {
   });
 
   it.each(["treasury_fee_bps", "insurance_fee_bps"])("requires %s", (field) => {
-    const { [field]: _omitted, ...incomplete } = pool as Record<string, unknown>;
+    const incomplete = Object.fromEntries(Object.entries(pool).filter(([key]) => key !== field));
     expect(() => BorrowLendPoolSchema.parse(incomplete)).toThrow();
   });
 
@@ -59,9 +60,19 @@ describe("BorrowLendAccountSchema", () => {
     expect(parsed.rescue_enabled).toBe(true);
   });
 
-  it.each([null, "yes"])("rejects a rescue_enabled of %s", (value) => {
+  it.each([true, false])("round-trips a boolean rescue_enabled of %s", (value) => {
+    const parsed = BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: value });
+    expect(parsed.rescue_enabled).toBe(value);
+  });
+
+  it("parses a null rescue_enabled as the chain default", () => {
+    const parsed = BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: null });
+    expect(parsed.rescue_enabled).toBe(true);
+  });
+
+  it("rejects a non-boolean rescue_enabled", () => {
     expect(() =>
-      BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: value }),
+      BorrowLendAccountSchema.parse({ ...accountLenderOnly, rescue_enabled: "yes" }),
     ).toThrow();
   });
 
@@ -203,6 +214,12 @@ describe("BorrowLendActivitySchema", () => {
     const { [field]: _omitted, ...incomplete } = liquidation as Record<string, unknown>;
     expect(() => BorrowLendActivitySchema.parse(incomplete)).toThrow();
   });
+
+  it.each(["target_amount", "insurance_amount"])("rejects a non-u64 %s", (field) => {
+    for (const bad of ["-1", "1.5", ""]) {
+      expect(() => BorrowLendActivitySchema.parse({ ...liquidation, [field]: bad })).toThrow();
+    }
+  });
 });
 
 describe("BorrowLendRateHistorySchema", () => {
@@ -254,5 +271,101 @@ describe("schema coverage of the serialized DTOs", () => {
     expect(declaredKeys(BorrowLendRatePointSchema)).toEqual(
       Object.keys(rateHistory.points[0]).sort(),
     );
+  });
+});
+
+describe("numeric string fields", () => {
+  it.each(["available_liquidity", "total_debt", "total_lender_claim", "supply_apr_ray"])(
+    "rejects a malformed pool %s",
+    (field) => {
+      for (const bad of ["1e-7", "-1", "1.5", "", "abc"]) {
+        expect(() => BorrowLendPoolSchema.parse({ ...pool, [field]: bad })).toThrow();
+      }
+    },
+  );
+
+  it("rejects a negative or fractional bps number", () => {
+    expect(() => BorrowLendPoolSchema.parse({ ...pool, treasury_fee_bps: -1 })).toThrow();
+    expect(() => BorrowLendPoolSchema.parse({ ...pool, treasury_fee_bps: 1.5 })).toThrow();
+  });
+
+  it("accepts negative activity shares (a lender redemption) but not malformed ones", () => {
+    const activity = {
+      source: { transaction_version: "1", transaction_unix_ms: 1 },
+      event_index: "0",
+      account: "0x1",
+      event_type: "lender_redeemed",
+      reason: "",
+      counterparty: "",
+      asset: "0x2",
+      amount: "90",
+      shares: "-90",
+      secondary_amount: "0",
+      protocol_fee_amount: "0",
+      reaches_target: false,
+      is_full_repay: false,
+      target_amount: "0",
+      insurance_amount: "0",
+    };
+    expect(BorrowLendActivitySchema.parse(activity).shares).toBe("-90");
+    for (const bad of ["--1", "-", "1.5", "", "-1e2"]) {
+      expect(() => BorrowLendActivitySchema.parse({ ...activity, shares: bad })).toThrow();
+    }
+  });
+});
+
+describe("BorrowLendCollateralSchema value_in_primary_per_unit", () => {
+  const collateral = {
+    asset: "0xabc",
+    decimals: 8,
+    max_collateral_units: "1000",
+    value_in_primary_per_unit: "1",
+    max_ltv_bps: 8000,
+    target_ltv_bps: 6000,
+    liquidation_bonus_bps: 500,
+    liquidation_protocol_fee_bps: 100,
+  };
+
+  it.each(["0", null])("accepts %s (Delisting price / unpriced)", (price) => {
+    const parsed = BorrowLendCollateralSchema.parse({
+      ...collateral,
+      value_in_primary_per_unit: price,
+    });
+    expect(parsed.value_in_primary_per_unit).toBe(price);
+  });
+
+  it.each(["-1", "1.5", ""])("rejects %j", (price) => {
+    expect(() =>
+      BorrowLendCollateralSchema.parse({ ...collateral, value_in_primary_per_unit: price }),
+    ).toThrow();
+  });
+});
+
+describe("BorrowLendAccountSchema and ray strings", () => {
+  it("rejects an account whose rescue_enabled key is absent", () => {
+    const { rescue_enabled: _omit, ...withoutKey } = accountBorrower;
+    expect(() => BorrowLendAccountSchema.parse(withoutKey)).toThrow();
+  });
+
+  it("accepts a 1e27 ray string, which exceeds u64", () => {
+    const ray = `1${"0".repeat(27)}`;
+    const parsed = BorrowLendPoolSchema.parse({ ...pool, utilization_ray: ray });
+    expect(parsed.utilization_ray).toBe(ray);
+  });
+});
+
+describe("BorrowLendCollateralSchema live testnet item", () => {
+  it("parses the APT collateral as served (price 0.634248, 8 dp)", () => {
+    const parsed = BorrowLendCollateralSchema.parse({
+      asset: "0xa",
+      decimals: 8,
+      max_collateral_units: "25000000000000",
+      value_in_primary_per_unit: "634248",
+      max_ltv_bps: 6300,
+      target_ltv_bps: 5800,
+      liquidation_bonus_bps: 750,
+      liquidation_protocol_fee_bps: 1000,
+    });
+    expect(parsed.value_in_primary_per_unit).toBe("634248");
   });
 });

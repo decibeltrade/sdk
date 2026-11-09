@@ -1,49 +1,48 @@
 import z from "zod/v4";
 
+import { PaginatedResponseSchema } from "../pagination.types";
+import { bps, decimals, intString, rescueEnabled, uintString } from "./borrow-lend.zod";
+
 /** The transaction that emitted a history row. */
 const BorrowLendSourceSchema = z.object({
-  transaction_version: z.string(),
+  transaction_version: uintString,
   transaction_unix_ms: z.number(),
 });
 
 export const BorrowLendPoolSchema = z.object({
   pool_address: z.string(),
   primary_asset: z.string(),
-  primary_decimals: z.number().int().min(0).max(255),
+  primary_decimals: decimals,
   share_asset: z.string(),
-  available_liquidity: z.string(),
-  total_debt: z.string(),
-  total_lender_claim: z.string(),
-  utilization_ray: z.string(),
-  borrow_apr_ray: z.string(),
-  supply_apr_ray: z.string(),
-  treasury_fee_bps: z.number(),
-  insurance_fee_bps: z.number(),
-  indices_as_of_secs: z.string(),
+  available_liquidity: uintString,
+  total_debt: uintString,
+  total_lender_claim: uintString,
+  utilization_ray: uintString,
+  borrow_apr_ray: uintString,
+  supply_apr_ray: uintString,
+  treasury_fee_bps: bps,
+  insurance_fee_bps: bps,
+  indices_as_of_secs: uintString,
 });
 
 export const BorrowLendCollateralSchema = z.object({
   asset: z.string(),
-  decimals: z.number().int().min(0).max(255),
-  max_collateral_units: z.string(),
-  /** Null when the asset has no registered market source or the market has no
-   * recorded oracle price: unavailable, not zero. */
-  value_in_primary_per_unit: z.string().nullable(),
-  max_ltv_bps: z.number(),
-  target_ltv_bps: z.number(),
-  liquidation_bonus_bps: z.number(),
-  liquidation_protocol_fee_bps: z.number(),
+  decimals,
+  max_collateral_units: uintString,
+  /** Null = unavailable (no market source, unknown mode, or no positive oracle price). "0" only when the source market is Delisting. */
+  value_in_primary_per_unit: uintString.nullable(),
+  max_ltv_bps: bps,
+  target_ltv_bps: bps,
+  liquidation_bonus_bps: bps,
+  liquidation_protocol_fee_bps: bps,
 });
 
-export const BorrowLendCollateralPageSchema = z.object({
-  items: z.array(BorrowLendCollateralSchema),
-  total_count: z.number().optional(),
-});
+export const BorrowLendCollateralPageSchema = PaginatedResponseSchema(BorrowLendCollateralSchema);
 
 export const LendingPositionSchema = z.object({
   store_address: z.string(),
-  shares: z.string(),
-  claim_in_primary: z.string(),
+  shares: uintString,
+  claim_in_primary: uintString,
   frozen: z.boolean(),
 });
 
@@ -67,25 +66,24 @@ export const BorrowLendHistoryUnavailableSchema = z.union([
 export const BorrowLendAccountSchema = z.object({
   account: z.string(),
   primary_asset: z.string(),
-  primary_decimals: z.number().int().min(0).max(255),
-  indices_as_of_secs: z.string(),
-  debt: z.string(),
-  /** The chain default (true) when the account has no borrower record. */
-  rescue_enabled: z.boolean(),
+  primary_decimals: decimals,
+  indices_as_of_secs: uintString,
+  debt: uintString,
+  rescue_enabled: rescueEnabled,
   pledges: z.array(
     z.object({
       asset: z.string(),
-      decimals: z.number().int().min(0).max(255),
-      amount: z.string(),
-      value_in_primary: z.string(),
+      decimals,
+      amount: uintString,
+      value_in_primary: uintString,
     }),
   ),
-  collateral_value_in_primary: z.string(),
-  max_weighted_collateral_in_primary: z.string(),
-  borrow_capacity_in_primary: z.string(),
+  collateral_value_in_primary: uintString,
+  max_weighted_collateral_in_primary: uintString,
+  borrow_capacity_in_primary: uintString,
   liquidatable: z.boolean(),
   lending_positions: z.array(LendingPositionSchema),
-  lender_claim_in_primary: z.string(),
+  lender_claim_in_primary: uintString,
   /** Optional until every server emits it; null when `debt_split_unavailable` is set. */
   debt_principal_usdc: z.string().nullable().optional(),
   /** Unpaid interest in `debt`, split interest-first as the chain repays. */
@@ -103,28 +101,28 @@ export const BorrowLendAccountSchema = z.object({
 export const VaultLendingPositionSchema = z.object({
   vault_address: z.string(),
   primary_asset: z.string(),
-  primary_decimals: z.number().int().min(0).max(255),
-  indices_as_of_secs: z.string(),
-  claim_in_primary: z.string(),
+  primary_decimals: decimals,
+  indices_as_of_secs: uintString,
+  claim_in_primary: uintString,
   positions: z.array(LendingPositionSchema),
 });
 
 export const BorrowLendActivitySchema = z.object({
   source: BorrowLendSourceSchema,
-  event_index: z.string(),
+  event_index: uintString,
   account: z.string(),
   event_type: z.string(),
   reason: z.string(),
   counterparty: z.string(),
   asset: z.string(),
-  amount: z.string(),
-  shares: z.string(),
-  secondary_amount: z.string(),
-  protocol_fee_amount: z.string(),
+  amount: uintString,
+  shares: intString,
+  secondary_amount: uintString,
+  protocol_fee_amount: uintString,
   reaches_target: z.boolean(),
   is_full_repay: z.boolean(),
-  target_amount: z.string(),
-  insurance_amount: z.string(),
+  target_amount: uintString,
+  insurance_amount: uintString,
 });
 
 export const BorrowLendActivityPageSchema = z.object({
@@ -138,21 +136,21 @@ export const BorrowLendActivityPageSchema = z.object({
  */
 export const BorrowLendPoolHistorySchema = z.object({
   source: BorrowLendSourceSchema,
-  event_index: z.string(),
+  event_index: uintString,
   pool_address: z.string(),
   event_type: z.string(),
-  borrow_index: z.string(),
-  supply_index: z.string(),
-  last_index_update_secs: z.string(),
-  total_lender_shares: z.string(),
-  available_liquidity: z.string(),
-  base_apr_ray: z.string(),
-  slope1_apr_ray: z.string(),
-  slope2_apr_ray: z.string(),
-  kink_ray: z.string(),
-  treasury_fee_bps: z.number(),
-  insurance_fee_bps: z.number(),
-  liquidation_target_ltv_bps: z.number(),
+  borrow_index: uintString,
+  supply_index: uintString,
+  last_index_update_secs: uintString,
+  total_lender_shares: uintString,
+  available_liquidity: uintString,
+  base_apr_ray: uintString,
+  slope1_apr_ray: uintString,
+  slope2_apr_ray: uintString,
+  kink_ray: uintString,
+  treasury_fee_bps: bps,
+  insurance_fee_bps: bps,
+  liquidation_target_ltv_bps: bps,
 });
 
 export const BorrowLendPoolHistoryPageSchema = z.object({

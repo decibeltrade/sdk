@@ -150,6 +150,12 @@ describe("order function classification guard", () => {
     (d) =>
       d.claimFftUnlock({ campaignPackage: "0xc", campaignAddr: "0xa", lockId: 1n, owner: "0xo" }),
     (d) => d.settleFftTrial({ campaignPackage: "0xc", campaignAddr: "0xa", trialId: 1 }),
+    (d) => d.supplyToLenderPool(1),
+    (d) => d.redeemFromLenderPool(1, S),
+    (d) => d.depositCollateral("0xasset", 1, S),
+    (d) => d.withdrawCollateral("0xasset", 1, S),
+    (d) => d.repayUsdc(1, S),
+    (d) => d.setBorrowRescueEnabled(true, S),
   ];
 
   it("routes exactly the order functions through submitSubaccountTx", async () => {
@@ -172,6 +178,154 @@ describe("order function classification guard", () => {
     for (const fn of direct) {
       expect(classifyTxKind(fn), fn).toBe("other");
     }
+  });
+});
+
+describe("borrow-lend writes are u64-exact", () => {
+  const PKG = TESTNET_CONFIG.deployment.package;
+  const S = `0x${"ab".repeat(32)}`;
+  const ASSET = "0xa";
+  const MAX = "18446744073709551615";
+
+  const cases: Array<{
+    name: string;
+    call: (d: DecibelWriteDex, amount: string | bigint | number) => Promise<unknown>;
+    fn: string;
+    args: (amount: string) => unknown[];
+  }> = [
+    {
+      name: "supplyToLenderPool",
+      call: (d, a) => d.supplyToLenderPool(a),
+      fn: "account_management_apis::supply_to_lender_pool",
+      args: (a) => [a],
+    },
+    {
+      name: "redeemFromLenderPool",
+      call: (d, a) => d.redeemFromLenderPool(a, S),
+      fn: "account_management_apis::redeem_from_lender_pool_entry",
+      args: (a) => [S, a],
+    },
+    {
+      name: "depositCollateral",
+      call: (d, a) => d.depositCollateral(ASSET, a, S),
+      fn: "dex_accounts_entry::deposit_to_subaccount_at",
+      args: (a) => [S, ASSET, a],
+    },
+    {
+      name: "withdrawCollateral",
+      call: (d, a) => d.withdrawCollateral(ASSET, a, S),
+      fn: "dex_accounts_entry::withdraw_from_cross_collateral",
+      args: (a) => [S, ASSET, a],
+    },
+    {
+      name: "repayUsdc",
+      call: (d, a) => d.repayUsdc(a, S),
+      fn: "dex_accounts_entry::repay_usdc_from_subaccount",
+      args: (a) => [S, a],
+    },
+    {
+      name: "deposit",
+      call: (d, a) => d.deposit(a, S),
+      fn: "dex_accounts_entry::deposit_to_subaccount_at",
+      args: (a) => [S, TESTNET_CONFIG.deployment.usdc, a],
+    },
+    {
+      name: "withdraw",
+      call: (d, a) => d.withdraw(a, S),
+      fn: "dex_accounts_entry::withdraw_from_cross_collateral",
+      args: (a) => [S, TESTNET_CONFIG.deployment.usdc, a],
+    },
+  ];
+
+  describe.each(cases)("$name", ({ call, fn, args }) => {
+    it.each([
+      ["string", MAX],
+      ["bigint", BigInt(MAX)],
+    ])("sends a %s amount above 2^53 exactly", async (_kind, amount) => {
+      const { dex, sendTx } = makeWriteDex(false);
+      await call(dex, amount);
+      expect(sendTx.mock.calls[0][0]).toEqual({
+        function: `${PKG}::${fn}`,
+        typeArguments: [],
+        functionArguments: args(MAX),
+      });
+    });
+
+    it("sends a safe-integer number as a decimal string", async () => {
+      const { dex, sendTx } = makeWriteDex(false);
+      await call(dex, 1_000_000);
+      expect(sendTx.mock.calls[0][0]).toMatchObject({ functionArguments: args("1000000") });
+    });
+
+    it.each([2 ** 53, 1.5, -1, Number.NaN, "1e3", "0x10", "1.5", "-1"])(
+      "rejects %s before submitting",
+      async (amount) => {
+        const { dex, sendTx } = makeWriteDex(false);
+        await expect(call(dex, amount)).rejects.toThrow();
+        expect(sendTx).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  it.each([
+    ["supplyToLenderPool", (d: DecibelWriteDex) => d.supplyToLenderPool(0)],
+    ["redeemFromLenderPool", (d: DecibelWriteDex) => d.redeemFromLenderPool(0, S)],
+    ["repayUsdc", (d: DecibelWriteDex) => d.repayUsdc(0, S)],
+  ])("%s rejects a zero amount like its payload builder", async (_name, call) => {
+    const { dex, sendTx } = makeWriteDex(false);
+    await expect(call(dex)).rejects.toThrow("must be greater than zero");
+    expect(sendTx).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["depositCollateral", (d: DecibelWriteDex) => d.depositCollateral(ASSET, 0, S)],
+    ["depositCollateral (string)", (d: DecibelWriteDex) => d.depositCollateral(ASSET, "0", S)],
+    ["withdrawCollateral", (d: DecibelWriteDex) => d.withdrawCollateral(ASSET, 0, S)],
+    [
+      "withdrawCollateral (bigint)",
+      (d: DecibelWriteDex) => d.withdrawCollateral(ASSET, BigInt(0), S),
+    ],
+    ["deposit", (d: DecibelWriteDex) => d.deposit(0, S)],
+    ["withdraw", (d: DecibelWriteDex) => d.withdraw(0, S)],
+  ])("%s rejects a zero amount like its payload builder (Q3)", async (_name, call) => {
+    const { dex, sendTx } = makeWriteDex(false);
+    await expect(call(dex)).rejects.toThrow("must be greater than zero");
+    expect(sendTx).not.toHaveBeenCalled();
+  });
+
+  describe("deposit/withdraw (USDC) input validation, 0.8.2 to 0.9.0 break", () => {
+    const INTEGER_MSG = "amount must be a safe integer; pass a string or bigint above 2^53";
+
+    it.each([
+      ["deposit", (d: DecibelWriteDex, a: number) => d.deposit(a, S)],
+      ["withdraw", (d: DecibelWriteDex, a: number) => d.withdraw(a, S)],
+    ])("%s rejects a fractional number with the safe-integer message", async (_n, call) => {
+      const { dex, sendTx } = makeWriteDex(false);
+      await expect(call(dex, 1.5)).rejects.toThrow(INTEGER_MSG);
+      await expect(call(dex, 2 ** 53)).rejects.toThrow(INTEGER_MSG);
+      expect(sendTx).not.toHaveBeenCalled();
+    });
+
+    it("withdraw(-1) rejects as non-negative", async () => {
+      const { dex, sendTx } = makeWriteDex(false);
+      await expect(dex.withdraw(-1, S)).rejects.toThrow("amount must be non-negative");
+      expect(sendTx).not.toHaveBeenCalled();
+    });
+
+    it("deposit(-1) rejects as non-negative", async () => {
+      const { dex } = makeWriteDex(false);
+      await expect(dex.deposit(-1, S)).rejects.toThrow("amount must be non-negative");
+    });
+  });
+
+  it("setBorrowRescueEnabled targets the subaccount entry", async () => {
+    const { dex, sendTx } = makeWriteDex(false);
+    await dex.setBorrowRescueEnabled(false, S);
+    expect(sendTx.mock.calls[0][0]).toEqual({
+      function: `${PKG}::dex_accounts_entry::set_borrow_rescue_enabled_from_subaccount`,
+      typeArguments: [],
+      functionArguments: [S, false],
+    });
   });
 });
 

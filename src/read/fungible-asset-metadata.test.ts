@@ -49,3 +49,19 @@ describe("fungibleAssetMetadata", () => {
     });
   });
 });
+
+describe("usdcBalanceBaseUnits", () => {
+  it("returns the raw view result as an exact integer string, with no float round-trip", async () => {
+    const dex = new DecibelReadDex(TESTNET_CONFIG);
+    vi.spyOn(dex.deps.aptos, "view").mockResolvedValue(["18446744073709551615"]);
+
+    await expect(dex.usdcBalanceBaseUnits("0xa11ce")).resolves.toBe("18446744073709551615");
+  });
+
+  it("keeps a sub-micro-dust balance a plain integer string", async () => {
+    const dex = new DecibelReadDex(TESTNET_CONFIG);
+    vi.spyOn(dex.deps.aptos, "view").mockResolvedValue(["1"]);
+
+    await expect(dex.usdcBalanceBaseUnits("0xa11ce")).resolves.toBe("1");
+  });
+});
