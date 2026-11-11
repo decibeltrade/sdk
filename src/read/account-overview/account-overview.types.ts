@@ -192,7 +192,7 @@ export const AccountOverviewObjectSchema = z.object({
    * `perp_equity_balance`, since the pledged portion is already counted in
    * `perp_equity_balance` via `secondary_collateral`. Use `free_vault_equity`
    * (additive complement) for total-wealth calculations.
-   * NULL when not yet available via WebSocket.
+   * 0 when the subaccount holds no vault shares.
    */
   vault_equity: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
   /**
@@ -201,7 +201,7 @@ export const AccountOverviewObjectSchema = z.object({
    * `perp_equity_balance`: `perp_equity_balance + free_vault_equity` gives
    * total subaccount wealth with no double-count of pledged DLP.
    * Equals 0 for users who pledge all their vault shares as collateral.
-   * NULL when not yet available via WebSocket.
+   * 0 when the subaccount holds no vault shares.
    */
   free_vault_equity: z.number().nullable().optional(), // TODO: Remove optional once back-end is deployed
   /** Secondary (non-USDC) collateral held in cross margin. NULL when none exists or oracle data is unavailable. */
