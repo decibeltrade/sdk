@@ -76,28 +76,55 @@ describe("BorrowLendAccountSchema", () => {
     ).toThrow();
   });
 
-  const splitFields = [
-    "debt_principal_usdc",
-    "debt_interest_usdc",
+  const lenderFields = [
     "lender_net_supplied_usdc",
     "lender_earned_usdc",
-  ];
+    "lender_principal_usdc",
+    "lender_interest_earned_usdc",
+    "lender_realized_earned_usdc",
+    "lender_supplied_total_usdc",
+    "lender_redeemed_total_usdc",
+  ] as const;
+
+  const splitFields = ["debt_principal_usdc", "debt_interest_usdc", ...lenderFields];
 
   it("carries the debt and lender splits as raw-unit strings", () => {
     const parsed = BorrowLendAccountSchema.parse(accountBorrower);
     expect(parsed.debt_principal_usdc).toBe("40");
     expect(parsed.debt_interest_usdc).toBe("10");
-    expect(parsed.lender_net_supplied_usdc).toBe("0");
-    expect(parsed.lender_earned_usdc).toBe("0");
+    expect(parsed.lender_claim_usdc).toBe("550");
+    expect(parsed.lender_principal_usdc).toBe("500");
+    expect(parsed.lender_interest_earned_usdc).toBe("50");
+    expect(parsed.lender_realized_earned_usdc).toBe("50");
+    expect(parsed.lender_supplied_total_usdc).toBe("1000");
+    expect(parsed.lender_redeemed_total_usdc).toBe("550");
+    expect(parsed.lender_net_supplied_usdc).toBe("450");
+    expect(parsed.lender_earned_usdc).toBe("100");
+  });
+
+  it("keeps lifetime earnings equal to realized plus current interest", () => {
+    const parsed = BorrowLendAccountSchema.parse(accountBorrower);
+    const value = (field: (typeof lenderFields)[number]) => {
+      const raw = parsed[field];
+      if (raw == null) throw new Error(`${field} is null`);
+      return BigInt(raw);
+    };
+    expect(value("lender_earned_usdc")).toBe(
+      value("lender_realized_earned_usdc") + value("lender_interest_earned_usdc"),
+    );
+    expect(value("lender_earned_usdc")).toBe(
+      BigInt(parsed.lender_claim_usdc) - value("lender_net_supplied_usdc"),
+    );
   });
 
   const reasonFields = ["debt_split_unavailable", "lender_earnings_unavailable"];
 
   it("reads an unavailable split as null values with its reason", () => {
     const parsed = BorrowLendAccountSchema.parse(accountLenderOnly);
-    expect(parsed.lender_net_supplied_usdc).toBeNull();
-    expect(parsed.lender_earned_usdc).toBeNull();
-    expect(parsed.lender_earnings_unavailable).toBe("history_lagging");
+    for (const field of lenderFields) {
+      expect(parsed[field]).toBeNull();
+    }
+    expect(parsed.lender_earnings_unavailable).toBe("history_inconsistent");
     expect(parsed.debt_principal_usdc).toBe("0");
     expect(parsed.debt_split_unavailable).toBeNull();
   });
@@ -108,10 +135,7 @@ describe("BorrowLendAccountSchema", () => {
       const parsed = BorrowLendAccountSchema.parse(fixture);
       const sides = [
         [[parsed.debt_principal_usdc, parsed.debt_interest_usdc], parsed.debt_split_unavailable],
-        [
-          [parsed.lender_net_supplied_usdc, parsed.lender_earned_usdc],
-          parsed.lender_earnings_unavailable,
-        ],
+        [lenderFields.map((field) => parsed[field]), parsed.lender_earnings_unavailable],
       ] as const;
       for (const [values, reason] of sides) {
         for (const value of values) {

@@ -17,12 +17,24 @@
   "max_weighted_collateral_usdc": "80",
   "borrow_capacity_usdc": "10",
   "liquidatable": false,
-  "lending_positions": [],
-  "lender_claim_usdc": "0",
+  "lending_positions": [
+    {
+      "store_address": "0xstore",
+      "shares": "500",
+      "claim_usdc": "550",
+      "frozen": false
+    }
+  ],
+  "lender_claim_usdc": "550",
   "debt_principal_usdc": "0",
   "debt_interest_usdc": "0",
   "lender_net_supplied_usdc": null,
   "lender_earned_usdc": null,
+  "lender_principal_usdc": null,
+  "lender_interest_earned_usdc": null,
+  "lender_realized_earned_usdc": null,
+  "lender_supplied_total_usdc": null,
+  "lender_redeemed_total_usdc": null,
   "debt_split_unavailable": null,
-  "lender_earnings_unavailable": "history_lagging"
+  "lender_earnings_unavailable": "history_inconsistent"
 }

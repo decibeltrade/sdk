@@ -48,8 +48,6 @@ export const LendingPositionSchema = z.object({
 
 export const BORROW_LEND_HISTORY_UNAVAILABLE_REASONS = [
   "history_lagging",
-  "history_read_failed",
-  "history_too_long",
   "history_inconsistent",
   "interest_not_reported",
 ] as const;
@@ -88,13 +86,21 @@ export const BorrowLendAccountSchema = z.object({
   debt_principal_usdc: z.string().nullable().optional(),
   /** Unpaid interest in `debt_usdc`, split interest-first as the chain repays. */
   debt_interest_usdc: z.string().nullable().optional(),
-  /** Signed: supplied minus redeemed cash. */
+  /** Lifetime, signed: supplied total minus redeemed total. */
   lender_net_supplied_usdc: z.string().nullable().optional(),
-  /** Signed: `lender_claim_usdc` minus net supplied, including redeemed interest. */
+  /** Lifetime, signed: `lender_claim_usdc` minus net supplied; realized plus current interest. */
   lender_earned_usdc: z.string().nullable().optional(),
+  /** Average cost of the shares held now; each redeem releases it pro rata. "0" after a full exit. */
+  lender_principal_usdc: z.string().nullable().optional(),
+  /** Signed: `lender_claim_usdc` minus `lender_principal_usdc`, the current position's earnings. */
+  lender_interest_earned_usdc: z.string().nullable().optional(),
+  /** Signed: redeemed cash minus the principal those redeems released, across all positions. */
+  lender_realized_earned_usdc: z.string().nullable().optional(),
+  lender_supplied_total_usdc: z.string().nullable().optional(),
+  lender_redeemed_total_usdc: z.string().nullable().optional(),
   /** Null when both debt split fields are present; otherwise why they are null. */
   debt_split_unavailable: BorrowLendHistoryUnavailableSchema.nullable().optional(),
-  /** Null when both lender earnings fields are present; otherwise why they are null. */
+  /** Null when every lender earnings field is present; otherwise why they are null. */
   lender_earnings_unavailable: BorrowLendHistoryUnavailableSchema.nullable().optional(),
 });
 
