@@ -212,6 +212,11 @@ export const AccountOverviewObjectSchema = z.object({
    */
   cross_available_to_trade: z.number().optional(), // TODO: Remove optional once back-end is deployed
   /**
+   * `raw_free_collateral` before pending order margin, negative in deficit. The chain holds
+   * order margin back only at placement, so a fill borrows `IMR - cross_free_collateral`.
+   */
+  cross_free_collateral: z.number().optional(), // TODO: Remove optional once back-end is deployed
+  /**
    * Spot inventory + open-order reservations + trading metrics for this
    * subaccount. NULL for wallet-only owners or when spot enrichment fails.
    */
