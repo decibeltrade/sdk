@@ -8,6 +8,8 @@ export interface UserTradeHistoryRequestArgs extends BaseRequestArgs, HistoryFil
   subAddr: string;
   limit?: number;
   offset?: number;
+  /** Market address to scope the response (and its pagination) to one market. */
+  market?: string;
   /**
    * Server-side product filter (default `"perp"`). Pass `"spot"` to scope
    * the response (and its pagination) to spot, or `"all"` to omit the param

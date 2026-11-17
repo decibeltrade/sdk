@@ -14,12 +14,14 @@ export class UserTradeHistoryReader extends BaseReader {
    * @param subAddr The subaccount address of the user to get trade history for
    * @param limit The number of trades to get (default: 10)
    * @param offset The offset for pagination (default: 0)
+   * @param market Only trades on this market, when given
    * @returns The trade history for the given user
    */
   async getByAddr({
     subAddr,
     limit = 10,
     offset = 0,
+    market,
     startTimestamp,
     endTimestamp,
     sortDir,
@@ -31,6 +33,7 @@ export class UserTradeHistoryReader extends BaseReader {
       limit: limit.toString(),
       offset: offset.toString(),
     };
+    if (market !== undefined) queryParams.market = market;
     if (startTimestamp !== undefined) queryParams.start_timestamp = startTimestamp.toString();
     if (endTimestamp !== undefined) queryParams.end_timestamp = endTimestamp.toString();
     if (sortDir !== undefined) queryParams.sort_dir = sortDir;
