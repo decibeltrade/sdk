@@ -23,6 +23,8 @@ export const BorrowLendPoolSchema = z.object({
   treasury_fee_bps: bps,
   insurance_fee_bps: bps,
   indices_as_of_secs: uintString,
+  /** Supply index (RAY) at `indices_as_of_secs`; a supply mints `amount * RAY / supply_index` shares. */
+  supply_index: uintString.optional(), // TODO: Remove optional once back-end is deployed
 });
 
 export const BorrowLendCollateralSchema = z.object({
