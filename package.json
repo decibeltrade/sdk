@@ -2,7 +2,7 @@
   "dependencies": {
     "@aptos-labs/gas-station-client": "^2.0.3",
     "isomorphic-ws": "^5.0.0",
-    "ws": "^8.18.1"
+    "ws": "^8.23.0"
   },
   "devDependencies": {
     "@decibeltrade/lint-config": "2.0.0",
@@ -12,7 +12,7 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "tsx": "^4.20.5",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vitest": "^3.1.1"
+    "vitest": "^4.1.12"
   },
   "exports": {
     ".": {
