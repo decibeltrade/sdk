@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import accountBorrower from "./__fixtures__/account_borrower.json";
 import accountLenderOnly from "./__fixtures__/account_lender_only.json";
+import collateralPage from "./__fixtures__/collateral.json";
 import pool from "./__fixtures__/pool.json";
 import rateHistory from "./__fixtures__/rate_history.json";
 import {
   BORROW_LEND_HISTORY_UNAVAILABLE_REASONS,
   BorrowLendAccountSchema,
   BorrowLendActivitySchema,
+  BorrowLendCollateralPageSchema,
   BorrowLendCollateralSchema,
   BorrowLendPoolSchema,
   BorrowLendRateHistorySchema,
@@ -335,6 +337,25 @@ describe("numeric string fields", () => {
     for (const bad of ["--1", "-", "1.5", "", "-1e2"]) {
       expect(() => BorrowLendActivitySchema.parse({ ...activity, shares: bad })).toThrow();
     }
+  });
+});
+
+describe("BorrowLendCollateralPageSchema", () => {
+  it("parses a serialized collateral page with the total pledged per asset", () => {
+    const parsed = BorrowLendCollateralPageSchema.parse(collateralPage);
+    expect(parsed.items.map((item) => item.total_pledged_units)).toEqual(["1146245402506", "0"]);
+    expect(parsed.items[0]?.max_collateral_units).toBe("25000000000000");
+  });
+
+  it("accepts a collateral item from a server that predates total_pledged_units", () => {
+    const { total_pledged_units: _omit, ...legacy } = collateralPage.items[0];
+    expect(BorrowLendCollateralSchema.parse(legacy).total_pledged_units).toBeUndefined();
+  });
+
+  it.each(["-1", "1.5", "", "1e3"])("rejects total_pledged_units %j", (total) => {
+    expect(() =>
+      BorrowLendCollateralSchema.parse({ ...collateralPage.items[0], total_pledged_units: total }),
+    ).toThrow();
   });
 });
 

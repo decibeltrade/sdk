@@ -31,6 +31,8 @@ export const BorrowLendCollateralSchema = z.object({
   asset: z.string(),
   decimals,
   max_collateral_units: uintString,
+  /** Sum of every account's pledge; a pledge taking it above `max_collateral_units` is rejected on-chain. */
+  total_pledged_units: uintString.optional(), // TODO: Remove optional once back-end is deployed
   /** Null = unavailable (no market source, unknown mode, or no positive oracle price). "0" only when the source market is Delisting. */
   value_usdc_per_unit: uintString.nullable(),
   max_ltv_bps: bps,

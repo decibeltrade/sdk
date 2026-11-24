@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "asset": "0xb",
+      "decimals": 0,
+      "max_collateral_units": "25000000000000",
+      "total_pledged_units": "1146245402506",
+      "value_usdc_per_unit": "1",
+      "max_ltv_bps": 8000,
+      "target_ltv_bps": 6000,
+      "liquidation_bonus_bps": 100,
+      "liquidation_protocol_fee_bps": 0
+    },
+    {
+      "asset": "0xc",
+      "decimals": 0,
+      "max_collateral_units": "18446744073709551615",
+      "total_pledged_units": "0",
+      "value_usdc_per_unit": null,
+      "max_ltv_bps": 8000,
+      "target_ltv_bps": 6000,
+      "liquidation_bonus_bps": 100,
+      "liquidation_protocol_fee_bps": 0
+    }
+  ]
+}
